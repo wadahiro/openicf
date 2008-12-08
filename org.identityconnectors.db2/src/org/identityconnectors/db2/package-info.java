@@ -1,1 +1,0 @@
-package org.identityconnectors.db2;
