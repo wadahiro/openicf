@@ -45,10 +45,8 @@ import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
 import org.identityconnectors.patternparser.MapTransform;
-import org.identityconnectors.rw3270.ConnectionPool;
-import org.identityconnectors.rw3270.PoolableConnectionConfiguration;
+import org.identityconnectors.rw3270.RW3270Configuration;
 import org.identityconnectors.rw3270.RW3270Connection;
-import org.identityconnectors.rw3270.PoolableConnectionFactory.ConnectionInfo;
 import org.identityconnectors.test.common.TestHelpers;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -58,7 +56,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 
-public class FH3270ConnectionPoolTests {
+public class FH3270ConnectionTests {
 
     // Connector Configuration information
     //
@@ -83,29 +81,6 @@ public class FH3270ConnectionPoolTests {
         Assert.assertNotNull("SYSTEM_PASSWORD must be specified", SYSTEM_PASSWORD);
     }
 
-    @Test
-    public void testTelnetConnectionViaPool() {
-        OurConfiguration configuration = createConfiguration();
-        try {
-            ConnectionPool pool = new ConnectionPool(configuration);
-            ConnectionInfo info = (ConnectionInfo)pool.borrowObject("TODO");
-            RW3270Connection connection = info.getConnection();
-            try {
-                // Now, display a user
-                //
-                String command = "LISTUSER IDM03";
-                String line = executeCommand(connection, command);
-                Assert.assertTrue(line.contains("USER=IDM03"));
-                System.out.println(line);
-                pool.returnObject("TODO", info);
-            } finally {
-                connection.dispose();
-            }
-        } catch (Exception e) {
-            Assert.fail(e.toString());
-        }
-    }
-    
     private static MapTransform fillInPatternNodes(String parserString) throws Exception {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setValidating(false);
@@ -143,12 +118,10 @@ public class FH3270ConnectionPoolTests {
             "  <PatternNode key='OMVS.THREADSMAX' pattern='THREADSMAX= (.*?)\\s*\\n' optional='true' reset='false'/>" +
             "  <PatternNode key='OMVS.MMAPAREAMAX' pattern='MMAPAREAMAX= (.*?)\\s*\\n' optional='true' reset='false'/>" +
             "</MapTransform>";
-        
+
         OurConfiguration configuration = createConfiguration();
         try {
-            ConnectionPool pool = new ConnectionPool(configuration);
-            ConnectionInfo info = (ConnectionInfo)pool.borrowObject("TODO");
-            RW3270Connection connection = info.getConnection();
+            RW3270Connection connection = new FH3270Connection(configuration);
             try {
                 // Now, display a user's OMVS info
                 //
@@ -164,7 +137,6 @@ public class FH3270ConnectionPoolTests {
                     Assert.assertNotNull(attributes.get("TSO.USERDATA"));
                     Assert.assertNotNull(attributes.get("TSO.JOBCLASS"));
                 }
-                pool.returnObject("TODO", info);
             } finally {
                 connection.dispose();
             }
@@ -187,11 +159,9 @@ public class FH3270ConnectionPoolTests {
             "  <PatternNode key='CICS.TIMEOUT' pattern='TIMEOUT= (.*?)\\s*\\n' optional='true' reset='false'/>" +
             "  <PatternNode key='CICS.XRFSOFF' pattern='XRFSOFF= (.*?)\\s*\\n' optional='true' reset='false'/>" +
             "</MapTransform>";
-        
+
         try {
-            ConnectionPool pool = new ConnectionPool(configuration);
-            ConnectionInfo info = (ConnectionInfo)pool.borrowObject("TODO");
-            RW3270Connection connection = info.getConnection();
+            RW3270Connection connection = new FH3270Connection(configuration);
             try {
                 // Now, display a user's CICS info
                 //
@@ -202,7 +172,6 @@ public class FH3270ConnectionPoolTests {
                 Map<String, Object> attributes = (Map<String, Object>)transform.transform(line);
                 Assert.assertNotNull(attributes.get("CICS.XRFSOFF"));
                 Assert.assertTrue(attributes.get("CICS.OPCLASS") instanceof List);
-                pool.returnObject("TODO", info);
             } finally {
                 connection.dispose();
             }
@@ -210,7 +179,7 @@ public class FH3270ConnectionPoolTests {
             Assert.fail(e.toString());
         }
     }
-    
+
     @Test
     public void testRacfParser() {
         OurConfiguration configuration = createConfiguration();
@@ -250,9 +219,7 @@ public class FH3270ConnectionPoolTests {
             "  </PatternNode>\n" +
             "</MapTransform>\n";
         try {
-            ConnectionPool pool = new ConnectionPool(configuration);
-            ConnectionInfo info = (ConnectionInfo)pool.borrowObject("TODO");
-            RW3270Connection connection = info.getConnection();
+            RW3270Connection connection = new FH3270Connection(configuration);
             try {
                 // Now, display a user's CICS info
                 //
@@ -263,7 +230,6 @@ public class FH3270ConnectionPoolTests {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> attributes = (Map<String, Object>)transform.transform(line);
                 System.out.println(attributes);
-                pool.returnObject("TODO", info);
             } finally {
                 connection.dispose();
             }
@@ -271,7 +237,7 @@ public class FH3270ConnectionPoolTests {
             Assert.fail(e.toString());
         }
     }
-    
+
     @Test
     public void testTsoParser() {
         OurConfiguration configuration = createConfiguration();
@@ -291,11 +257,9 @@ public class FH3270ConnectionPoolTests {
             "  <PatternNode key='TSO.USERDATA' pattern='USERDATA= (.*?)\\s*\\n' optional='true' reset='false'/>" +
             "  <PatternNode key='TSO.COMMAND' pattern='COMMAND= (.*?)\\s*\\n' optional='true' reset='false'/>" +
             "</MapTransform>";
-        
+
         try {
-            ConnectionPool pool = new ConnectionPool(configuration);
-            ConnectionInfo info = (ConnectionInfo)pool.borrowObject("TODO");
-            RW3270Connection connection = info.getConnection();
+            RW3270Connection connection = new FH3270Connection(configuration);
             try {
                 // Now, display a user's TSO info
                 //
@@ -330,7 +294,7 @@ public class FH3270ConnectionPoolTests {
         line = line.replaceAll("(.{80})", "$1\n");
         return line;
     }
-    
+
     private OurConfiguration createConfiguration() {
         OurConfiguration config = new OurConfiguration();
         config.setHostNameOrIpAddr(HOST_NAME);
@@ -338,9 +302,9 @@ public class FH3270ConnectionPoolTests {
         config.setUseSsl(USE_SSL);
         config.setConnectScript(getLoginScript());
         config.setDisconnectScript(getLogoffScript());
-        config.setUserNames(new String[] { SYSTEM_USER });
-        config.setPasswords(new GuardedString[] { new GuardedString(SYSTEM_PASSWORD.toCharArray()) });
-        config.setPoolNames(new String[] { "TODO" });
+        config.setScriptingLanguage("GROOVY");
+        config.setUserName(SYSTEM_USER);
+        config.setPassword(new GuardedString(SYSTEM_PASSWORD.toCharArray()));
         config.setEvictionInterval(60000);
         config.setConnectionClassName(FH3270Connection.class.getName());
 
@@ -348,19 +312,19 @@ public class FH3270ConnectionPoolTests {
         Map<Locale, Map<String, String>> catalogs = new HashMap<Locale, Map<String,String>>();
         Map<String, String> foo = new HashMap<String, String>();
         for (String bundleName : new String[] { "org.identityconnectors.rw3270.Messages", "org.identityconnectors.rw3270.freehost3270.Messages" }) {
-	        ResourceBundle messagesBundle = ResourceBundle.getBundle(bundleName);
-	        Enumeration<String> enumeration = messagesBundle.getKeys();
-	        while (enumeration.hasMoreElements()) {
-	            String key = enumeration.nextElement();
-	            foo.put(key, messagesBundle.getString(key));
-	        }
+            ResourceBundle messagesBundle = ResourceBundle.getBundle(bundleName);
+            Enumeration<String> enumeration = messagesBundle.getKeys();
+            while (enumeration.hasMoreElements()) {
+                String key = enumeration.nextElement();
+                foo.put(key, messagesBundle.getString(key));
+            }
         }
         catalogs.put(Locale.getDefault(), foo);
         messages.setCatalogs(catalogs);
         config.setConnectorMessages(messages);
         return config;
     }
-    
+
     private String getLoginScript() {
         String script =
             "connection.connect();\n" +
@@ -380,10 +344,10 @@ public class FH3270ConnectionPoolTests {
     }
 
     private String getLogoffScript() {
-        String script =
-            "connection.send(\"LOGOFF[enter]\");\n" +
-            "connection.waitFor(\"=====>\", SHORT_WAIT);\n" +
-            "connection.dispose();\n";
+        String script = "connection.send(\"LOGOFF[enter]\");\n";
+//            "connection.send(\"LOGOFF[enter]\");\n" +
+//            "connection.waitFor(\"=====>\", SHORT_WAIT);\n" +
+//            "connection.dispose();\n";
         return script;
     }
 
@@ -403,15 +367,15 @@ public class FH3270ConnectionPoolTests {
             return objects.size();
         }
     }
-    
-    public static class OurConfiguration extends AbstractConfiguration implements PoolableConnectionConfiguration {
+
+    public static class OurConfiguration extends AbstractConfiguration implements RW3270Configuration {
         private String _connectScript;
         private String _disconnectScript;
         private String _host;
         private Integer _port;
-        private GuardedString[] _passwords;
-        private String[] _poolNames;
-        private String[] _userNames;
+        private GuardedString _password;
+        private String _language;
+        private String _userName;
         private Integer _evictionInterval;
         private String _connectClass;
         private Boolean _useSsl ;
@@ -436,20 +400,16 @@ public class FH3270ConnectionPoolTests {
             return _port;
         }
 
-        public GuardedString[] getPasswords() {
-            return _passwords;
-        }
-
-        public String[] getPoolNames() {
-            return _poolNames;
+        public GuardedString getPassword() {
+            return _password;
         }
 
         public Boolean getUseSsl() {
             return _useSsl;
         }
 
-        public String[] getUserNames() {
-            return _userNames;
+        public String getUserName() {
+            return _userName;
         }
 
         public void setConnectScript(String script) {
@@ -472,40 +432,44 @@ public class FH3270ConnectionPoolTests {
             _port = port;
         }
 
-        public void setPasswords(GuardedString[] passwords) {
-            _passwords = passwords;
-        }
-
-        public void setPoolNames(String[] poolNames) {
-            _poolNames = poolNames;
+        public void setPassword(GuardedString password) {
+            _password = password;
         }
 
         public void setUseSsl(Boolean useSsl) {
             _useSsl = useSsl;
         }
 
-        public void setUserNames(String[] userNames) {
-            _userNames = userNames;
+        public void setUserName(String userName) {
+            _userName = userName;
         }
-        
+
         public Integer getEvictionInterval() {
             return _evictionInterval;
         }
-        
+
         public void setEvictionInterval(Integer interval) {
             _evictionInterval = interval;
         }
-        
+
         public void validate() {
-            
+
+        }
+
+        public String getScriptingLanguage() {
+            return _language;
+        }
+
+        public void setScriptingLanguage(String language) {
+            _language = language;
         }
     }
-    
+
     public class OurConnectorMessages implements ConnectorMessages {
         private Map<Locale, Map<String, String>> _catalogs = new HashMap<Locale, Map<String, String>>();
 
         public String format(String key, String defaultValue, Object... args) {
-        	Locale locale = CurrentLocale.isSet()?CurrentLocale.get():Locale.getDefault();        	
+            Locale locale = CurrentLocale.isSet()?CurrentLocale.get():Locale.getDefault();        	
             Map<String,String> catalog = _catalogs.get(locale);
             String message = catalog.get(key);
             MessageFormat formatter = new MessageFormat(message,locale);
