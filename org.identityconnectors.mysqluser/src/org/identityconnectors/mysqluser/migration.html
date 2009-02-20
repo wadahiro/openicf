@@ -1,0 +1,17 @@
+<html>
+	<head>
+		<title>Differences between MySQLResourceAdapter and MySQLUserConnector</title>
+	</head>
+	<body>
+		<h1>Differences between MySQLResourceAdapter and MySQLUserConnector</h1>
+		<h2>Configuration properties</h2>
+		All configuration properties are supported except the "JDBC URL Template".
+		<br/>
+		The "JDBC URL Template" is the same for all supported MySQL databases.
+		Lets set to the MySQLUserConector configuration the same values as they are in the Adapter.
+        <br/>
+        The newly supported are DataSource name and jndiProperties. 
+        <br>        
+        When new datasource is configured, the user, host, password and port could be left empty.              
+	</body>
+</html>
