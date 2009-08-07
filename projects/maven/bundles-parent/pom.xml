@@ -1,0 +1,162 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+	<groupId>org.identityconnectors</groupId>
+	<artifactId>connectors-parent</artifactId>
+	<version>1.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>bundles-parent</artifactId>
+  <name>Connector bundles parent</name>
+  <packaging>pom</packaging>
+
+   <!-- Bundles parent has different version as framework -->
+   <version>1.0-SNAPSHOT</version>
+
+  <description>This pom module is the parent for all connector bundles. It defines the dependencies on framework, buolding the connector bundle and common reporting for connectors.
+	This is not multimodule project, it does not aggregate the connectors, it is just common parent.
+  </description>
+
+  <properties>
+	<license.version>1.0-SNAPSHOT</license.version>
+	<!-- These are the properties needed in manifest file of the bundle, but now hardcoded in tests -->
+	<ConnectorBundle-FrameworkVersion>1.0</ConnectorBundle-FrameworkVersion>
+	<ConnectorBundle-Name>${project.artifactId}</ConnectorBundle-Name>
+	<ConnectorBundle-Version>${project.version}</ConnectorBundle-Version>
+	<Subversion-Revision>${buildnumber}</Subversion-Revision>
+  </properties>
+	
+
+
+  <dependencies>
+	<dependency>
+		<groupId>${identityconnectors.groupId}</groupId>
+		<artifactId>connectors-license</artifactId>
+		<version>${license.version}</version>
+		<scope>provided</scope>
+	</dependency>
+
+	<dependency>
+		<groupId>junit</groupId>
+		<artifactId>junit</artifactId>
+		<scope>test</scope>
+	</dependency>
+
+  </dependencies>
+
+  <build>
+
+       <plugins>
+	      <!-- generate buildnumber property for svn revision -->	
+	      <plugin>
+		<groupId>org.codehaus.mojo</groupId>
+		<artifactId>buildnumber-maven-plugin</artifactId>
+		<version>1.0-beta-3</version>
+		<executions>
+		  <execution>
+		    <id>set-buildnumber</id>
+		    <phase>process-classes</phase>
+		    <goals><goal>create</goal></goals>
+   	 	    <configuration>
+			  <doCheck>false</doCheck>
+			  <doUpdate>false</doUpdate>
+		    </configuration>
+		  </execution>
+		</executions>
+	      </plugin>
+
+
+	    <!-- Here we include the licenses into the jars -->   
+	    <plugin>
+		<artifactId>maven-dependency-plugin</artifactId>
+		<executions>
+			<execution>
+				<id>copy-license</id>
+				<phase>process-classes</phase>
+				<goals><goal>unpack</goal></goals>
+				<configuration>
+					<artifactItems>
+						<artifactItem>
+							<groupId>${identityconnectors.groupId}</groupId>
+							<artifactId>connectors-license</artifactId>
+						</artifactItem>
+					</artifactItems>
+					<excludes>META-INF/**</excludes>
+					<outputDirectory>${project.build.directory}/classes</outputDirectory>
+				</configuration>
+			</execution>
+		</executions>
+	      </plugin>
+
+
+	      
+	      <plugin>
+			<artifactId>maven-jar-plugin</artifactId>
+			<executions>
+                          <!-- Connector bundles need special manifest entries to be identified by framework, so configure here jar plugin -->	  				
+			  <execution>
+			   <id>default-jar</id>
+			   <phase>package</phase>
+			   <goals><goal>jar</goal></goals>
+			   <configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+						<manifestEntries>
+							<ConnectorBundle-FrameworkVersion>${ConnectorBundle-FrameworkVersion}</ConnectorBundle-FrameworkVersion>
+							<ConnectorBundle-Name>${ConnectorBundle-Name}</ConnectorBundle-Name>
+							<ConnectorBundle-Version>${ConnectorBundle-Version}</ConnectorBundle-Version>
+							<Subversion-Revision>${Subversion-Revision}</Subversion-Revision>
+						</manifestEntries>
+					</archive>
+			   </configuration>
+			  </execution>
+			  <!-- Attach also test-jar -->
+			  <execution>
+			   <id>package-test</id>
+			   <phase>package</phase>
+			   <goals><goal>test-jar</goal></goals>
+			  </execution>
+			  <!-- Attach public test config -->
+			  <execution>
+			   <id>package-testconfig</id>
+			   <phase>package</phase>
+			   <goals><goal>jar</goal></goals>
+			   <configuration>
+				<classesDirectory>${project.build.testOutputDirectory}</classesDirectory>
+				<classifier>publictestconfig</classifier>
+				<includes>
+					<include>${project.artifactId}/public/**</include>
+				</includes>
+			   </configuration>		
+			  </execution>
+		        </executions>
+
+	       </plugin>
+
+		<!-- And attach  sources -->
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-source-plugin</artifactId>
+			<executions>
+				<execution>
+					<id>attach-sources</id>
+					<phase>verify</phase>
+					<goals>
+						<goal>jar</goal>
+					</goals>
+				</execution>
+			</executions>
+	       </plugin>
+
+	</plugins>
+  </build>
+
+
+
+
+
+  
+</project>

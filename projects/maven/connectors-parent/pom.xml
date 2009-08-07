@@ -1,0 +1,162 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.identityconnectors</groupId>
+  <artifactId>connectors-parent</artifactId>
+  <name>Identity connectors parent POM</name>
+  <packaging>pom</packaging>
+  <version>1.0-SNAPSHOT</version>
+
+  <description>
+     Parent pom for identity connectors. 
+  </description>
+
+  <organization>
+	<name>SUN Microsystems</name>
+	<url>www.sun.com</url>
+  </organization>	
+
+  <url>http://IdentityConnectors.dev.java.net</url>
+  <issueManagement>
+	<system>Issue Tracker</system>
+	<url>https://identityconnectors.dev.java.net/issues/</url>
+  </issueManagement>	
+
+  <licenses>
+        <license>
+            <name>CDDLv1.0</name>
+            <url>http://IdentityConnectors.dev.java.net/legal/license.txt</url>
+            <comments>Common Development and Distribution License</comments>
+            <distribution>repo</distribution>
+        </license>
+  </licenses>
+
+  <inceptionYear>2009</inceptionYear>
+
+  <prerequisites>
+	<maven>2.2</maven>
+  </prerequisites>
+
+
+
+  <mailingLists>
+	<mailingList>
+		<name>Dev</name>
+		<post>dev@identityconnectors.dev.java.net</post>
+		<archive>https://identityconnectors.dev.java.net/servlets/SummarizeList?listName=dev</archive>
+	</mailingList>
+	<mailingList>
+		<name>Commits</name>
+		<post>commits@identityconnectors.dev.java.net</post>
+		<archive>https://identityconnectors.dev.java.net/servlets/SummarizeList?listName=commits</archive>
+	</mailingList>
+	<mailingList>
+		<name>Issues</name>
+		<post>issues@identityconnectors.dev.java.net</post>
+		<archive>https://identityconnectors.dev.java.net/servlets/SummarizeList?listName=issues</archive>
+	</mailingList>
+  </mailingLists>
+
+
+
+
+    <!-- Currently, java.net repository is terrible slow. It took 2 min to deploy simple pom project and next half hour untill it apperad public in repo for download -->
+    <!--
+    <distributionManagement>
+	<repository>
+	  <id>java.net-m2-repository</id>
+	  <url>java-net:/maven2-repository/trunk/repository/</url>
+	</repository>
+    </distributionManagement>
+    -->
+
+    <distributionManagement>
+        <repository>
+            <id>idmvm120-releases</id>
+            <name>Internal Repository</name>
+            <url>http://idmvm120.central.sun.com/artifactory/libs-releases-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>idmvm120-snapshots</id>
+            <name>idmvm120-snapshots</name>
+            <url>http://idmvm120.central.sun.com/artifactory/libs-snapshots-local</url>
+        </snapshotRepository>
+	<site>
+          <id>idmvm120</id>
+          <name>Internal site repo</name>
+          <url>http://idmvm120.central.sun.com/artifactory/libs-releases-local</url>
+        </site>
+
+    </distributionManagement>
+
+
+
+    <properties>
+        <identityconnectors.groupId>org.identityconnectors</identityconnectors.groupId>
+        <identityconnectors.svnroot>https://identityconnectors.dev.java.net/svn/identityconnectors</identityconnectors.svnroot>
+        <identityconnectors.svn.trunk.projects>${identityconnectors.svnroot}/trunk/projects</identityconnectors.svn.trunk.projects>
+	<framework.groupId>org.identityconnectors</framework.groupId>
+	<framework.artifactId>connector-framework</framework.artifactId>
+    </properties>
+
+
+
+    <scm>
+        <connection>scm:svn:${identityconnectors.svn.trunk.projects}</connection>
+	<developerConnection>scm:svn:${identityconnectors.svn.trunk.projects}</developerConnection>
+    </scm>
+
+  <dependencyManagement>
+	<dependencies>
+		<dependency>
+		    <groupId>org.codehaus.groovy</groupId>
+		    <artifactId>groovy-all</artifactId>
+		    <version>1.5.6</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.5</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+  </dependencyManagement>
+
+
+
+    <build>	
+      <!-- Specify wagon deployer for java.net -->
+      <extensions>
+        <extension>
+	  <groupId>org.jvnet.wagon-svn</groupId>
+	  <artifactId>wagon-svn</artifactId>
+	  <version>1.9</version>
+        </extension>
+      </extensions>
+
+
+      <pluginManagement>
+       <plugins>
+
+	  <plugin>
+		  <artifactId>maven-compiler-plugin</artifactId>
+		  <configuration>
+			  <source>1.5</source>
+			  <target>1.5</target>
+			  <showWarnings>false</showWarnings>
+		  </configuration>
+	  </plugin>
+
+
+       </plugins>
+
+
+      </pluginManagement>
+
+
+    </build>
+
+</project>
+
+
+

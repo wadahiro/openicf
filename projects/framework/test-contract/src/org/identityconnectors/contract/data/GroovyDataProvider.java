@@ -39,7 +39,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,7 +50,6 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.contract.data.groovy.Get;
 import org.identityconnectors.contract.data.groovy.Lazy;
 import org.identityconnectors.contract.data.groovy.Random;
-import org.identityconnectors.contract.exceptions.ContractException;
 import org.identityconnectors.contract.exceptions.ObjectNotFoundException;
 import org.identityconnectors.framework.api.APIConfiguration;
 import org.identityconnectors.framework.api.ConfigurationProperties;
@@ -142,12 +140,9 @@ public class GroovyDataProvider implements DataProvider {
     private static final int SINGLE_VALUE_MARKER = -1;
     private static final String ARRAY_MARKER = "array";
     static final String PROPERTY_SEPARATOR = ".";
-    private static final String BUILD_GROOVY = "build.groovy";
-    private static final String CONFIG = "config";
     
     /** boostrap.groovy contains default values that are returned when the property is not found */
     private static final String BOOTSTRAP_FILE_NAME = "bootstrap.groovy";
-    private static final String CONNECTORS_DIR = ".connectors";
      
     /** prefix of default values that are multi */
     public static final String MULTI_VALUE_TYPE_PREFIX = "multi";
@@ -326,58 +321,11 @@ public class GroovyDataProvider implements DataProvider {
      * 
      */
     private ConfigObject loadProjectConfigurations() {
-        /*
-         * main config object, that will contain the merged result form 2
-         * configuration files.
-         */        
-        final char FS = File.separatorChar;
-        ConfigObject co = null;
-
-        String prjName = System.getProperty("project.name");
-        File projectPath = new File(".");
-        File userHome = new File(System.getProperty("user.home"));
-        // list of filePaths to configuration files
-        List<String> configurations = new LinkedList<String>();
-        
-        // #1: ${bundle.dir}/build.groovy
-        configurations.add(projectPath.getAbsolutePath() + FS + CONFIG + FS + BUILD_GROOVY);
-
-        // determine the configuration property
-        String cfg = System.getProperty("testConfig", null);        
-        
-        if (StringUtil.isNotBlank(cfg)) {
-            // #2: ${bundle.dir}/${configuration}/build.groovy
-            configurations.add(projectPath.getAbsolutePath() + FS + CONFIG + FS + cfg + FS + BUILD_GROOVY);
-        }        
-        
-        if (StringUtil.isNotBlank(prjName)) {
-            
-            // #3: user-home/.connectors/connector-name/build.groovy
-            String directoryPath = userHome.getAbsolutePath() + FS + CONNECTORS_DIR + FS + prjName;
-            configurations.add(directoryPath + FS + BUILD_GROOVY);
-            
-
-            if (StringUtil.isNotBlank(cfg)) {
-                // #4: user-home/.connectors/connector-name/${configuration}/build.groovy
-                configurations.add(directoryPath + FS + cfg + FS + BUILD_GROOVY);
-            }
-        }
-
-        for (String configFile : configurations) {
-            // read the config file's contents and merge it:
-            File cnfg = new File(configFile);
-            if (cnfg.exists()) {
-                ConfigObject lowPriorityCObj = parseConfigFile(cnfg);
-                if (co != null) {
-                    co = mergeConfigObjects(co, lowPriorityCObj);
-                } else {
-                    co = lowPriorityCObj;
-                }
-            }
-        }
-
-
-        return co;
+    	String configPath = System.getProperty("connector.configPath");
+    	if(StringUtil.isNotBlank(configPath)){
+    		return GroovyConfigReader.loadResourceConfiguration(configPath, GroovyDataProvider.class.getClassLoader());
+    	}
+    	return GroovyConfigReader.loadFSConfiguration();
     }
 
     /**
@@ -388,26 +336,8 @@ public class GroovyDataProvider implements DataProvider {
      * @param highPriorityCO
      * @return the merged version of two config objects.
      */
-    static ConfigObject mergeConfigObjects(ConfigObject lowPriorityCO,
-            ConfigObject highPriorityCO) {
-        return (ConfigObject) lowPriorityCO.merge(highPriorityCO);
-    }
-
-    /**
-     * parse the groovy config file
-     * 
-     * @param path
-     * @return
-     */
-    private ConfigObject parseConfigFile(File file) {
-        try {
-            // parse the configuration file once
-            URL url = file.toURL();
-            return cs.parse(url);
-        } catch (Exception e) {
-            LOG.error("Exception thrown during parsing of config file: " + e);
-            throw ContractException.wrap(e);
-        }
+    static ConfigObject mergeConfigObjects(ConfigObject lowPriorityCO, ConfigObject highPriorityCO) {
+        return  GroovyConfigReader.mergeConfigObjects(lowPriorityCO, highPriorityCO);
     }
 
 

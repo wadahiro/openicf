@@ -1,0 +1,147 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+	<groupId>org.identityconnectors</groupId>
+	<artifactId>framework-parent</artifactId>
+	<version>1.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>connector-framework-test</artifactId>
+  <name>Framework Test</name>
+  <packaging>jar</packaging>
+
+  <build>
+    <sourceDirectory>${project.basedir}/genSrc</sourceDirectory>
+    <testSourceDirectory>${project.basedir}/src</testSourceDirectory>
+
+    <testResources>
+	  <testResource>
+		<directory>src</directory>
+		<excludes><exclude>**/*.java</exclude></excludes>
+	  </testResource>
+    </testResources>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <includes>
+		<include>**/*Test.java</include>
+		<include>**/*Tests.java</include>
+	  </includes>
+        </configuration>
+      </plugin>
+      	     <!-- Delete copied classes from framework and framework internal -->
+	     <plugin>
+		<artifactId>maven-antrun-plugin</artifactId>
+		<executions>
+			<execution>
+				<id>delete-classes-pre</id>
+				<phase>pre-site</phase>
+				<goals><goal>run</goal></goals>
+				<configuration>
+					<tasks>
+						<delete dir="${project.build.sourceDirectory}"/>
+					</tasks>
+				</configuration>
+			</execution>
+			<execution>
+				<id>delete-classes-post</id>
+				<phase>post-site</phase>
+				<goals><goal>run</goal></goals>
+				<configuration>
+					<tasks>
+						<delete dir="${project.build.sourceDirectory}"/>
+					</tasks>
+				</configuration>
+			</execution>
+		</executions>
+	     </plugin>
+             <!-- Copy classes and sources from framework and framework-internal otherwise cobertura will not see them-->
+	     <plugin>
+		<artifactId>maven-dependency-plugin</artifactId>
+		<executions>
+			<execution>
+				<id>copy-classes</id>
+				<phase>pre-site</phase>
+				<goals><goal>unpack</goal></goals>
+				<configuration>
+					<artifactItems>
+						<artifactItem>
+							<groupId>${framework.groupId}</groupId>
+							<artifactId>${framework.artifactId}</artifactId>
+							<outputDirectory>${project.build.directory}/classes</outputDirectory>
+						</artifactItem>
+						<artifactItem>
+							<groupId>${framework.groupId}</groupId>
+							<artifactId>connector-framework-internal</artifactId>
+							<outputDirectory>${project.build.directory}/classes</outputDirectory>
+						</artifactItem>
+						<artifactItem>
+							<groupId>${framework.groupId}</groupId>
+							<artifactId>${framework.artifactId}</artifactId>
+							<classifier>sources</classifier>
+							<outputDirectory>${project.build.sourceDirectory}</outputDirectory>
+						</artifactItem>
+						<artifactItem>
+							<groupId>${framework.groupId}</groupId>
+							<artifactId>connector-framework-internal</artifactId>
+							<classifier>sources</classifier>
+							<outputDirectory>${project.build.sourceDirectory}</outputDirectory>
+						</artifactItem>
+					</artifactItems>
+					<excludes>META-INF/**</excludes>
+				</configuration>
+			</execution>
+		</executions>
+	      </plugin>
+	
+    </plugins>
+
+
+
+  </build>
+
+
+  <dependencies>
+
+	<dependency>
+		<groupId>${framework.groupId}</groupId>
+		<artifactId>${framework.artifactId}</artifactId>
+		<version>${framework.version}</version>
+	</dependency>
+
+	<dependency>
+		<groupId>${framework.groupId}</groupId>
+		<artifactId>connector-test-common</artifactId>
+		<version>${project.version}</version>
+	</dependency>
+
+	<dependency>
+		<groupId>${framework.groupId}</groupId>
+		<artifactId>connector-framework-internal</artifactId>
+		<version>${project.version}</version>
+	</dependency>
+
+   </dependencies>
+
+  <reporting>
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>cobertura-maven-plugin</artifactId>
+      </plugin>
+
+    </plugins>
+  </reporting>
+
+
+</project>

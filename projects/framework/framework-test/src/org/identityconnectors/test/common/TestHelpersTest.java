@@ -36,7 +36,7 @@ public class TestHelpersTest {
 
     @Test
     public void testLoadGroovyConfigFileIssue393() {
-        Map<?, ?> props = TestHelpers.loadGroovyConfigFile(TestHelpersTest.class.getResource("properties.groovy"));
+        Map<?, ?> props = TestConfigurationReader. loadGroovyConfigFile(TestHelpersTest.class.getResource("properties.groovy"));
         assertEquals(Integer.class, props.get("prop.integerclass"));
     }
 

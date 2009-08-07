@@ -22,19 +22,13 @@
  */
 package org.identityconnectors.test.common;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Map.Entry;
 
-import org.identityconnectors.common.IOUtil;
 import org.identityconnectors.common.StringUtil;
-import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.api.APIConfiguration;
 import org.identityconnectors.framework.api.operations.SearchApiOp;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
@@ -54,7 +48,6 @@ import org.identityconnectors.test.common.spi.TestHelpersSpi;
  */
 public final class TestHelpers {
 
-    private static final Log LOG = Log.getLog(TestHelpers.class);
     private static final Object LOCK = new Object();
 
     private TestHelpers() {
@@ -198,13 +191,11 @@ public final class TestHelpers {
         return _instance;
     }
 
-    /**
-     * Load properties in the following order to black box testing.
-     */
-    private static Map<?, ?> _properties;
-    public static final String GLOBAL_PROPS = "connectors.properties";
-    public static final String BUNDLE_PROPS = "build.properties";
-
+    /** Properties read from filesystem when project.name is set */
+    private static Map<?, ?> _fsProperties;
+    /** Properties per connector class */
+    private static Map<Class<? extends Connector>,Map<?,?>> _perConnectorProperties = new HashMap<Class<? extends Connector>, Map<?,?>>();
+    private static Class<? extends Connector> _discoveredImpl;
     /**
      * Loads the properties files just like the connector 'build' environment
      * the only exception is properties in the 'global' file are filtered for
@@ -218,7 +209,24 @@ public final class TestHelpers {
      */
     public static String getProperty(String name, String def) {
         // attempt to find the property..
-        return getProperties().getProperty(name, def);
+        Map<?,?> properties = getPropertiesInternal();
+        Object value = properties.get(name);
+        if(value == null){
+        	return def;
+        }
+        //User wanted String, so give him string
+        return (String) value;
+    }
+    
+    public static String getProperty(Class<? extends Connector> clazz, String name, String def) {
+        // attempt to find the property..
+        Map<?,?> properties = getPropertiesInternal(clazz);
+        Object value = properties.get(name);
+        if(value == null){
+        	return def;
+        }
+        //User wanted String, so give him string
+        return (String) value;
     }
 
     /**
@@ -227,116 +235,76 @@ public final class TestHelpers {
      * those properties that prefix the project's name.
      */
     public static Properties getProperties() {
-        // make sure the properties are loaded
+    	Map<?,?> properties = getPropertiesInternal();
+    	return copyProperties(properties);
+    }
+    
+    public static Properties getProperties(Class<? extends Connector> clazz) {
+    	Map<?,?> properties = getPropertiesInternal(clazz);
+    	return copyProperties(properties);
+    }
+    
+    
+    private static Map<?,?> getPropertiesInternal(Class<? extends Connector> clazz){
+    	synchronized (LOCK) {
+    		Map<?,?> properties = _perConnectorProperties.get(clazz);
+    		if(properties != null){
+    			return properties;
+    		}
+    		properties = TestConfigurationReader.loadConnectorConfigurationAsResource(clazz, createConfigResourceClassLoader());
+    		_perConnectorProperties.put(clazz, properties);
+    		return properties;
+    	}
+    }
+    
+    private static Map<?,?> getPropertiesInternal(){
         synchronized (LOCK) {
-            if (_properties == null) {
-                _properties = loadProjectProperties();
-            }
+        	//Once we loaded the file system properties, return them, it means we have project.name system property
+        	if(_fsProperties != null){
+        		return _fsProperties;
+        	}
+        	//If we have discovered already one connector impl , return the properties 
+        	if(_discoveredImpl != null){
+        		return _perConnectorProperties.get(_discoveredImpl);
+        	}
+        	//If we do not have project.name, we must discover connector class
+        	if(StringUtil.isBlank(System.getProperty("project.name"))){
+        		List<Class<? extends Connector>> impls = TestConfigurationReader.resolveConnectorImplementations(createConfigResourceClassLoader());
+        		if(impls.isEmpty()){
+        			throw new ConnectorException("No connector class found");
+        		}
+        		if(impls.size() > 1){
+        			throw new ConnectorException("More than 1 connector implementation found, please call TestHelpers.getProperties(Class<? extends Connector> clazz)");
+        		}
+        		_discoveredImpl = impls.get(0);
+        		Map<?,?> properties = TestConfigurationReader.loadConnectorConfigurationAsResource(_discoveredImpl, createConfigResourceClassLoader());
+        		_perConnectorProperties.put(_discoveredImpl, properties);
+        		return properties;
+        	}
+        	else{
+        		_fsProperties = TestConfigurationReader.loadConnectorConfigurationFromFS();
+        		return _fsProperties;
+        	}
         }
-        // create a new properties object so it can't be modified.
-        Properties ret = new Properties();
-        for (Entry<?, ?> entry : _properties.entrySet()) {
+    }
+
+    
+	private static Properties copyProperties(Map<?, ?> p) {
+		Properties ret = new Properties();
+        for (Entry<?, ?> entry : p.entrySet()) {
             Object value = entry.getValue();
             // Hashtable doesn't take null values.
             if (value != null) {
                 ret.put(entry.getKey(), value.toString());
             }
         }
-        return ret;
-    }
+		return ret;
+	}
+	
+	private static ClassLoader createConfigResourceClassLoader(){
+		return TestHelpers.class.getClassLoader();
+	}
 
-    private static Map<?, ?> loadProjectProperties() {
-        final String ERR = "Unable to load optional properties file: {0}";
-        final String GERR = "Unable to load configuration groovy file: {0}";
-        final String BERR = "Unable to load bundle properties file: {0}";
-        final char FS = File.separatorChar;
-        final String CONNECTORS_DIR = System.getProperty("user.home") + FS + ".connectors";
-        final String CONFIG_DIR = (new File(".")).getAbsolutePath() + FS + "config";
-        final String BUILD_GROOVY = "build.groovy";
-        Map<?, ?> props = null;
-        Map<Object, Object> ret = new HashMap<Object, Object>();
-        String fName = null;
-
-        // load global properties (if present)
-        try {
-            fName = CONNECTORS_DIR + FS + GLOBAL_PROPS;
-            props = IOUtil.loadPropertiesFile(fName);
-            ret.putAll(props);
-        } catch (IOException e) {
-            LOG.info(ERR, fName);
-        }
-
-        //load the private bundle properties file (if present)
-        try {
-            props = IOUtil.loadPropertiesFile(BUNDLE_PROPS);
-            ret.putAll(props);
-        } catch (IOException e) {
-            LOG.error(BERR, BUNDLE_PROPS);
-        }
-
-        // load the project (public) configuration groovy file
-        try {
-            fName = CONFIG_DIR + FS + BUILD_GROOVY;
-            props = loadGroovyConfigFile(IOUtil.makeURL(null, fName));
-            ret.putAll(props);
-        } catch (IOException e) {
-            LOG.info(GERR, fName);
-        }
-        String cfg = System.getProperty("testConfig", null);
-
-        // load the project (public) configuration-specific configuration groovy file
-        if (StringUtil.isNotBlank(cfg) && !"default".equals(cfg)) {
-            try {
-                fName = CONFIG_DIR + FS + cfg + FS + BUILD_GROOVY;
-                props = loadGroovyConfigFile(IOUtil.makeURL(null, fName));
-                ret.putAll(props);
-            } catch (IOException e) {
-                LOG.info(GERR, fName);
-            }
-        }
-
-        String prjName = System.getProperty("project.name", null);
-        if (StringUtil.isNotBlank(prjName)) {
-            fName = null;
-            //load the private bundle configuration groovy file (if present)
-            try {
-                fName = CONNECTORS_DIR + FS + prjName + FS + BUILD_GROOVY;
-                props = loadGroovyConfigFile(IOUtil.makeURL(null, fName));
-                ret.putAll(props);
-            } catch (IOException e) {
-                LOG.info(GERR, fName);
-            }
-
-            if (StringUtil.isNotBlank(cfg) && !"default".equals(cfg)) {
-                //load the configuration-specific configuration groovy file (if present)
-                try {
-                    fName = CONNECTORS_DIR + FS + prjName + FS + cfg + FS + BUILD_GROOVY;
-                    props = loadGroovyConfigFile(IOUtil.makeURL(null, fName));
-                    ret.putAll(props);
-                } catch (IOException e) {
-                    LOG.info(GERR, fName);
-                }
-            }
-        }
-        // load the system properties
-        ret.putAll(System.getProperties());
-        return ret;
-    }
-
-    static Map<?, ?> loadGroovyConfigFile(URL url) {
-        try {
-            Class<?> slurper = Class.forName("groovy.util.ConfigSlurper");
-            Class<?> configObject = Class.forName("groovy.util.ConfigObject");
-            Object slurpInstance = slurper.newInstance();
-            Method parse = slurper.getMethod("parse", URL.class);
-            Object config = parse.invoke(slurpInstance, url);
-            Method toProps = configObject.getMethod("flatten");
-            Object result = toProps.invoke(config);
-            return (Map<?, ?>) result;
-        } catch (Exception e) {
-            LOG.error(e, "Could not load Groovy objects: {0}", e.getMessage());
-            return null;
-        }
-    }
+    
 
 }
