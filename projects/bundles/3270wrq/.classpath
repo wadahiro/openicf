@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry excluding="org/identityconnectors/rw3270/wrq/RacfWrqConnection.java" kind="src" path="src"/>
+	<classpathentry excluding="**/.svn/*" kind="src" path="src/main/java"/>
+	<classpathentry excluding="**/.svn/*" kind="src" path="src/test/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/3270ConnectionPool"/>
@@ -9,5 +10,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/PatternParser"/>
 	<classpathentry kind="var" path="USER_HOME/.connectors/3270wrq/lib/RWebSDK.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/ConnectorTestCommon-HEAD"/>
+	<classpathentry kind="lib" path="lib/expect4j-1.0.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

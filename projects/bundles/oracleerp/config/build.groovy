@@ -1,14 +1,56 @@
-import java.math.BigInteger/*  +---------------------------------------------------+
+// -- START LICENSE
+// Copyright 2008 Sun Microsystems, Inc. All rights reserved.
+// 
+// U.S. Government Rights - Commercial software. Government users 
+// are subject to the Sun Microsystems, Inc. standard license agreement
+// and applicable provisions of the FAR and its supplements.
+// 
+// Use is subject to license terms.
+// 
+// This distribution may include materials developed by third parties.
+// Sun, Sun Microsystems, the Sun logo, Java and Project Identity 
+// Connectors are trademarks or registered trademarks of Sun 
+// Microsystems, Inc. or its subsidiaries in the U.S. and other
+// countries.
+// 
+// UNIX is a registered trademark in the U.S. and other countries,
+// exclusively licensed through X/Open Company, Ltd. 
+// 
+// -----------
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+// 
+// Copyright 2008 Sun Microsystems, Inc. All rights reserved. 
+// 
+// The contents of this file are subject to the terms of the Common Development
+// and Distribution License(CDDL) (the License).  You may not use this file
+// except in  compliance with the License. 
+// 
+// You can obtain a copy of the License at
+// http://identityconnectors.dev.java.net/CDDLv1.0.html
+// See the License for the specific language governing permissions and 
+// limitations under the License.  
+// 
+// When distributing the Covered Code, include this CDDL Header Notice in each
+// file and include the License file at identityconnectors/legal/license.txt.
+// If applicable, add the following below this CDDL Header, with the fields 
+// enclosed by brackets [] replaced by your own identifying information: 
+// "Portions Copyrighted [year] [name of copyright owner]"
+// -----------
+// -- END LICENSE
+//
+
+import java.math.BigInteger
+/*  +---------------------------------------------------+
  *  ----------- Contract Tests configuration ------------
- *  +---------------------------------------------------+ 
+ *  +---------------------------------------------------+
  */
 import org.identityconnectors.contract.data.groovy.Lazy;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.contract.exceptions.ObjectNotFoundException;
 
-/* JUNIT tests configurations */  
+/* JUNIT tests configurations */
 configuration{
-    tst.driver="oracle.jdbc.driver.OracleDriver"    
+    tst.driver="oracle.jdbc.driver.OracleDriver"
     tst.url="__configureme__"
     tst.user="__configureme__"
     tst.password=new GuardedString("__configureme__".toCharArray());
@@ -20,7 +62,7 @@ configuration{
     tst.returnSobOrgAttrs=false
     tst.userActions=""
     
-    sysadm.driver="oracle.jdbc.driver.OracleDriver"    
+    sysadm.driver="oracle.jdbc.driver.OracleDriver"
     sysadm.url="__configureme__"
     sysadm.user="__configureme__"
     sysadm.password=new GuardedString("__configureme__".toCharArray());
@@ -32,30 +74,30 @@ configuration{
     sysadm.returnSobOrgAttrs=true
     sysadm.userActions=""
     
-    user.driver="oracle.jdbc.driver.OracleDriver"    
+    user.driver="oracle.jdbc.driver.OracleDriver"
     user.user="__configureme__"
     user.password=new GuardedString("__configureme__".toCharArray());
     user.host="__configureme__"
     user.database="PROD"
-    user.port="1521"    
+    user.port="1521"
 }
 
 account{
     required.__NAME__="JTU-"
-    required.__PASSWORD__="password"
+    required.__PASSWORD__= new GuardedString("password".toCharArray())
    // required.owner="CUST"
     required.start_date=stringDate(-10)
     
     all.__NAME__="JTU-"
     all.owner="CUST"
     all.session_number=0
-
+    
     all.start_date=stringDate(-10)
     all.end_date=stringDate(+10)
     all.last_logon_date=stringDate(0)
     all.description="Connector test user"
-
-    all.__PASSWORD__="password"
+    
+    all.__PASSWORD__= new GuardedString("password".toCharArray())
     all.__PASSWORD_EXPIRED__=false
     all.password_date=stringDate(0)
     
@@ -63,7 +105,7 @@ account{
     all.password_lifespan_accesses=5
     all.password_lifespan_days=30
     
-    //all.employee_id=5 
+    //all.employee_id=5
     all.employee_number=5
     all.person_fullname="Monster, Cookie"
     //all.npw_number=4
@@ -75,20 +117,19 @@ account{
     all.directResponsibilities="Cash Forecasting||Cash Management||Standard||2004-04-12||null"
     all.responsibilityKeys="Cash Forecasting||Cash Management||Standard"
     all.securingAttrs="TO_PERSON_ID||Self-Service Web Applications||114"
-        
-
+    
     modify.__NAME__="JTUM-"
-    modify.__PASSWORD__="modpasswd"
+    modify.__PASSWORD__= new GuardedString("modpasswd".toCharArray())
     modify.email_address="person1@somewhere.com"
     modify.fax="666-666-6666"
     modify.directResponsibilities=["Cash Forecasting||Cash Management||Standard||2004-04-12||2010-01-01","Purchasing Receiver||Purchasing||Standard||2004-04-12||null"]
     modify.password_accesses_left=58
     modify.password_lifespan_accesses=6
-    modify.password_lifespan_days=31    
+    modify.password_lifespan_days=31
     modify.description="New Test Description"
     modify.owner="CUST"
     modify.securingAttrs=["ICX_HR_PERSON_ID||Self-Service Web Applications||114", "TO_PERSON_ID||Self-Service Web Applications||112"]
- 
+    
     options.responsibility="Cash Forecasting"
     options.application="Cash Management"
     options.searchPattern="%_PERSON_ID"
@@ -104,17 +145,16 @@ account{
     
     enabled.__PASSWORD_EXPIRED__=false
 //   enabled.__ENABLE_DATE__=getDt(-10)
-//   enabled.__LAST_LOGIN_DATE__=getDt(0)//   enabled.__DISSABLE_DATE__=getDt(+10)
-    enabled.__ENABLE__=true        dissabled.__PASSWORD_EXPIRED__=false
-    dissabled.__ENABLE__=false}
+//   enabled.__LAST_LOGIN_DATE__=getDt(0)
+//   enabled.__DISSABLE_DATE__=getDt(+10)
+    enabled.__ENABLE__=true
+    dissabled.__PASSWORD_EXPIRED__=false
+    dissabled.__ENABLE__=false
+}
 
-
-
-
-
-/* Connector contract tests configuration */    
+/* Connector contract tests configuration */
 connector{
-    driver="oracle.jdbc.driver.OracleDriver"    
+    driver="oracle.jdbc.driver.OracleDriver"
     host="__configureme__"
     port="1521"
     database="PROD"
@@ -123,12 +163,11 @@ connector{
     accountsIncluded=""
     activeAccountsOnly=true
     auditResponsibility="System Administrator"
-    manageSecuringAttrs=false
+    manageSecuringAttrs=true
     noSchemaId=false
     returnSobOrgAttrs=false
-    userActions=""  
-  
-    /* WRONG configuration for ValidateApiOpTests */  
+    userActions=""
+    /* WRONG configuration for ValidateApiOpTests */
     i1.wrong.host=""
     i2.wrong.user=""
     i3.wrong.password=""
@@ -136,29 +175,27 @@ connector{
     i53.wrong.driver=""
 }
 
-
 testsuite {
-
     /* path to bundle jar - property 'connector-jar' is set by ant */
     bundleJar=System.getProperty("bundleJar")
     bundleName=System.getProperty("bundleName")
     bundleVersion=System.getProperty("bundleVersion")
     connectorName="org.identityconnectors.oracleerp.OracleERPConnector"
-  
+    
     Search.disable.caseinsensitive=true // skip insensitive test
-  
+    
     /* AuthenticationApiOpTests: */
     Authentication.__ACCOUNT__.username=Lazy.get("i0.Authentication.__ACCOUNT__.__NAME__")
     Authentication.__ACCOUNT__.wrong.password="__configureme__"
-  
-    /* SchemaApiOpTests: */      
+    /* SchemaApiOpTests: */
+    
     /* declared object classes */
     Schema.oclasses=[ "__ACCOUNT__", "responsibilityNames" ]
     
     /* list of attributes which contains object class "__ACCOUNT__" */
     Schema.attributes.__ACCOUNT__.oclasses=[ "__NAME__", "__PASSWORD__" ]
+    // many attributes have similar values
     
-    // many attributes have similar values                                                
     Schema.common.attribute=[
         type: java.lang.String.class,
         readable: true,
@@ -167,8 +204,8 @@ testsuite {
         required: false,
         multiValue: false,
         returnedByDefault: true
-    ]                                        
-
+    ]
+    
     Schema.nrbd.attribute=[
                              type: java.lang.String.class,
                              readable: true,
@@ -177,87 +214,104 @@ testsuite {
                              required: false,
                              multiValue: false,
                              returnedByDefault: false
-                         ]                                        
-    
+                         ]
+                         
     /* attributes of "__NAME__" */
-    Schema.__NAME__.attribute.__ACCOUNT__.oclasses=[type:"java.lang.String", readable:"true", updateable:"true", createable:"true",   
+    Schema.__NAME__.attribute.__ACCOUNT__.oclasses=[type:"java.lang.String", readable:"true", updateable:"true", createable:"true",
                                                     required:"true", multiValue:"false", returnedByDefault:"true"]
-                                                                                                            
-    /* attributes of "__PASSWORD__" */                                                        
-    Schema.__PASSWORD__.attribute.__ACCOUNT__.oclasses=[type:"org.identityconnectors.common.security.GuardedString", readable:"false",   updateable:"true", 
+    /* attributes of "__PASSWORD__" */
+    Schema.__PASSWORD__.attribute.__ACCOUNT__.oclasses=[type:"org.identityconnectors.common.security.GuardedString", readable:"false",   updateable:"true",
+    
                                                         createable:"true", required:"true", multiValue:"false", returnedByDefault:"true"]
-
-    Schema.MIDDLENAME.attribute.__ACCOUNT__.oclasses=testsuite.Schema.common.attribute         
-
+    Schema.MIDDLENAME.attribute.__ACCOUNT__.oclasses=testsuite.Schema.common.attribute
     
     /* object classes supported by operation */
     Schema.operations=[
-        GetApiOp:["__ACCOUNT__"], 
-        SchemaApiOp:["__ACCOUNT__"], 
-        ValidateApiOp:["__ACCOUNT__"], 
-        TestApiOp:["__ACCOUNT__"],   
-        CreateApiOp:["__ACCOUNT__"], 
-        SearchApiOp:["__ACCOUNT__"], 
-        DeleteApiOp:["__ACCOUNT__"], 
-        ScriptOnConnectorApiOp:["__ACCOUNT__"], 
-        UpdateApiOp:["__ACCOUNT__"],   
+        GetApiOp:["__ACCOUNT__"],
+        SchemaApiOp:["__ACCOUNT__"],
+        ValidateApiOp:["__ACCOUNT__"],
+        TestApiOp:["__ACCOUNT__"],
+        CreateApiOp:["__ACCOUNT__"],
+        SearchApiOp:["__ACCOUNT__"],
+        DeleteApiOp:["__ACCOUNT__"],
+        ScriptOnConnectorApiOp:["__ACCOUNT__"],
+        UpdateApiOp:["__ACCOUNT__"],
         AuthenticationApiOp:["__ACCOUNT__"]
      ]
-    
-
+     
 //  Connector WRONG configuration for ValidateApiOpTests
   Validate.invalidConfig = [
-     [ host : "" ], 
+     [ host : "" ],
      [ login : "" ],
      [ password : "" ],
      [ databaseName : "" ],
      [ driver : "" ]
   ]
-
+  
 //  Connector WRONG configuration for TestApiOpTests
   Test.invalidConfig = [
      [ password : "NonExistingPassword_foo_bar_boo" ]
   ]
 }
-__NAME__="CTU-" + Lazy.random("AAAAAA######")__PASSWORD__="password"
-owner="CUST"
-session_number=0
 
-start_date=stringDate(-10)
-end_date=stringDate(+10)
-last_logon_date=stringDate(0)
-description="Connector test user"
+         __NAME__="CTU-" + Lazy.random("AAAAAA######")
+         __PASSWORD__= new GuardedString("password".toCharArray())
+modified.__PASSWORD__= new GuardedString("modpasswd".toCharArray())
+         owner="CUST"
+         session_number=0
 
-password_date=stringDate(0)
+         start_date=stringDate(-10)
+modified.start_date=stringDate(-99)
+         end_date=stringDate(+10)
+modified.end_date=stringDate(+99)
+         last_logon_date=stringDate(0)
+         description="Connector test user"
+modified.description="Connector test user mod"
 
-password_accesses_left=56
-password_lifespan_accesses=5
-password_lifespan_days=30
+         password_date=stringDate(0)
 
-employee_id=empty()
-employee_number=5
-person_fullname="Monster, Cookie"person_party_id=3044
-npw_number=empty()
-email_address="person@somewhere.com"
-fax="555-555-5555"
-customer_id=empty()
-supplier_id=empty()
+         password_accesses_left=56
+modified.password_accesses_left=30
+         password_lifespan_accesses=5
+modified.password_lifespan_accesses=10
+         password_lifespan_days=30
+modified.password_lifespan_days=20
 
-directResponsibilities="Cash Forecasting||Cash Management||Standard||2004-04-12||null"
-responsibilityKeys="Cash Forecasting||Cash Management||Standard"
-securingAttrs="TO_PERSON_ID||Self-Service Web Applications||114"
+         employee_id=empty()
+         employee_number=5
+         person_fullname="Monster, Cookie"
+         person_party_id=3044
+         npw_number=empty()
+         email_address="person@somewhere.com"
+modified.email_address="person1@somewhere.com"
+         fax="555-555-5555"
+modified.fax="666-666-6666"
+         customer_id=empty()
+         supplier_id=empty()
 
+         directResponsibilities=["Cash Forecasting||Cash Management||Standard||2004-04-12||null"]
+modified.directResponsibilities=["Cash Forecasting||Cash Management||Standard||2004-04-12||2010-01-01","Purchasing Receiver||Purchasing||Standard||2004-04-12||null"]             
+         responsibilityKeys=["Cash Forecasting||Cash Management"]
+modified.responsibilityKeys=["Cash Forecasting||Cash Management","Purchasing Receiver||Purchasing"]
+         securingAttrs=["TO_PERSON_ID||Self-Service Web Applications||114"]
+modified.securingAttrs=["ICX_HR_PERSON_ID||Self-Service Web Applications||114", "TO_PERSON_ID||Self-Service Web Applications||112"]
+
+
+/* Define tests functions */
 def currentTimeMillis(){
     return System.currentTimeMillis()
 }
 
 def stringDate( dife ){
     return new java.sql.Timestamp(System.currentTimeMillis() + dife*24*3600000 ).toString()
-}    
+}
 
-def getDt( dife ){    Calendar cal = Calendar.getInstance()    cal.setTimeInMillis(System.currentTimeMillis())    cal.add(Calendar.DAY_OF_MONTH, dife)   
+def getDt( dife ){
+    Calendar cal = Calendar.getInstance()
+    cal.setTimeInMillis(System.currentTimeMillis())
+    cal.add(Calendar.DAY_OF_MONTH, dife)
     return cal.getTimeInMillis()
-}  
+}
 
 def empty() {
     return new ObjectNotFoundException()
