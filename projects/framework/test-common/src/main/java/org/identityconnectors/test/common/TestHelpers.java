@@ -204,6 +204,9 @@ public final class TestHelpers {
     private static Map<?, ?> _properties;
     public static final String GLOBAL_PROPS = "connectors.properties";
     public static final String BUNDLE_PROPS = "build.properties";
+    
+    private static final Map<String, PropertyBag> bags = new HashMap<String, PropertyBag>();
+
 
     /**
      * Loads the properties files just like the connector 'build' environment
@@ -215,7 +218,9 @@ public final class TestHelpers {
      * @param def
      *            default value to return if the key does not exist
      * @return def if key is not preset return the default.
+     * @deprecated Replaced by {@link #getProperties(Class)}   
      */
+    @Deprecated
     public static String getProperty(String name, String def) {
         // attempt to find the property..
         return getProperties().getProperty(name, def);
@@ -225,7 +230,9 @@ public final class TestHelpers {
      * Loads the properties files just like the connector 'build' environment
      * the only exception is properties in the 'global' file are filtered for
      * those properties that prefix the project's name.
+     * @deprecated Replaced by {@link #getProperties(Class)}
      */
+    @Deprecated
     public static Properties getProperties() {
         // make sure the properties are loaded
         synchronized (LOCK) {
@@ -322,21 +329,81 @@ public final class TestHelpers {
         ret.putAll(System.getProperties());
         return ret;
     }
+    
+	/**
+	 * Load Property bag for connector class
+	 * @param clazz Connector class
+	 * @return Bag of properties for connector
+	 */
+    public static PropertyBag getProperties(Class<? extends Connector> clazz) {
+		return getProperties(clazz, TestHelpers.class.getClassLoader());
+	}
 
-    static Map<?, ?> loadGroovyConfigFile(URL url) {
-        try {
-            Class<?> slurper = Class.forName("groovy.util.ConfigSlurper");
-            Class<?> configObject = Class.forName("groovy.util.ConfigObject");
-            Object slurpInstance = slurper.newInstance();
-            Method parse = slurper.getMethod("parse", URL.class);
-            Object config = parse.invoke(slurpInstance, url);
-            Method toProps = configObject.getMethod("flatten");
-            Object result = toProps.invoke(config);
-            return (Map<?, ?>) result;
-        } catch (Exception e) {
-            LOG.error(e, "Could not load Groovy objects: {0}", e.getMessage());
-            return null;
-        }
-    }
+	static Map<?, ?> loadGroovyConfigFile(URL url) {
+		try {
+			Class<?> slurper = Class.forName("groovy.util.ConfigSlurper");
+			Class<?> configObject = Class.forName("groovy.util.ConfigObject");
+			Object slurpInstance = slurper.newInstance();
+			Method parse = slurper.getMethod("parse", URL.class);
+			Object config = parse.invoke(slurpInstance, url);
+			Method toProps = configObject.getMethod("flatten");
+			Object result = toProps.invoke(config);
+			return (Map<?, ?>) result;
+		} catch (Exception e) {
+			LOG.error(e, "Could not load Groovy objects: {0}", e.getMessage());
+			return null;
+		}
+	}    
+
+	static PropertyBag getProperties(Class<? extends Connector> clazz, ClassLoader loader) {
+		synchronized (LOCK) {
+			PropertyBag bag = bags.get(clazz.getName());
+			if (bag == null) {
+				bag = loadConnectorConfigurationAsResource(clazz.getName(), loader);
+				bags.put(clazz.getName(), bag);
+			}
+			return bag;
+		}
+	}
+
+	static PropertyBag loadConnectorConfigurationAsResource(String prefix, ClassLoader loader) {
+		Map<String, Object> ret = new HashMap<String, Object>();
+		String cfg = System.getProperty("testConfig", null);
+		URL url = loader.getResource(prefix + "/public/build.groovy");
+		if (url != null) {
+			appendProperties(ret, loadGroovyConfigFile(url));
+		}
+		if (StringUtil.isNotBlank(cfg) && !"default".equals(cfg)) {
+			url = loader.getResource(prefix + "/public/" + cfg + "/build.groovy");
+			if (url != null) {
+				appendProperties(ret, loadGroovyConfigFile(url));
+			}
+		}
+		url = loader.getResource(prefix + "/private/build.groovy");
+		if (url != null) {
+			appendProperties(ret, loadGroovyConfigFile(url));
+		}
+		if (StringUtil.isNotBlank(cfg) && !"default".equals(cfg)) {
+			url = loader.getResource(prefix + "/private/" + cfg + "/build.groovy");
+			if (url != null) {
+				appendProperties(ret, loadGroovyConfigFile(url));
+			}
+		}
+		return new PropertyBag(ret);
+	}
+
+	static void appendProperties(Map<String, Object> ret, Map<?, ?> props) {
+		if (props != null) {
+			for (Entry<?, ?> entry : props.entrySet()) {
+				Object key = entry.getKey();
+				if (key instanceof String) {
+					ret.put((String) key, entry.getValue());
+				}
+				else{
+					throw new IllegalStateException("Entry in read properties has not string key : " + entry);
+				}
+			}
+		}
+	}
 
 }
