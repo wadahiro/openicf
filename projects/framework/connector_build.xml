@@ -207,11 +207,13 @@
 			<patternset refid="exclude.javasrc" />
 		</fileset>
 	</copy>
+	<!-- Copy files from src.main.resources to build -->
         <condition property="src.main.resources.exists">
 		<available type="dir" file="${src.main.resources}"/>
 	</condition>
 	<antcall target="copy-main-resources" inheritRefs="true" inheritAll="true"/>
     </target>
+
 
     <target name="copy-main-resources" if="src.main.resources.exists">
 	<copy todir="${build.main}">
@@ -229,6 +231,22 @@
 	    </condition>
 	    <antcall target="compile-test-internal" inheritRefs="true" inheritAll="true"/>
             <antcall target="copy-test-resources" inheritRefs="true" inheritAll="true"/>
+	    <!-- Copy public config to build -->
+	    <condition property="copy.public.config">
+		<and>
+			<isset property="connectorName"/>		
+			<available type="dir" file="${basedir}/config"/>
+		</and>
+	    </condition>
+	    <antcall target="copy-public-config" inheritRefs="true" inheritAll="true"/>
+	    <!-- Copy private config to build -->
+	    <condition property="copy.private.config">
+		<and>
+			<isset property="connectorName"/>		
+			<available type="dir" file="${user.home}/.connectors/${ant.project.name}"/>
+		</and>
+	    </condition>
+	    <antcall target="copy-private-config" inheritRefs="true" inheritAll="true"/>
     </target>	
 
     <target name="compile-test-internal" depends="-pre-compile-extra-test" if="src.test.java.exists"
@@ -255,7 +273,24 @@
 	<copy todir="${build.test}">
 		<fileset dir="${src.test.resources}"/>
 	</copy>
-    </target>		    	    		
+    </target>
+
+    <target name="copy-public-config" if="copy.public.config">
+	<copy todir="${build.test}/${connectorName}/public">
+		<fileset dir="${basedir}/config">
+			<include name="**/build.groovy"/>
+		</fileset>
+	</copy>
+    </target>
+
+    <target name="copy-private-config" if="copy.private.config">
+	<copy todir="${build.test}/${connectorName}/private">
+		<fileset dir="${user.home}/.connectors/${ant.project.name}">
+			<include name="**/build.groovy"/>
+		</fileset>
+	</copy>
+    </target>
+		    	    		
 
 
     <!--
