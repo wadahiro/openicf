@@ -31,16 +31,20 @@
 	    <artifactId>groovy-all</artifactId>
 	</dependency>
 
+	<dependency>
+		<groupId>${framework.groupId}</groupId>
+		<artifactId>testbundlev1</artifactId>
+		<version>${project.version}</version>
+		<scope>test</scope>
+	</dependency>
+
+	<dependency>
+		<groupId>${framework.groupId}</groupId>
+		<artifactId>testbundlev2</artifactId>
+		<version>${project.version}</version>
+		<scope>test</scope>
+	</dependency>
+
    </dependencies>
-
-   <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>jdepend-maven-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </reporting>
-
 
 </project>

@@ -16,7 +16,7 @@
 	   <plugin>
 		<artifactId>maven-surefire-plugin</artifactId>
 		<configuration>
-		  <skip>true</skip>
+		  <skipTests>false</skipTests>
 		</configuration>
           </plugin>
 
