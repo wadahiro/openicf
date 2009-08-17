@@ -24,6 +24,7 @@ package org.identityconnectors.solaris.command;
 
 import java.util.Set;
 
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -77,7 +78,7 @@ public class CommandUtil {
      * @param oclass the objectclass, whose attributes are scanned for matching.
      */
     public static String prepareCommand(Set<Attribute> attributes, ObjectClass oclass) {
-        StringBuffer command = new StringBuffer();
+        StringBuilder command = new StringBuilder();
 
         for (Attribute attr : attributes) {
             // skip special attributes such as __PASSWORD__ or __NAME__
@@ -86,15 +87,22 @@ public class CommandUtil {
             
             try {
                 if (oclass.is(ObjectClass.ACCOUNT_NAME)) {
-
-                    command.append(AccountAttributes.formatCommandSwitch(attr));
-                    command.append(AccountAttributesForPassword.formatCommandSwitch(attr));
+                    try {
+                        command.append(AccountAttributes.formatCommandSwitch(attr));
+                    } catch (NullPointerException npe) {
+                        try {
+                            command.append(AccountAttributesForPassword.formatCommandSwitch(attr));
+                        } catch (NullPointerException npe2) {
+                            throw ConnectorException.wrap(npe2);
+                        }
+                    }
                 } else if (oclass.is(ObjectClass.GROUP_NAME)) {
                     command.append(GroupAttributes.formatCommandSwitch(attr));
                 } else throw new IllegalArgumentException("unknown objectClass: '" + oclass.getDisplayNameKey() + "'");
             } catch (Exception ex) {
                 // OK ignoring attribute
             } // try
+            command.append(" ");
         }// for
 
         return command.toString();
