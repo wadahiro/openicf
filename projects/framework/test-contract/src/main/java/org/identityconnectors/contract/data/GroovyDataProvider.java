@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -281,7 +280,7 @@ public class GroovyDataProvider implements DataProvider {
     /**
      * Constructor for JUnit Testing purposes only. Do not use it normally.
      */
-    public GroovyDataProvider(URL configURL, String nullStr2, String null3) {
+    GroovyDataProvider(URL configURL) {
         configObject = doBootstrap();
 
         // parse the configuration file once
@@ -1212,6 +1211,7 @@ public class GroovyDataProvider implements DataProvider {
     public void dispose() {
         writeDataToFile();
         writeQueriedDumpToFile();
+        cache.clear();
     }
 }
 

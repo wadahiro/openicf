@@ -22,8 +22,6 @@
  */
 package org.identityconnectors.common.security;
 
-
-
 /**
  * Secure string implementation that solves the problems associated with
  * keeping passwords as <code>java.lang.String</code>. That is, anything 
@@ -63,7 +61,7 @@ public final class GuardedString {
         public void access(char [] clearChars);
     }
     
-    private static Encryptor _encryptor;
+    static Encryptor _encryptor;
     
     private boolean _readOnly;
     private boolean _disposed;
@@ -190,24 +188,20 @@ public final class GuardedString {
         checkNotDisposed();
         return _base64SHA1Hash.equals(hash);
     }
-    
-    
         
-    private void checkWriteable()
-    {
+    private void checkWriteable() {
         if (_readOnly) {
             throw new IllegalStateException("String is read-only");
         }
     }
-    private void checkNotDisposed()
-    {
+
+    private void checkNotDisposed() {
         if (_disposed) {
             throw new IllegalStateException("String is disposed");
         }
     }
     
-    private char [] decryptChars()
-    {
+    private char [] decryptChars() {
         byte [] clearBytes = null;
         try {
             clearBytes = decryptBytes();
@@ -218,8 +212,7 @@ public final class GuardedString {
         }
     }
     
-    private void encryptChars(char [] chars)
-    {
+    private void encryptChars(char [] chars) {
         byte [] clearBytes = null;
         try {
             clearBytes = SecurityUtil.charsToBytes(chars);
@@ -230,23 +223,23 @@ public final class GuardedString {
         }
     }
     
-    private static synchronized Encryptor getEncryptor()
-    {
-        if (_encryptor == null) 
-        {
+    private static synchronized Encryptor getEncryptor() {
+        if (_encryptor == null) {
             _encryptor = EncryptorFactory.getInstance().newRandomEncryptor();
         }
         return _encryptor;
     }
     
-    private byte [] decryptBytes()
-    {
+    static synchronized void setEncryptor(Encryptor encryptor) {
+        _encryptor = encryptor;
+    }
+    
+    private byte [] decryptBytes() {
         Encryptor encryptor = getEncryptor();
         return encryptor.decrypt(_encryptedBytes);
     }
     
-    private void encryptBytes(byte [] bytes)
-    {
+    private void encryptBytes(byte [] bytes) {
         Encryptor encryptor = getEncryptor();
         byte [] newBytes = encryptor.encrypt(bytes);
         SecurityUtil.clear(_encryptedBytes);
