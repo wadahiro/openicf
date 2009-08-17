@@ -23,7 +23,6 @@
 package org.identityconnectors.test.common;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
@@ -42,8 +41,6 @@ import java.util.Properties;
 
 import junit.framework.Assert;
 
-import org.identityconnectors.common.CollectionUtil;
-import org.identityconnectors.framework.common.objects.ConnectorMessages;
 import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
 import org.junit.Test;
@@ -54,54 +51,6 @@ public class TestHelpersTest {
 	public void testLoadGroovyConfigFileIssue393() {
 		Map<?, ?> props = TestHelpers.loadGroovyConfigFile(TestHelpersTest.class.getResource("properties.groovy"));
 		assertEquals(Integer.class, props.get("prop.integerclass"));
-	}
-
-	@Test
-	public void testFillConfiguration() {
-		TestConfiguration testConfig = new TestConfiguration();
-		// There is no "foo" property in the config bean. We want to ensure
-		// that TestHelpers.fillConfiguration() does not fail for unknown
-		// properties.
-		Map<String, ? extends Object> configData = CollectionUtil.newMap("host", "example.com", "port", 1234, "foo",
-		        "bar");
-		TestHelpers.fillConfiguration(testConfig, configData);
-
-		assertEquals("example.com", testConfig.getHost());
-		assertEquals(1234, testConfig.getPort());
-	}
-
-	public final static class TestConfiguration implements Configuration {
-
-		private String host;
-		private int port;
-
-		public ConnectorMessages getConnectorMessages() {
-			return null;
-		}
-
-		public void setConnectorMessages(ConnectorMessages messages) {
-			fail("Should not call setConnectorMessages()");
-		}
-
-		public void validate() {
-			fail("Should not call validate()");
-		}
-
-		public String getHost() {
-			return host;
-		}
-
-		public void setHost(String host) {
-			this.host = host;
-		}
-
-		public int getPort() {
-			return port;
-		}
-
-		public void setPort(int port) {
-			this.port = port;
-		}
 	}
 
 	@Test

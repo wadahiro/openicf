@@ -7,6 +7,7 @@ import java.sql.*;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.dbcommon.SQLUtil;
 import org.identityconnectors.oracle.OracleDriverConnectionInfo.Builder;
+import org.identityconnectors.test.common.PropertyBag;
 import org.identityconnectors.test.common.TestHelpers;
 import org.junit.*;
 
@@ -16,11 +17,13 @@ import org.junit.*;
  *
  */
 public class OracleSpecificsTest {
+	
+	private static final PropertyBag properties = TestHelpers.getProperties(OracleConnector.class);
     
     private Connection createThinDriverConnection(String user,GuardedString password){
-        String host = TestHelpers.getProperty("thin.host",null);
-        String port = TestHelpers.getProperty("thin.port",null);
-        String database = TestHelpers.getProperty("thin.database", null);
+        String host = properties.getStringProperty("thin.host");
+        String port = properties.getStringProperty("thin.port");
+        String database = properties.getStringProperty("thin.database");
         Connection conn = 
         	OracleSpecifics.createThinDriverConnection(new Builder().
                     setUser(user).setPassword(password).
@@ -30,21 +33,21 @@ public class OracleSpecificsTest {
     }
     
     private Connection createTestThinDriverConnection(){
-        String user = TestHelpers.getProperty("thin.user",null);
-        String passwordString = TestHelpers.getProperty("thin.password", null);
+        String user = properties.getStringProperty("thin.user");
+        String passwordString = properties.getStringProperty("thin.password");
         return createThinDriverConnection(user, new GuardedString(passwordString.toCharArray()));
     }
     
     private Connection createSystemThinDriverConnection(){
-        String user = TestHelpers.getProperty("thin.user",null);
-        String passwordString = TestHelpers.getProperty("thin.password", null);
+        String user = properties.getStringProperty("thin.user");
+        String passwordString = properties.getStringProperty("thin.password");
         return createThinDriverConnection(user, new GuardedString(passwordString.toCharArray()));
     }
     
     private Connection createOciDriverConnection(String user,GuardedString password){
-        String host = TestHelpers.getProperty("oci.host",null);
-        String port = TestHelpers.getProperty("oci.port",null);
-        String database = TestHelpers.getProperty("oci.database", null);
+        String host = properties.getStringProperty("oci.host");
+        String port = properties.getStringProperty("oci.port");
+        String database = properties.getStringProperty("oci.database");
         Connection conn = 
         	OracleSpecifics.createOciDriverConnection(new Builder().
                     setUser(user).setPassword(password).
@@ -55,15 +58,15 @@ public class OracleSpecificsTest {
     
     
     private Connection createTestOciDriverConnection(){
-        String user = TestHelpers.getProperty("oci.user",null);
-        String passwordString = TestHelpers.getProperty("oci.password", null);
+        String user = properties.getStringProperty("oci.user");
+        String passwordString = properties.getStringProperty("oci.password");
         GuardedString password = new GuardedString(passwordString.toCharArray());
         return createOciDriverConnection(user, password);
     }
     
     private Connection createSystemOciDriverConnection(){
-        String user = TestHelpers.getProperty("oci.user",null);
-        String passwordString = TestHelpers.getProperty("oci.password", null);
+        String user = properties.getStringProperty("oci.user");
+        String passwordString = properties.getStringProperty("oci.password");
         GuardedString password = new GuardedString(passwordString.toCharArray());
         return createOciDriverConnection(user, password);
     }
@@ -96,11 +99,11 @@ public class OracleSpecificsTest {
         SQLUtil.closeQuietly(conn);
         
         //try connection without host 
-        String database = TestHelpers.getProperty("thin.database",null);
-        String user = TestHelpers.getProperty("thin.user",null);
-        String password = TestHelpers.getProperty("thin.password", null);
-        String host = TestHelpers.getProperty("thin.host", null);
-        String port = TestHelpers.getProperty("thin.port", null);
+        String database = properties.getStringProperty("thin.database");
+        String user = properties.getStringProperty("thin.user");
+        String password = properties.getStringProperty("thin.password");
+        String host = properties.getStringProperty("thin.host");
+        String port = properties.getStringProperty("thin.port");
         conn = OracleSpecifics
                 .createThinDriverConnection(new Builder()
                 		.setHost(host).setPort(port)
@@ -128,9 +131,9 @@ public class OracleSpecificsTest {
         SQLUtil.closeQuietly(conn);
         
         //try connection without host 
-        String database = TestHelpers.getProperty("oci.database",null);
-        String user = TestHelpers.getProperty("oci.user",null);
-        String password = TestHelpers.getProperty("oci.password", null);
+        String database = properties.getStringProperty("oci.database");
+        String user = properties.getStringProperty("oci.user");
+        String password = properties.getStringProperty("oci.password");
         conn = OracleSpecifics
                 .createOciDriverConnection(new Builder()
                         .setDatabase(database).setUser(user).setPassword(new GuardedString(password.toCharArray())).build(), TestHelpers.createDummyMessages());
@@ -141,10 +144,10 @@ public class OracleSpecificsTest {
     /** Test creation of connection from custom driver */
     @Test
     public void testCustomDriverConnection(){
-        String user = TestHelpers.getProperty("customDriver.user", null);
-        String password = TestHelpers.getProperty("customDriver.password", null);
-        String url = TestHelpers.getProperty("customDriver.url", null);
-        String driver = TestHelpers.getProperty("customDriver.driverClassName", null);
+        String user = properties.getStringProperty("customDriver.user");
+        String password = properties.getStringProperty("customDriver.password");
+        String url = properties.getStringProperty("customDriver.url");
+        String driver = properties.getStringProperty("customDriver.driverClassName");
         Connection conn = OracleSpecifics
                 .createCustomDriverConnection(new Builder()
                         .setUser(user).setPassword(
