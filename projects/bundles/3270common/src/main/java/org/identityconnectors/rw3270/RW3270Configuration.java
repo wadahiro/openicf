@@ -22,6 +22,7 @@
  */
 package org.identityconnectors.rw3270;
 
+
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.spi.Configuration;
 
@@ -47,15 +48,15 @@ public interface RW3270Configuration extends Configuration {
      */
     public void setHostTelnetPortNumber(Integer port);
     /**
-     * Get whether SSL connection is to be used for command line interaction
-     * @return true if SSL connection is to be used for command line interaction; false otherwise
+     * Get the set of properties needed to configure the connection
+     * @return the set of properties needed to configure the connection
      */
-    public Boolean getUseSsl();
+    public String[] getConnectionProperties();
     /**
-     * Set whether SSL connection is to be used for command line interaction
-     * @param useSSL -- true if SSL connection is to be used for command line interaction; false otherwise
+     * Set the set of properties needed to configure the connection
+     * @param properties -- the set of properties needed to configure the connection
      */
-    public void setUseSsl(Boolean useSSL);
+    public void setConnectionProperties(String[] properties);
     /**
      * RW3270 connections are defined as a pair:
      * <ul>

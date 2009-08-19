@@ -330,67 +330,82 @@ public final class TestHelpers {
         return ret;
     }
     
-	/**
-	 * Load Property bag for connector class
-	 * @param clazz Connector class
-	 * @return Bag of properties for connector
-	 */
-    public static PropertyBag getProperties(Class<? extends Connector> clazz) {
-		return getProperties(clazz, TestHelpers.class.getClassLoader());
-	}
+    /**
+     * Loads Property bag for the specified class.
+     * The properties are loaded as classpath resources using the class argument as root prefix.
+     * Optional system property testConfig is used to specify another configuration path for properties.
+     * The following algorithm is used to load the properties in bag
+     * <ul>
+     *  <li><code>loader.getResource(prefix + "/public/build.groovy")</code></li>
+     *  <li><code>loader.getResource(prefix + "/public/" + cfg + "/build.groovy") </code> optionally where cfg is passed configuration</li>
+     *  <li> <code> loader.getResource(prefix + "/private/build.groovy") </<code> </li>
+     *  <li> <code >loader.getResource(prefix + "/private/" + cfg + "/build.groovy") </code> optionally where cfg is passed configuration</li>
+     * </ul>
+     * Context classloader is used to load the resources.  
+     * @param clazz Class which FQN is used as root prefix for loading of properties 
+     * @return Bag of properties for specified class and optionally passed configuration
+     * @throws IllegalStateException if context classloader is null
+     */
+    public static PropertyBag getProperties(Class<?> clazz) {
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        if(loader == null){
+            throw new IllegalStateException("Thread.currentThread().getContextClassLoader() is null, please set context ClassLoader");
+        }
+        return getProperties(clazz, loader);
+    }
 
-	static Map<?, ?> loadGroovyConfigFile(URL url) {
-		try {
-			Class<?> slurper = Class.forName("groovy.util.ConfigSlurper");
-			Class<?> configObject = Class.forName("groovy.util.ConfigObject");
-			Object slurpInstance = slurper.newInstance();
-			Method parse = slurper.getMethod("parse", URL.class);
-			Object config = parse.invoke(slurpInstance, url);
-			Method toProps = configObject.getMethod("flatten");
-			Object result = toProps.invoke(config);
-			return (Map<?, ?>) result;
-		} catch (Exception e) {
-			LOG.error(e, "Could not load Groovy objects: {0}", e.getMessage());
-			return null;
-		}
-	}    
+    static Map<?, ?> loadGroovyConfigFile(URL url) {
+        try {
+            Class<?> slurper = Class.forName("groovy.util.ConfigSlurper");
+            Class<?> configObject = Class.forName("groovy.util.ConfigObject");
+            Object slurpInstance = slurper.newInstance();
+            Method parse = slurper.getMethod("parse", URL.class);
+            Object config = parse.invoke(slurpInstance, url);
+            Method toProps = configObject.getMethod("flatten");
+            Object result = toProps.invoke(config);
+            return (Map<?, ?>) result;
+        } catch (Exception e) {
+            LOG.error(e, "Could not load Groovy objects: {0}", e.getMessage());
+            return null;
+        }
+    }
 
-	static PropertyBag getProperties(Class<? extends Connector> clazz, ClassLoader loader) {
-		synchronized (LOCK) {
-			PropertyBag bag = bags.get(clazz.getName());
-			if (bag == null) {
-				bag = loadConnectorConfigurationAsResource(clazz.getName(), loader);
-				bags.put(clazz.getName(), bag);
-			}
-			return bag;
-		}
-	}
+    static PropertyBag getProperties(Class<?> clazz, ClassLoader loader) {
+        synchronized (LOCK) {
+            PropertyBag bag = bags.get(clazz.getName());
+            if (bag == null) {
+                bag = loadConnectorConfigurationAsResource(clazz.getName(), loader);
+                bags.put(clazz.getName(), bag);
+            }
+            return bag;
+        }
+    }
 
-	static PropertyBag loadConnectorConfigurationAsResource(String prefix, ClassLoader loader) {
-		Map<String, Object> ret = new HashMap<String, Object>();
-		String cfg = System.getProperty("testConfig", null);
-		URL url = loader.getResource(prefix + "/public/build.groovy");
-		if (url != null) {
-			appendProperties(ret, loadGroovyConfigFile(url));
-		}
-		if (StringUtil.isNotBlank(cfg) && !"default".equals(cfg)) {
-			url = loader.getResource(prefix + "/public/" + cfg + "/build.groovy");
-			if (url != null) {
-				appendProperties(ret, loadGroovyConfigFile(url));
-			}
-		}
-		url = loader.getResource(prefix + "/private/build.groovy");
-		if (url != null) {
-			appendProperties(ret, loadGroovyConfigFile(url));
-		}
-		if (StringUtil.isNotBlank(cfg) && !"default".equals(cfg)) {
-			url = loader.getResource(prefix + "/private/" + cfg + "/build.groovy");
-			if (url != null) {
-				appendProperties(ret, loadGroovyConfigFile(url));
-			}
-		}
-		return new PropertyBag(ret);
-	}
+    static PropertyBag loadConnectorConfigurationAsResource(String prefix, ClassLoader loader) {
+        Map<String, Object> ret = new HashMap<String, Object>();
+        String cfg = System.getProperty("testConfig", null);
+        URL url = loader.getResource(prefix + "/public/build.groovy");
+        if (url != null) {
+            appendProperties(ret, loadGroovyConfigFile(url));
+        }
+        if (StringUtil.isNotBlank(cfg) && !"default".equals(cfg)) {
+            url = loader.getResource(prefix + "/public/" + cfg + "/build.groovy");
+            if (url != null) {
+                appendProperties(ret, loadGroovyConfigFile(url));
+            }
+        }
+        url = loader.getResource(prefix + "/private/build.groovy");
+        if (url != null) {
+            appendProperties(ret, loadGroovyConfigFile(url));
+        }
+        if (StringUtil.isNotBlank(cfg) && !"default".equals(cfg)) {
+            url = loader.getResource(prefix + "/private/" + cfg + "/build.groovy");
+            if (url != null) {
+                appendProperties(ret, loadGroovyConfigFile(url));
+            }
+        }
+        return new PropertyBag(ret);
+    }
 
 	static void appendProperties(Map<String, Object> ret, Map<?, ?> props) {
 		if (props != null) {

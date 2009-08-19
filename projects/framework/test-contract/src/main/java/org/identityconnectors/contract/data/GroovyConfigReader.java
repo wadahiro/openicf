@@ -74,8 +74,6 @@ public class GroovyConfigReader {
                 }
             }
         }
-
-
         return co;
     }
     

@@ -26,7 +26,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
-import java.util.Arrays;
 
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.security.GuardedString;
@@ -58,7 +57,7 @@ public class RacfConfiguration extends AbstractConfiguration implements RW3270Co
     private String         _connectScript;
     private String         _disconnectScript;
     private String         _connectionClassName;
-    
+    private String[]       _connectionProperties;
 
     private Boolean        _asResetToday;
     private Boolean        _asFilterUseOrSearch;
@@ -214,22 +213,6 @@ public class RacfConfiguration extends AbstractConfiguration implements RW3270Co
         return isBlank;
     }
 
-    private static class GuardedStringAccessor implements GuardedString.Accessor {
-        private char[] _array;
-        
-        public void access(char[] clearChars) {
-            _array = new char[clearChars.length];
-            System.arraycopy(clearChars, 0, _array, 0, _array.length);
-        }
-        
-        public char[] getArray() {
-            return _array;
-        }
-
-        public void clear() {
-            Arrays.fill(_array, 0, _array.length, ' ');
-        }
-    }
     /**
      * Return LDAP suffix, such as cn=foo
      * @return RACF suffix (such as sysplex)
@@ -405,6 +388,15 @@ public class RacfConfiguration extends AbstractConfiguration implements RW3270Co
         _password = password;
     }
 
+    @ConfigurationProperty(order=19, confidential=true)
+    public String[] getConnectionProperties() {
+        return _connectionProperties;
+    }
+
+    public void setConnectionProperties(String[] properties) {
+        _connectionProperties = properties;
+    }
+
     @ConfigurationProperty(order=11)
     public String[] getSegmentNames() {
         return arrayCopy(_segmentNames);
@@ -481,14 +473,6 @@ public class RacfConfiguration extends AbstractConfiguration implements RW3270Co
      */
     public void setConnectionClassName(String className) {
         _connectionClassName = className;
-    }
-
-    private <T> T[] arrayCopy(T[] array) {
-        if (array==null)
-            return null;
-        T [] result = (T[])Array.newInstance(array.getClass().getComponentType(), array.length);
-        System.arraycopy(array, 0, result, 0, result.length);
-        return result;
     }
 
     public String getScriptingLanguage() {
@@ -571,4 +555,11 @@ public class RacfConfiguration extends AbstractConfiguration implements RW3270Co
         _asDecryptorClass = decryptorClass;
     }
     
+    private <T> T[] arrayCopy(T[] array) {
+        if (array==null)
+            return null;
+        T [] result = (T[])Array.newInstance(array.getClass().getComponentType(), array.length);
+        System.arraycopy(array, 0, result, 0, result.length);
+        return result;
+    }
 }
