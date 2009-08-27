@@ -40,6 +40,7 @@
 package org.identityconnectors.googleapps;
 
 import com.google.gdata.client.appsforyourdomain.AppsForYourDomainQuery;
+import com.google.gdata.client.appsforyourdomain.AppsGroupsService;
 import com.google.gdata.client.appsforyourdomain.NicknameService;
 import com.google.gdata.client.appsforyourdomain.UserService;
 import com.google.gdata.data.Link;
@@ -48,6 +49,8 @@ import com.google.gdata.data.appsforyourdomain.Login;
 import com.google.gdata.data.appsforyourdomain.Name;
 import com.google.gdata.data.appsforyourdomain.Nickname;
 import com.google.gdata.data.appsforyourdomain.Quota;
+import com.google.gdata.data.appsforyourdomain.generic.GenericEntry;
+import com.google.gdata.data.appsforyourdomain.generic.GenericFeed;
 import com.google.gdata.data.appsforyourdomain.provisioning.NicknameEntry;
 import com.google.gdata.data.appsforyourdomain.provisioning.NicknameFeed;
 import com.google.gdata.data.appsforyourdomain.provisioning.UserEntry;
@@ -55,11 +58,13 @@ import com.google.gdata.data.appsforyourdomain.provisioning.UserFeed;
 import com.google.gdata.util.ServiceException;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 
 /**
@@ -74,40 +79,48 @@ import org.identityconnectors.framework.common.exceptions.ConnectorException;
  */
 public class GoogleAppsClient {
 
+    public final static String SERVICENAME = "identityConnectors";
     protected static final String SERVICE_VERSION = "2.0";
-  
     protected NicknameService nicknameService;
     protected UserService userService;
+    protected AppsGroupsService groupService;
     private String domainUrlBase;
-    private String  admin;
+    private String admin;
 
+
+    private Log log = Log.getLog(GoogleAppsClient.class);
     /**
      * Constructs a google apps connection object for the given domain using the
      * given admin credentials.
      *
-     * @param adminEmail An admin user's email address such as admin@domain.com
+     * @param adminLogin An admin user id WITHOYT the @doman. Example:  admin
      * @param adminPassword The admin's password
      * @param domainURL  The domain to administer - including the google https prefix 
      *      example: https://www.google.com/a/feeds/mycompany.com
+     * @param domain - the domain. Example: acme.com
      */
-    public GoogleAppsClient(String adminEmail, String adminPassword,
-            String domainURL) throws Exception {
+    public GoogleAppsClient(String adminLogin, String adminPassword,
+            String domainURL, String domain) throws Exception {
 
         this.domainUrlBase = domainURL;
         if (!domainUrlBase.endsWith("/")) {
             domainUrlBase += "/";
         }
 
-        admin = adminEmail.substring(0, adminEmail.indexOf('@'));
-        
+        admin = adminLogin;
+        String adminEmail = admin + "@" + domain;
+
         // Configure all of the different Provisioning services
-        userService = new UserService(
-                "gdata-sample-AppsForYourDomain-UserService");
+        userService = new UserService(SERVICENAME + "-UserService");
         userService.setUserCredentials(adminEmail, adminPassword);
 
-        nicknameService = new NicknameService(
-                "gdata-sample-AppsForYourDomain-NicknameService");
+        nicknameService = new NicknameService(SERVICENAME + "-NicknameService");
         nicknameService.setUserCredentials(adminEmail, adminPassword);
+
+        // todo: FIX ME - need to extract domain - 
+        groupService = new AppsGroupsService(adminEmail, adminPassword, domain,
+                SERVICENAME + "-AppsGroupService");
+
     }
 
     /**
@@ -120,11 +133,13 @@ public class GoogleAppsClient {
      * @throws IOException If an error occurs communicating with the GData
      * service.
      */
-    public UserEntry getUserEntry(String username)
-            throws AppsForYourDomainException, ServiceException, IOException {
-
-        URL retrieveUrl = new URL(domainUrlBase + "user/" + SERVICE_VERSION + "/" + username);
-        return (UserEntry) userService.getEntry(retrieveUrl, UserEntry.class);
+    public UserEntry getUserEntry(String username) {
+        try {
+            URL retrieveUrl = new URL(domainUrlBase + "user/" + SERVICE_VERSION + "/" + username);
+            return (UserEntry) userService.getEntry(retrieveUrl, UserEntry.class);
+        } catch (Exception e) {
+            throw ConnectorException.wrap(e);
+        }
     }
 
     /**
@@ -133,17 +148,13 @@ public class GoogleAppsClient {
      * todo: We need to find a less expensive call to test the connection
      * 
      */
-    public void testConnection()   {
-
+    public void testConnection() {
         // fetch the admin account to test the connection.
         // as long as the connection is valid we should not throw an exception
-   
 
         try {
-            URL retrieveUrl = new URL(domainUrlBase + "user/" + SERVICE_VERSION + "/" + admin);
-            UserEntry ue =  userService.getEntry(retrieveUrl, UserEntry.class);
-        }
-        catch(Exception e) {
+            getUserEntry(admin);
+        } catch (Exception e) {
             throw new ConnectorException("TestConnection failed. Wrapped exception ", e);
         }
     }
@@ -162,7 +173,6 @@ public class GoogleAppsClient {
      */
     private UserFeed getUserFeed()
             throws AppsForYourDomainException, ServiceException, IOException {
-
 
         URL retrieveUrl = new URL(domainUrlBase + "user/" + SERVICE_VERSION + "/");
         UserFeed allUsers = new UserFeed();
@@ -183,6 +193,38 @@ public class GoogleAppsClient {
 
     public GoogleAppsAccountIterator getIterator() {
         return new GoogleAppsAccountIterator();
+    }
+
+    public void updateGroup(String groupId, String groupName, String description, String permissions) {
+        try {
+            groupService.updateGroup(groupId, groupName, description, permissions);
+        } catch (Exception e) {
+            throw ConnectorException.wrap(e);
+        }
+    }
+
+    void addGroupOwner(String groupId, String owner) {
+        try {
+            groupService.addOwnerToGroup(groupId, owner);
+        } catch (Exception e) {
+            ConnectorException.wrap(e);
+        }
+    }
+
+    List<String> getGroupMembershipsForUser(String accountId) {
+        List<String> l = new ArrayList<String>();
+        try {
+            GenericFeed f = groupService.retrieveGroups(accountId, true);
+            List<GenericEntry> x = f.getEntries();
+            for( GenericEntry item:x) {
+                String group = item.getProperty(AppsGroupsService.APPS_PROP_GROUP_ID);
+                l.add(  item.getProperty(group) );
+            }
+        }
+        catch(Exception e) {
+            throw ConnectorException.wrap(e);
+        }
+        return l;
     }
 
     /**
@@ -296,29 +338,33 @@ public class GoogleAppsClient {
      * @throws IOException If an error occurs communicating with the GData
      * service.
      */
-    public NicknameFeed getNicknameFeed(String username)
-            throws AppsForYourDomainException, ServiceException, IOException {
-
-        URL feedUrl = new URL(domainUrlBase + "nickname/" + SERVICE_VERSION);
-        AppsForYourDomainQuery query = new AppsForYourDomainQuery(feedUrl);
-        query.setUsername(username);
-        return (NicknameFeed) nicknameService.query(query, NicknameFeed.class);
+    public NicknameFeed getNicknameFeed(String username) {
+        try {
+            URL feedUrl = new URL(domainUrlBase + "nickname/" + SERVICE_VERSION);
+            AppsForYourDomainQuery query = new AppsForYourDomainQuery(feedUrl);
+            query.setUsername(username);
+            return (NicknameFeed) nicknameService.query(query, NicknameFeed.class);
+        } catch (Exception ex) {
+            throw ConnectorException.wrap(ex);
+        }
     }
 
-    public List<String> getNicknamesAsList(String username) throws AppsForYourDomainException, ServiceException, IOException {
-
-        NicknameFeed nicknames = getNicknameFeed(username);
-
+    public List<String> getNicknamesAsList(String username) {
         List<String> nnlist = new ArrayList<String>();
-        if (nicknames != null) {
-            for (Iterator i = nicknames.getEntries().iterator(); i.hasNext();) {
-                NicknameEntry ne = (NicknameEntry) i.next();
-                Nickname nickname = ne.getNickname();
-                nnlist.add(nickname.getName());
+        try {
+            NicknameFeed nicknames = getNicknameFeed(username);
 
+            if (nicknames != null) {
+                for (Iterator i = nicknames.getEntries().iterator(); i.hasNext();) {
+                    NicknameEntry ne = (NicknameEntry) i.next();
+                    Nickname nickname = ne.getNickname();
+                    nnlist.add(nickname.getName());
+                }
             }
+            return nnlist;
+        } catch (Exception ex) {
+            throw ConnectorException.wrap(ex);
         }
-        return nnlist;
     }
 
     /**
@@ -332,23 +378,25 @@ public class GoogleAppsClient {
      * @throws IOException If an error occurs communicating with the GData
      * service.
      */
-    public NicknameEntry createNickname(String username, String nickname)
-            throws AppsForYourDomainException, ServiceException, IOException {
+    public void createNickname(String username, String nickname) {
 
+        try {
+            //System.out.println("Add nickname for " + username + " nick=" + nickname);
+            NicknameEntry entry = new NicknameEntry();
+            Nickname nicknameExtension = new Nickname();
+            nicknameExtension.setName(nickname);
+            entry.addExtension(nicknameExtension);
 
-        //System.out.println("Add nickname for " + username + " nick=" + nickname);
-        NicknameEntry entry = new NicknameEntry();
-        Nickname nicknameExtension = new Nickname();
-        nicknameExtension.setName(nickname);
-        entry.addExtension(nicknameExtension);
+            Login login = new Login();
+            login.setUserName(username);
+            entry.addExtension(login);
 
-        Login login = new Login();
-        login.setUserName(username);
-        entry.addExtension(login);
+            URL insertUrl = new URL(domainUrlBase + "nickname/" + SERVICE_VERSION);
+            NicknameEntry ne = nicknameService.insert(insertUrl, entry);
+        } catch (Exception e) {
+            throw ConnectorException.wrap(e);
+        }
 
-
-        URL insertUrl = new URL(domainUrlBase + "nickname/" + SERVICE_VERSION);
-        return (NicknameEntry) nicknameService.insert(insertUrl, entry);
     }
 
     /**
@@ -360,11 +408,13 @@ public class GoogleAppsClient {
      * @throws IOException If an error occurs communicating with the GData
      * service.
      */
-    public void deleteNickname(String nickname)
-            throws AppsForYourDomainException, ServiceException, IOException {
-
-        URL deleteUrl = new URL(domainUrlBase + "nickname/" + SERVICE_VERSION + "/" + nickname);
-        nicknameService.delete(deleteUrl);
+    public void deleteNickname(String nickname) {
+        try {
+            URL deleteUrl = new URL(domainUrlBase + "nickname/" + SERVICE_VERSION + "/" + nickname);
+            nicknameService.delete(deleteUrl);
+        } catch (Exception e) {
+            throw ConnectorException.wrap(e);
+        }
     }
 
     /**
@@ -373,16 +423,16 @@ public class GoogleAppsClient {
      * @param entry - A user entry structure that represents the user account.
      *
      * @return A UserEntry object of the newly created user.
-     * @throws AppsForYourDomainException If a Provisioning API specific occurs.
-     * @throws ServiceException If a generic GData framework error occurs.
-     * @throws IOException If an error occurs communicating with the GData
      * service.
      */
-    public UserEntry createUser(UserEntry entry)
-            throws AppsForYourDomainException, ServiceException, IOException {
-
-        URL insertUrl = new URL(domainUrlBase + "user/" + SERVICE_VERSION);
-        return (UserEntry) userService.insert(insertUrl, entry);
+    public UserEntry createUser(UserEntry entry) {
+        try {
+            URL insertUrl = new URL(domainUrlBase + "user/" + SERVICE_VERSION);
+            return (UserEntry) userService.insert(insertUrl, entry);
+        } catch (Exception e) {
+            //log.error("Got an exception trying to create a user: {0}", e.getMessage());
+            throw ConnectorException.wrap(e);
+        }
     }
 
     /**
@@ -393,15 +443,14 @@ public class GoogleAppsClient {
      * @param username - user (accountId) to update
      * @param userEntry - the new values to update
      * @return the modified UserEntry
-     * @throws com.google.gdata.data.appsforyourdomain.AppsForYourDomainException
-     * @throws com.google.gdata.util.ServiceException
-     * @throws java.io.IOException
      */
-    public UserEntry updateUser(String username, UserEntry userEntry)
-            throws AppsForYourDomainException, ServiceException, IOException {
-
-        URL updateUrl = new URL(domainUrlBase + "user/" + SERVICE_VERSION + "/" + username);
-        return (UserEntry) userService.update(updateUrl, userEntry);
+    public UserEntry updateUser(String username, UserEntry userEntry) {
+        try {
+            URL updateUrl = new URL(domainUrlBase + "user/" + SERVICE_VERSION + "/" + username);
+            return (UserEntry) userService.update(updateUrl, userEntry);
+        } catch (Exception e) {
+            throw ConnectorException.wrap(e);
+        }
     }
 
     /**
@@ -413,12 +462,14 @@ public class GoogleAppsClient {
      * @throws IOException If an error occurs communicating with the GData
      * service.
      */
-    public void deleteUser(String username)
-            throws AppsForYourDomainException, ServiceException, IOException {
-
-        URL deleteUrl = new URL(
-                domainUrlBase + "user/" + SERVICE_VERSION + "/" + username);
-        userService.delete(deleteUrl);
+    public void deleteUser(String username) {
+        try {
+            URL deleteUrl = new URL(
+                    domainUrlBase + "user/" + SERVICE_VERSION + "/" + username);
+            userService.delete(deleteUrl);
+        } catch (Exception e) {
+            throw ConnectorException.wrap(e);
+        }
 
     }
 
@@ -486,8 +537,7 @@ public class GoogleAppsClient {
 
         return userEntry;
     }
-    
-    
+
     /**
      * Convenience method to dump a userentry objet to a string for debug
      * @param ue userentry
@@ -495,19 +545,104 @@ public class GoogleAppsClient {
      */
     public static String userEntrytoString(UserEntry ue) {
         StringBuffer sb = new StringBuffer("UserEntry:");
-        
-        if( ue != null ) {
+
+        if (ue != null) {
             Login login = ue.getLogin();
-            if( login != null )
-                sb.append( "Login=" + login.getUserName());
+            if (login != null) {
+                sb.append("Login=" + login.getUserName());
+            }
             Name n = ue.getName();
-            if( n != null )
+            if (n != null) {
                 sb.append(" Name=" + n.getGivenName() + " " + n.getFamilyName());
+            }
             Quota q = ue.getQuota();
-            if( q != null )
+            if (q != null) {
                 sb.append(" quota=" + q.getLimit());
+            }
         }
         return sb.toString();
-        
+
+    }
+
+    // Group Operations
+    public Iterator getGroupIterator() {
+        try {
+            GenericFeed groupsFeed = groupService.retrieveAllGroups();
+            Iterator<GenericEntry> groupIterator = groupsFeed.getEntries().iterator();
+            return groupIterator;
+        } catch (Exception e) {
+            throw ConnectorException.wrap(e);
+        }
+    }
+
+    public GenericEntry getGroupEntry(String id) {
+        try {
+            return groupService.retrieveGroup(id);
+        } catch (Exception e) {
+            throw ConnectorException.wrap(e);
+        }
+    }
+
+    public void deleteGroup(String id) {
+        try {
+            groupService.deleteGroup(id);
+        } catch (Exception e) {
+            throw ConnectorException.wrap(e);
+        }
+    }
+
+    public void addGroupMember(String groupId, String memberId) {
+        try {
+            groupService.addMemberToGroup(groupId, memberId);
+        } catch (Exception e) {
+            throw ConnectorException.wrap(e);
+        }
+    }
+
+    public void removeGroupMember(String groupId, String memberId) {
+
+        try {
+            groupService.deleteMemberFromGroup(groupId, memberId);
+        } catch (Exception e) {
+            throw ConnectorException.wrap(e);
+        }
+    }
+
+    public void createGroup(String id, String Name, String groupDescription, String emailPermission) {
+
+        try {
+            groupService.createGroup(id, Name, groupDescription, emailPermission);
+        } catch (Exception e) {
+            throw ConnectorException.wrap(e);
+        }
+
+    }
+
+    public List<String> getMembersAsList(String id) {
+        List<String> members = new ArrayList();
+        try {
+            GenericFeed groupsFeed = groupService.retrieveAllMembers(id);
+            Iterator<GenericEntry> groupsEntryIterator = groupsFeed.getEntries().iterator();
+            while (groupsEntryIterator.hasNext()) {
+                members.add(groupsEntryIterator.next().getProperty(AppsGroupsService.APPS_PROP_GROUP_MEMBER_ID));
+            }
+        } catch (Exception e) {
+            throw ConnectorException.wrap(e);
+        }
+        return members;
+    }
+
+    public List<String> getOwnersAsList(String id) {
+        List<String> owners = new ArrayList();
+        try {
+            GenericFeed groupsFeed = groupService.retreiveGroupOwners(id);
+            Iterator<GenericEntry> groupsEntryIterator = groupsFeed.getEntries().iterator();
+            while (groupsEntryIterator.hasNext()) {
+                owners.add(groupsEntryIterator.next().getProperty(AppsGroupsService.APPS_PROP_GROUP_EMAIL));
+            }
+        } catch (Exception e) {
+            throw ConnectorException.wrap(e);
+        }
+        return owners;
     }
 }

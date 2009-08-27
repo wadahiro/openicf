@@ -54,7 +54,7 @@ final class OracleERPOperationRunScriptOnConnector extends Operation implements 
      * @param conn
      * @param cfg
      */
-    protected OracleERPOperationRunScriptOnConnector(OracleERPConnection conn, OracleERPConfiguration cfg) {
+    OracleERPOperationRunScriptOnConnector(OracleERPConnection conn, OracleERPConfiguration cfg) {
         super(conn, cfg);
     }
 
@@ -67,41 +67,38 @@ final class OracleERPOperationRunScriptOnConnector extends Operation implements 
         /*
          * Build the actionContext to pass it to the script according the documentation
          */
-        final Map<String, Object> actionContext = new HashMap<String, Object>();
         final Map<String, Object> scriptArguments = request.getScriptArguments();
+        final Map<String, Object> actionContext = new HashMap<String, Object>();
+        final Map<String, Object> inputMap = new HashMap<String, Object>();
+        final List<String> errorList = new ArrayList<String>();
+        
         Assertions.nullCheck(scriptArguments, "scriptArguments");
 
         //Name
-        final Object nameArg = scriptArguments.get(Name.NAME);
-        Assertions.nullCheck(nameArg, Name.NAME);
-        final String nameValue = ((Name) nameArg).getNameValue();
+        final Object userNameArg = scriptArguments.get(Name.NAME);
+        Assertions.nullCheck(userNameArg, Name.NAME);
+        final String userName = ((Name) userNameArg).getNameValue();
 
         //Password
         final Object pwdArg = scriptArguments.get(OperationalAttributes.PASSWORD_NAME);
-        Assertions.nullCheck(pwdArg, OperationalAttributes.PASSWORD_NAME);
-        final GuardedString password = ((GuardedString) pwdArg);
 
         //Connection
-        actionContext.put("conn", conn.getConnection()); //The real connection
-        final Object action = scriptArguments.get("operation");
-        actionContext.put("action", action); // The action is the operation name createUser/updateUser/deleteUser/disableUser/enableUser
-        final Object timing = scriptArguments.get("timing");
-        actionContext.put("timing", timing); // The timming before / after
-        final Object attributes = scriptArguments.get("attributes");
-        actionContext.put("attributes", attributes); // The attributes
-        actionContext.put("id", nameValue); // The user name
-        if (password != null) {
+        actionContext.put(CONN, getConn().getConnection()); //The real connection
+        actionContext.put(ACTION, scriptArguments.get(ACTION)); // The action is the operation name createUser/updateUser/deleteUser/disableUser/enableUser
+        actionContext.put(TIMING, scriptArguments.get(TIMING)); // The timing before / after
+        actionContext.put(ATTRIBUTES, scriptArguments.get(ATTRIBUTES)); // The attributes
+        actionContext.put(ID, userName); // The user name
+        if (pwdArg != null) {
+            final GuardedString password = ((GuardedString) pwdArg);
             password.access(new GuardedString.Accessor() {
                 public void access(char[] clearChars) {
-                    actionContext.put("password", new String(clearChars)); //The password
+                    actionContext.put(PASSWORD, new String(clearChars)); //The password
                 }
             });
         }
         actionContext.put("trace", log); //The loging
-        List<String> errorList = new ArrayList<String>();
         actionContext.put("errors", errorList); // The error list
 
-        Map<String, Object> inputMap = new HashMap<String, Object>();
         inputMap.put("actionContext", actionContext);
 
 
@@ -114,12 +111,25 @@ final class OracleERPOperationRunScriptOnConnector extends Operation implements 
         Object ret;
         try {
             ret = scripEx.execute(inputMap);
+            
+            //Go through the errors and throw first one 
+            //TODO implement the warning set return, when possible
+            StringBuilder errorBld = new StringBuilder();
+            for (String s : errorList) {
+                errorBld.append(s);
+                errorBld.append("; ");
+            }
+            //Any errors, warnings?
+            if (errorBld.length() != 0) {
+                throw new IllegalStateException(errorBld.toString());
+            }
+            //Make sure, the connection is commit
+            getConn().commit();            
         } catch (Exception e) {
             log.error(e, "error in script");
-            SQLUtil.rollbackQuietly(conn);
+            SQLUtil.rollbackQuietly(getConn());
             throw ConnectorException.wrap(e);
         }
-        conn.commit();
         return ret;
     }
 

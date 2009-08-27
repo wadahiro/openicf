@@ -22,7 +22,6 @@
  */
 package org.identityconnectors.oracleerp;
 
-import static org.identityconnectors.framework.common.objects.OperationalAttributeInfos.ENABLE;
 import static org.identityconnectors.oracleerp.OracleERPUtil.*;
 
 import java.util.EnumSet;
@@ -141,10 +140,9 @@ final class OracleERPOperationSchema extends Operation implements SchemaOp {
     /**
      * Get the Account Object Class Info
      *
-     * @param schemaBld
-     * @return The cached object class info
+     * @return objectClass {@link ObjectClassInfo} info
      */
-    public ObjectClassInfo getAccountObjectClassInfo() {
+    private ObjectClassInfo getAccountObjectClassInfo() {
 
         ObjectClassInfoBuilder ocib = new ObjectClassInfoBuilder();
         ocib.setType(ObjectClass.ACCOUNT_NAME);
@@ -155,12 +153,13 @@ final class OracleERPOperationSchema extends Operation implements SchemaOp {
         ocib.addAttributeInfo(AttributeInfoBuilder.build(OWNER, String.class, OracleERPOperationSchema.NRD));
         // name='session_number' type='string' required='false'
         ocib.addAttributeInfo(AttributeInfoBuilder.build(SESS_NUM, String.class, OracleERPOperationSchema.NCU));
+        // reset is implemented as change password
+        // name='Password',  Password is mapped to operationalAttribute
+        ocib.addAttributeInfo(OperationalAttributeInfos.PASSWORD);        
         // name='start_date' type='string' required='false'
         ocib.addAttributeInfo(AttributeInfoBuilder.build(START_DATE, String.class));
         // name='end_date' type='string' required='false'
         ocib.addAttributeInfo(AttributeInfoBuilder.build(END_DATE, String.class));
-        // name='last_logon_date' type='string' required='false'
-        ocib.addAttributeInfo(AttributeInfoBuilder.build(LAST_LOGON_DATE, String.class, OracleERPOperationSchema.NCU));
         // name='description' type='string' required='false'
         ocib.addAttributeInfo(AttributeInfoBuilder.build(DESCR, String.class));
         // name='expirePassword' type='string' required='false' is mapped to PASSWORD_EXPIRED
@@ -191,10 +190,8 @@ final class OracleERPOperationSchema extends Operation implements SchemaOp {
         ocib.addAttributeInfo(AttributeInfoBuilder.build(SUPP_ID, String.class));
         // name='person_party_id' type='string' required='false'
         ocib.addAttributeInfo(AttributeInfoBuilder.build(PERSON_PARTY_ID, String.class));
-        //user_id
-        ocib.addAttributeInfo(AttributeInfoBuilder.build(USER_ID, String.class, NCUD));
 
-        if (cfg.isNewResponsibilityViews()) {
+        if (getCfg().isNewResponsibilityViews()) {
             // name='DIRECT_RESPS' type='string' required='false'
             ocib.addAttributeInfo(AttributeInfoBuilder.build(DIRECT_RESPS, String.class, M));
             // name='INDIRECT_RESPS' type='string' required='false'
@@ -207,6 +204,7 @@ final class OracleERPOperationSchema extends Operation implements SchemaOp {
         ocib.addAttributeInfo(AttributeInfoBuilder.build(RESPKEYS, String.class, MNCU));
         // name='SEC_ATTRS' type='string' required='false'
         ocib.addAttributeInfo(AttributeInfoBuilder.build(SEC_ATTRS, String.class, M));
+        
 
         // name='userMenuNames' type='string' audit='false'
         ocib.addAttributeInfo(AttributeInfoBuilder.build(RESP_NAMES, String.class, MNCUD));
@@ -248,17 +246,18 @@ final class OracleERPOperationSchema extends Operation implements SchemaOp {
         ocib.addAttributeInfo(AttributeInfoBuilder.build(RW_FUNCTION_NAMES, String.class, MNCUD));
         // name='readWriteOnlyFunctionIds' type='string' audit='false'
         ocib.addAttributeInfo(AttributeInfoBuilder.build(RW_FUNCTION_IDS, String.class, MNCUD));
+        //user_id
+        ocib.addAttributeInfo(AttributeInfoBuilder.build(USER_ID, String.class, NCUD));
+        // name='last_logon_date' type='string' required='false'
+        ocib.addAttributeInfo(AttributeInfoBuilder.build(LAST_LOGON_DATE, String.class, OracleERPOperationSchema.NCU));
 
-        // ocib.addAttributeInfo(OperationalAttributeInfos.ENABLE_DATE);
-        // ocib.addAttributeInfo(OperationalAttributeInfos.DISABLE_DATE);
-        // ocib.addAttributeInfo(PredefinedAttributeInfos.LAST_LOGIN_DATE);
-        // ocib.addAttributeInfo(PredefinedAttributeInfos.LAST_PASSWORD_CHANGE_DATE);
+        /*ocib.addAttributeInfo(OperationalAttributeInfos.ENABLE_DATE);
+        ocib.addAttributeInfo(OperationalAttributeInfos.DISABLE_DATE);
+        ocib.addAttributeInfo(PredefinedAttributeInfos.LAST_LOGIN_DATE);
+        ocib.addAttributeInfo(PredefinedAttributeInfos.LAST_PASSWORD_CHANGE_DATE);*/
         // <Views><String>Enable</String></Views>
-        ocib.addAttributeInfo(ENABLE);
+        ocib.addAttributeInfo(OperationalAttributeInfos.ENABLE);
         ocib.addAttributeInfo(OperationalAttributeInfos.PASSWORD_EXPIRED);
-        // reset is implemented as change password
-        // name='Password',  Password is mapped to operationalAttribute
-        ocib.addAttributeInfo(OperationalAttributeInfos.PASSWORD);
 
         return ocib.build();
     }
@@ -267,10 +266,8 @@ final class OracleERPOperationSchema extends Operation implements SchemaOp {
      * The object class info
      * @return the info class
      */
-    public ObjectClassInfo getRespNamesObjectClassInfo() {
+    private ObjectClassInfo getRespNamesObjectClassInfo() {
         ObjectClassInfoBuilder ocib = new ObjectClassInfoBuilder();
-
-        ocib = new ObjectClassInfoBuilder();
         ocib.setType(RESP_NAMES_OC.getObjectClassValue());
 
         ocib.addAttributeInfo(Name.INFO);
@@ -320,11 +317,9 @@ final class OracleERPOperationSchema extends Operation implements SchemaOp {
      * The object class info
      * @return the info class
      */
-    public ObjectClassInfo getAuditorResponsibilitiesObjectClassInfo() {
-        ObjectClassInfoBuilder oc = new ObjectClassInfoBuilder();
-
+    private ObjectClassInfo getAuditorResponsibilitiesObjectClassInfo() {
         //Auditor responsibilities
-        oc = new ObjectClassInfoBuilder();
+        ObjectClassInfoBuilder oc = new ObjectClassInfoBuilder();
         oc.setType(AUDITOR_RESPS_OC.getObjectClassValue());
 
         oc.addAttributeInfo(Name.INFO);
@@ -373,10 +368,9 @@ final class OracleERPOperationSchema extends Operation implements SchemaOp {
      * The object class info
      * @return the info class
      */
-    public ObjectClassInfo getResponsibilitiesObjectClassInfo() {
-        ObjectClassInfoBuilder oc = new ObjectClassInfoBuilder();
+    private ObjectClassInfo getResponsibilitiesObjectClassInfo() {
         //Resp object class
-        oc = new ObjectClassInfoBuilder();
+        ObjectClassInfoBuilder oc = new ObjectClassInfoBuilder();
         oc.setType(RESP_OC.getObjectClassValue());
         // The Name is supported attribute
         oc.addAttributeInfo(Name.INFO);
@@ -389,11 +383,9 @@ final class OracleERPOperationSchema extends Operation implements SchemaOp {
      *
      * @return the info class
      */
-    public ObjectClassInfo getDirectResponsibilitiesObjectClassInfo() {
-        ObjectClassInfoBuilder oc = new ObjectClassInfoBuilder();
-
+    private ObjectClassInfo getDirectResponsibilitiesObjectClassInfo() {
         //Resp object class
-        oc = new ObjectClassInfoBuilder();
+        ObjectClassInfoBuilder oc = new ObjectClassInfoBuilder();
         oc.setType(DIRECT_RESP_OC.getObjectClassValue());
         // The Name is supported attribute
         oc.addAttributeInfo(Name.INFO);
@@ -406,10 +398,9 @@ final class OracleERPOperationSchema extends Operation implements SchemaOp {
      *
      * @return the info class
      */
-    public ObjectClassInfo getIndirectResponsibilitiesObjectClassInfo() {
-        ObjectClassInfoBuilder oc = new ObjectClassInfoBuilder();
+    private ObjectClassInfo getIndirectResponsibilitiesObjectClassInfo() {
         //directResponsibilities object class
-        oc = new ObjectClassInfoBuilder();
+        ObjectClassInfoBuilder oc = new ObjectClassInfoBuilder();
         oc.setType(INDIRECT_RESP_OC.getObjectClassValue());
         // The Name is supported attribute
         oc.addAttributeInfo(Name.INFO);
@@ -422,10 +413,9 @@ final class OracleERPOperationSchema extends Operation implements SchemaOp {
      *
      * @return the info class
      */
-    public ObjectClassInfo getApplicationsObjectClassInfo() {
-        ObjectClassInfoBuilder oc = new ObjectClassInfoBuilder();
+    private ObjectClassInfo getApplicationsObjectClassInfo() {
         //Applications object class
-        oc = new ObjectClassInfoBuilder();
+        ObjectClassInfoBuilder oc = new ObjectClassInfoBuilder();
         oc.setType(APPS_OC.getObjectClassValue());
         // The Name is supported attribute
         oc.addAttributeInfo(Name.INFO);
@@ -439,7 +429,7 @@ final class OracleERPOperationSchema extends Operation implements SchemaOp {
      *
      * @return the info class
      */
-    public ObjectClassInfo getSecurngGroupsObjectClassInfo() {
+    private ObjectClassInfo getSecurngGroupsObjectClassInfo() {
         //securityGroups object class
         ObjectClassInfoBuilder oc = new ObjectClassInfoBuilder();
         oc.setType(SEC_GROUPS_OC.getObjectClassValue());
@@ -454,7 +444,7 @@ final class OracleERPOperationSchema extends Operation implements SchemaOp {
      *
      * @return the info class
      */
-    public ObjectClassInfo getSecuringAttrsGroupObjectClassInfo() {
+    private ObjectClassInfo getSecuringAttrsGroupObjectClassInfo() {
         //securingAttrs object class
         ObjectClassInfoBuilder oc = new ObjectClassInfoBuilder();
         oc.setType(SEC_ATTRS_OC.getObjectClassValue());

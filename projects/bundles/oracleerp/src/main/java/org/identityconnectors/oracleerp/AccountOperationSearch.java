@@ -74,7 +74,7 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
      * @param conn
      * @param cfg
      */
-    protected AccountOperationSearch(OracleERPConnection conn, OracleERPConfiguration cfg) {
+    AccountOperationSearch(OracleERPConnection conn, OracleERPConfiguration cfg) {
         super(conn, cfg);
         respOps = new ResponsibilitiesOperations(conn, cfg);
         auditOps = new AuditorOperations(conn, cfg);
@@ -96,10 +96,15 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
         final String method = "executeQuery";
         log.info(method);
 
-        final String tblname = cfg.app() + "fnd_user";
-        final Set<AttributeInfo> ais = getAttributeInfos(cfg.getSchema(), ObjectClass.ACCOUNT_NAME);
-        final Set<String> attributesToGet = getAttributesToGet(options, ais);
-        final Set<String> readable = getReadableAttributes(getAttributeInfos(cfg.getSchema(), ObjectClass.ACCOUNT_NAME));
+        final String tblname = getCfg().app() + "fnd_user";
+        final Set<AttributeInfo> ais = getAttributeInfos(getCfg().getSchema(), ObjectClass.ACCOUNT_NAME);
+        final Set<String> attributesToGet = getAttributesToGet(options, ais, getCfg());
+        final Set<String> readable = getReadableAttributes(getAttributeInfos(getCfg().getSchema(), ObjectClass.ACCOUNT_NAME));
+        FilterWhereBuilder  whereFilter = where;
+        // Where support
+        if (whereFilter == null ) {
+            whereFilter = new FilterWhereBuilder();
+        }
 
         final Set<String> fndUserColumnNames = getColumnNamesToGet(attributesToGet);
         //We always wont to have user id and user name
@@ -109,29 +114,29 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
         fndUserColumnNames.add(PWD_ACCESSES_LEFT); // Disable date
         fndUserColumnNames.add(PWD_DATE); // Last logon date
         fndUserColumnNames.add(PWD_LIFESPAN_DAYS); // Alloved days from last logon
-
+        
         final Set<String> perPeopleColumnNames = CollectionUtil.newSet(fndUserColumnNames);
-        final String filterId = getFilterId(where);
+        final String filterId = getFilterId(whereFilter);
 
         fndUserColumnNames.retainAll(AccountOperations.FND_USER_COLS);
         perPeopleColumnNames.retainAll(AccountOperations.PER_PEOPLE_COLS);
 
         // For all user query there is no need to replace or quote anything
         final DatabaseQueryBuilder query = new DatabaseQueryBuilder(tblname, fndUserColumnNames);
-        query.setWhere(where);
+        query.setWhere(whereFilter);
         String sqlSelect = query.getSQL();
 
         // Add active accounts and the accounts included filter
-        if (StringUtil.isNotBlank(cfg.getAccountsIncluded())) {
-            sqlSelect = whereAnd(sqlSelect, cfg.getAccountsIncluded());
-        } else if (cfg.isActiveAccountsOnly()) {
+        if (StringUtil.isNotBlank(getCfg().getAccountsIncluded())) {
+            sqlSelect = whereAnd(sqlSelect, getCfg().getAccountsIncluded());
+        } else if (getCfg().isActiveAccountsOnly()) {
             sqlSelect = whereAnd(sqlSelect, ACTIVE_ACCOUNTS_ONLY_WHERE_CLAUSE);
         }
 
         ResultSet resultSet = null;
         PreparedStatement statement = null;
         try {
-            statement = conn.prepareStatement(sqlSelect, query.getParams());
+            statement = getConn().prepareStatement(sqlSelect, query.getParams());
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 AttributeMergeBuilder amb = new AttributeMergeBuilder(attributesToGet);
@@ -164,22 +169,25 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
                 bld.setName(userName);
                 bld.setUid(userName);
 
-
+                //get after user action
+                if (StringUtil.isNotBlank(getCfg().getUserAfterActionScript())) {
+                    bld = new AccountOperationGetUserAfterAction(getConn(), getCfg()).runScriptOnConnector(userName, bld);
+                }
 
                 if (!handler.handle(bld.build())) {
                     break;
                 }
             }
         } catch (Exception e) {
-            final String msg = cfg.getMessage(MSG_ACCOUNT_NOT_READ, filterId == null ? "" : filterId );
+            final String msg = getCfg().getMessage(MSG_ACCOUNT_NOT_READ, filterId == null ? "" : filterId );
             log.error(e, msg);
-            SQLUtil.rollbackQuietly(conn);
+            SQLUtil.rollbackQuietly(getConn());
             throw new ConnectorException(msg, e);
         } finally {
             SQLUtil.closeQuietly(resultSet);
             SQLUtil.closeQuietly(statement);
         }
-        conn.commit();
+        getConn().commit();
         log.info(method + " ok");
     }
 
@@ -209,38 +217,38 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
         final Date end_date = OracleERPUtil.extractDate(END_DATE, columnValues);
         //disable date
         if( end_date != null ) {
-            amb.addAttribute(AttributeBuilder.buildDisableDate(end_date));
+            amb.setAttribute(AttributeBuilder.buildDisableDate(end_date));
         }
 
         //enable date
         final Date start_date = OracleERPUtil.extractDate(START_DATE, columnValues);
         if ( start_date != null) {
-            amb.addAttribute(AttributeBuilder.buildEnableDate(start_date));
+            amb.setAttribute(AttributeBuilder.buildEnableDate(start_date));
         }
 
         //enable
         if (end_date != null && start_date != null) {
             boolean enable = dateNow.compareTo(end_date) <= 0 && dateNow.compareTo(start_date) > 0;
-            amb.addAttribute(AttributeBuilder.buildEnabled(enable));
+            amb.setAttribute(AttributeBuilder.buildEnabled(enable));
         } else if (end_date != null) {
             boolean enable = dateNow.compareTo(end_date) <= 0;
-            amb.addAttribute(AttributeBuilder.buildEnabled(enable));
+            amb.setAttribute(AttributeBuilder.buildEnabled(enable));
         } else if (start_date != null) {
             boolean enable = dateNow.compareTo(start_date) > 0;
-            amb.addAttribute(AttributeBuilder.buildEnabled(enable));
+            amb.setAttribute(AttributeBuilder.buildEnabled(enable));
         } else {
             //bld.addAttribute(AttributeBuilder.buildEnabled(false));
         }
 
         final Date lastLogonDate = OracleERPUtil.extractDate(LAST_LOGON_DATE, columnValues);
         if ( lastLogonDate != null ) {
-            amb.addAttribute(AttributeBuilder.buildLastLoginDate(lastLogonDate));
+            amb.setAttribute(AttributeBuilder.buildLastLoginDate(lastLogonDate));
         }
 
         // password expired
         final Date pwdDate = OracleERPUtil.extractDate(PWD_DATE, columnValues);
         if( pwdDate != null ) {
-            amb.addAttribute(AttributeBuilder.buildLastPasswordChangeDate(pwdDate));
+            amb.setAttribute(AttributeBuilder.buildLastPasswordChangeDate(pwdDate));
         }
 
         final Long access_left = OracleERPUtil.extractLong(PWD_ACCESSES_LEFT, columnValues);
@@ -248,17 +256,17 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
         final Long lifespan_days = OracleERPUtil.extractLong(PWD_LIFESPAN_DAYS, columnValues);
 
         if (access_left != null && access_left.intValue() <= 0) {
-            amb.addAttribute(AttributeBuilder.buildPasswordExpired(true));
+            amb.setAttribute(AttributeBuilder.buildPasswordExpired(true));
         } else if (lifespan_days != null && pwdDate != null) {
             Calendar cal = Calendar.getInstance();
             cal.setTime(pwdDate);
             cal.add(Calendar.DAY_OF_MONTH, lifespan_days.intValue());
             boolean expired = cal.after(dateNow);
-            amb.addAttribute(AttributeBuilder.buildPasswordExpired(expired));
+            amb.setAttribute(AttributeBuilder.buildPasswordExpired(expired));
         } else if ( pwdDate == null){
-            amb.addAttribute(AttributeBuilder.buildPasswordExpired(true));
+            amb.setAttribute(AttributeBuilder.buildPasswordExpired(true));
         } else {
-            amb.addAttribute(AttributeBuilder.buildPasswordExpired(false));
+            amb.setAttribute(AttributeBuilder.buildPasswordExpired(false));
         }
     }
 
@@ -306,17 +314,21 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
         log.ok("buildPersonDetails for personId: {0}", personId);
 
         //Names to get filter
-        final String tblname = cfg.app() + "PER_PEOPLE_F";
+        final String tblname = getCfg().app() + "PER_PEOPLE_F";
         // For all account query there is no need to replace or quote anything
         final DatabaseQueryBuilder query = new DatabaseQueryBuilder(tblname, personColumns);
-        final FilterWhereBuilder where = new FilterWhereBuilder();
-        where.addBind(new SQLParam(PERSON_ID, personId, Types.NUMERIC), "=");
-        query.setWhere(where);
+        final FilterWhereBuilder whereFilter = new FilterWhereBuilder();
+        whereFilter.addBind(new SQLParam(PERSON_ID, personId, Types.NUMERIC), "=");
+        query.setWhere(whereFilter);
+        
+        String sqlSelect = query.getSQL();
+        sqlSelect = whereAnd(sqlSelect, ACTIVE_PEOPLE_ONLY_WHERE_CLAUSE);
+      
 
         ResultSet result = null; // SQL query on person_id
         PreparedStatement statement = null; // statement that generates the query
         try {
-            statement = conn.prepareStatement(query);
+            statement = getConn().prepareStatement(sqlSelect, query.getParams());
             result = statement.executeQuery();
             if (result != null) {
                 if (result.next()) {
@@ -328,9 +340,9 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
             }
 
         } catch (Exception e) {
-            final String msg = cfg.getMessage(MSG_ACCOUNT_NOT_READ, personId);
+            final String msg = getCfg().getMessage(MSG_ACCOUNT_NOT_READ, personId);
             log.error(e, msg);
-            SQLUtil.rollbackQuietly(conn);
+            SQLUtil.rollbackQuietly(getConn());
             throw new ConnectorException(msg, e);
         } finally {
             SQLUtil.closeQuietly(result);
@@ -381,7 +393,7 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
             } else {
                 value = SQLUtil.jdbc2AttributeValue(origValue);
             }
-            amb.addAttribute(attributeName, value);
+            amb.setAttribute(attributeName, value);
         }
     }
 
@@ -391,30 +403,30 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
      */
     private void buildResponsibilities(AttributeMergeBuilder amb, final String userName) {
 
-        if (!cfg.isNewResponsibilityViews() && amb.isInAttributesToGet(RESPS)) {
+        if (!getCfg().isNewResponsibilityViews() && amb.isInAttributesToGet(RESPS)) {
             log.info("buildResponsibilities from "+RESPS_TABLE);
             //add responsibilities
             final List<String> responsibilities = respOps.getResponsibilities(userName, RESPS_TABLE, false);
-            amb.addAttribute(RESPS, responsibilities);
+            amb.setAttribute(RESPS, responsibilities);
 
             //add resps list
             final List<String> resps = respOps.getResps(responsibilities, RESP_FMT_KEYS);
-            amb.addAttribute(RESPKEYS, resps);
+            amb.setAttribute(RESPKEYS, resps);
         } else if (amb.isInAttributesToGet(DIRECT_RESPS)) {
             log.info("buildResponsibilities from "+RESPS_DIRECT_VIEW);
             final List<String> responsibilities = respOps.getResponsibilities(userName, RESPS_DIRECT_VIEW, false);
-            amb.addAttribute(DIRECT_RESPS, responsibilities);
+            amb.setAttribute(DIRECT_RESPS, responsibilities);
 
             //add resps list
             final List<String> resps = respOps.getResps(responsibilities, RESP_FMT_KEYS);
-            amb.addAttribute(RESPKEYS, resps);
+            amb.setAttribute(RESPKEYS, resps);
         }
 
         if (amb.isInAttributesToGet(INDIRECT_RESPS)) {
             log.info("buildResponsibilities from "+RESPS_INDIRECT_VIEW);
             //add responsibilities
             final List<String> responsibilities = respOps.getResponsibilities(userName, RESPS_INDIRECT_VIEW, false);
-            amb.addAttribute(INDIRECT_RESPS, responsibilities);
+            amb.setAttribute(INDIRECT_RESPS, responsibilities);
         }
     }
 
@@ -424,18 +436,18 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
      * @param userName
      */
     private void buildSecuringAttributes(AttributeMergeBuilder amb, final String userName) {
-        if (!cfg.isManageSecuringAttrs()) {
+        if (!getCfg().isManageSecuringAttrs()) {
             return;
         }
 
         if ( amb.isInAttributesToGet(SEC_ATTRS) ) {
             List<String> secAttrs = secAttrOps.getSecuringAttrs(userName);
             if (secAttrs != null) {
-                amb.addAttribute(SEC_ATTRS, secAttrs);
+                amb.setAttribute(SEC_ATTRS, secAttrs);
             }
         }
     }
-
+    
     /**
      * @param amb
      *            builder
@@ -443,7 +455,7 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
      *            id of the responsibility
      * @param filterId
      */
-    public void buildAuditorDataObject(AttributeMergeBuilder amb, String userName, String filterId) {
+    private void buildAuditorDataObject(AttributeMergeBuilder amb, String userName, String filterId) {
         if (filterId == null) {
             return;
         }
@@ -455,5 +467,6 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
                 auditOps.updateAuditorData(amb, activeRespName);
             }
         }
-    }
+    }    
+
 }

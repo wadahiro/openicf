@@ -57,7 +57,7 @@ import org.identityconnectors.framework.spi.operations.SearchOp;
  * @version $Revision 1.0$
  * @since 1.0
  */
-public class AuditorOperationSearch extends Operation implements SearchOp<FilterWhereBuilder> {
+final class AuditorOperationSearch extends Operation implements SearchOp<FilterWhereBuilder> {
     /**
      * Setup logging.
      */
@@ -72,11 +72,12 @@ public class AuditorOperationSearch extends Operation implements SearchOp<Filter
      * @param conn
      * @param cfg
      */
-    protected AuditorOperationSearch(OracleERPConnection conn, OracleERPConfiguration cfg) {
+    AuditorOperationSearch(OracleERPConnection conn, OracleERPConfiguration cfg) {
         super(conn, cfg);
         respOps = new ResponsibilitiesOperations(conn, cfg);
         auditOps = new AuditorOperations(conn, cfg);
     }
+    
     /* (non-Javadoc)
      * @see org.identityconnectors.framework.spi.operations.SearchOp#createFilterTranslator(org.identityconnectors.framework.common.objects.ObjectClass, org.identityconnectors.framework.common.objects.OperationOptions)
      */
@@ -84,6 +85,7 @@ public class AuditorOperationSearch extends Operation implements SearchOp<Filter
         return new OracleERPFilterTranslator(oclass, options, CollectionUtil
         .newSet(new String[] { OracleERPUtil.NAME }), new BasicNameResolver());
     }
+    
     /* (non-Javadoc)
      * @see org.identityconnectors.framework.spi.operations.SearchOp#executeQuery(org.identityconnectors.framework.common.objects.ObjectClass, java.lang.Object, org.identityconnectors.framework.common.objects.ResultsHandler, org.identityconnectors.framework.common.objects.OperationOptions)
      */
@@ -97,8 +99,8 @@ public class AuditorOperationSearch extends Operation implements SearchOp<Filter
         List<String> auditorRespList = respOps.getResponsibilities(id, respLocation,
         activeRespsOnly);
         for (String respName : auditorRespList) {
-            final Set<AttributeInfo> ais = getAttributeInfos(cfg.getSchema(), AUDITOR_RESPS);
-            final AttributeMergeBuilder amb = new AttributeMergeBuilder(getAttributesToGet(options, ais));
+            final Set<AttributeInfo> ais = getAttributeInfos(getCfg().getSchema(), AUDITOR_RESPS);
+            final AttributeMergeBuilder amb = new AttributeMergeBuilder(getAttributesToGet(options, ais, getCfg()));
             auditOps.updateAuditorData(amb, respName);
             ConnectorObjectBuilder bld = new ConnectorObjectBuilder();
             bld.setObjectClass(AUDITOR_RESPS_OC);
@@ -109,7 +111,7 @@ public class AuditorOperationSearch extends Operation implements SearchOp<Filter
                 break;
             }
         }
-        conn.commit();
+        getConn().commit();
         log.info(method + "ok");
     }
 }

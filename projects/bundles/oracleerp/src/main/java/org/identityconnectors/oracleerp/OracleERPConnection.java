@@ -22,8 +22,11 @@
  */
 package org.identityconnectors.oracleerp;
 
+import static org.identityconnectors.oracleerp.OracleERPUtil.*;
+
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Hashtable;
@@ -39,6 +42,7 @@ import org.identityconnectors.dbcommon.DatabaseQueryBuilder;
 import org.identityconnectors.dbcommon.JNDIUtil;
 import org.identityconnectors.dbcommon.SQLParam;
 import org.identityconnectors.dbcommon.SQLUtil;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.ConnectorMessages;
 import org.identityconnectors.framework.spi.Configuration;
 
@@ -49,7 +53,7 @@ import org.identityconnectors.framework.spi.Configuration;
  * @version 1.0
  * @since 1.0
  */
-public class OracleERPConnection extends DatabaseConnection {
+final class OracleERPConnection extends DatabaseConnection {
     /**
      * The default row prefetch
      */
@@ -60,19 +64,19 @@ public class OracleERPConnection extends DatabaseConnection {
     static final Log log = Log.getLog(OracleERPConnector.class);
 
     /**
-     * Test enabled create connection function
+     * Create connection the instance creation method
      * 
      * @param config
-     * @return a new {@link DatabaseTableConnection} connection
+     * @return a new {@link OracleERPConnection} connection wrapper
      */
-    static OracleERPConnection createOracleERPConnection(OracleERPConfiguration config) {
+    static OracleERPConnection createConnection(OracleERPConfiguration config) {
         final Connection connection = getNativeConnection(config);
         return new OracleERPConnection(connection, config);
     }
 
     /**
      * @param config
-     * @return
+     * @return native {@link Connection} connection
      */
     static Connection getNativeConnection(OracleERPConfiguration config) {
         Connection connection;
@@ -90,10 +94,7 @@ public class OracleERPConnection extends DatabaseConnection {
                 connection = SQLUtil.getDatasourceConnection(datasource, prop);
             }
         } else {
-            final String driver = config.getDriver();
-            final String connectionUrl = config.getConnectionUrl();
-            log.ok("Create driver connectionUrl {0}", connectionUrl);
-            connection = SQLUtil.getDriverMangerConnection(driver, connectionUrl, user, password);
+            connection = getDriverMangerConnection(config);
         }
         if (connection instanceof OracleConnection) {
             final OracleConnection oracleConn = (OracleConnection) connection;
@@ -132,6 +133,7 @@ public class OracleERPConnection extends DatabaseConnection {
         return connection;
     }
 
+
     private OracleERPConfiguration config = null;
 
     /**
@@ -144,7 +146,7 @@ public class OracleERPConnection extends DatabaseConnection {
      * @throws RuntimeException
      *             if there is a problem creating a {@link java.sql.Connection}.
      */
-    public OracleERPConnection(Connection conn, OracleERPConfiguration config) {
+    private OracleERPConnection(Connection conn, OracleERPConfiguration config) {
         super(conn);
         this.config = config;
     }
@@ -237,5 +239,56 @@ public class OracleERPConnection extends DatabaseConnection {
         final PreparedStatement ps = super.prepareStatement(sql, params);
         ps.setQueryTimeout(OracleERPUtil.ORACLE_TIMEOUT);
         return ps;
+    }
+    
+    /**
+     * Return the driver manager connection
+     * @param config parameters
+     * @return
+     */
+    private static Connection getDriverMangerConnection(final OracleERPConfiguration config) {
+        final String connectionUrl = config.getConnectionUrl();
+        log.ok("getDriverMangerConnection connectionUrl {0}", connectionUrl);
+
+        // create the connection base on the configuration..
+        final Connection[] ret = new Connection[1];
+        try {
+            // load the driver class..
+            Class.forName(config.getDriver());
+            // get the database URL..
+            if (config.getPassword() == null) {
+                throw new IllegalStateException(config.getMessage(MSG_PASSWORD_BLANK));
+            }
+
+            if (StringUtil.isBlank(config.getUser())) {
+                throw new IllegalStateException(config.getMessage(MSG_USER_BLANK));
+            }
+            // check if there is authentication involved.
+            config.getPassword().access(new GuardedString.Accessor() {
+                public void access(char[] clearChars) {
+                    try {
+                        java.util.Properties info = new java.util.Properties();
+                        info.put("user", config.getUser());
+                        info.put("password", new String(clearChars));
+                        if( StringUtil.isNotBlank(config.getClientEncryptionType())){
+                            info.put("oracle.net.encryption_types_client", config.getClientEncryptionType());
+                        }
+                        if( StringUtil.isNotBlank(config.getClientEncryptionLevel())){
+                            info.put("oracle.net.encryption_client", config.getClientEncryptionLevel());
+                        }
+
+                        ret[0] = DriverManager.getConnection(connectionUrl, info);
+                    } catch (SQLException e) {
+                        // checked exception are not allowed in the access method 
+                        // Lets use the exception softening pattern
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+            // turn off auto-commit
+        } catch (Exception e) {
+            throw ConnectorException.wrap(e);
+        }
+        return ret[0];
     }
 }

@@ -42,14 +42,28 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
  * @version 1.0
  * @since 1.0
  */
-public class OracleERPConfiguration extends AbstractConfiguration {
-
+final public class OracleERPConfiguration extends AbstractConfiguration implements Messages {
 
     /**
      * Setup logging.
      */
     static final Log log = Log.getLog(OracleERPConfiguration.class);
 
+    /** Oracle thin url pattern, used when formating the url from components */
+    static final String ORACLE_THIN_CONN_URL = "java:oracle:thin:@{0}:{1}:{2}";
+
+    /** Oracle user friendly url default, when left unchanged, the components are considered */
+    static final String DEFAULT_CONN_URL = "java:oracle:thin:@HOSTNAME:PORT:DB";    
+
+    /** Oracle default port */
+    static final String DEFAULT_PORT = "1521";
+
+    /** Predefined encryption type */
+    static final String DEFAULT_ENCRYPTION_TYPE = "RC4_128";
+ 
+    /** Predefined encryption level*/
+    static final String DEFAULT_ENCRYPTION_LEVEL = "ACCEPTED";
+    
     /**
      * Datasource attributed
      * The attribute has precedence over other database connection related attributes.
@@ -127,12 +141,6 @@ public class OracleERPConfiguration extends AbstractConfiguration {
         this.driver = driver;
     }
 
-    /** */
-    private static final String ORACLE_THIN_CONN_URL = "java:oracle:thin:@{0}:{1}:{2}";
-
-    /** */
-    private static final String DEFAULT_CONN_URL = "java:oracle:thin:@HOSTNAME:PORT:DB";
-
     /**
      * Database connection url
      * Ignored if <b>dataSource</b> attribute is specified
@@ -188,8 +196,6 @@ public class OracleERPConfiguration extends AbstractConfiguration {
         this.host = host;
     }
 
-    /** */
-    private static final String DEFAULT_PORT = "1521";
 
     /**
      * Port attribute
@@ -317,7 +323,7 @@ public class OracleERPConfiguration extends AbstractConfiguration {
 
     /*
      * implemented by framework, left as comment for the reference
-     * name="encryptionClient" type="string" multi="false" value="ACCEPTED"
+     * name="encryptionClient" type="string" multi="false" value="DEFAULT_ENCRYPTION_LEVEL"
      * displayName="ENCRYPTION_CLIENT" description="HELP_ORACLE_ERP_CLIENT_ENCRYPTION_LEVEL"
      */
 
@@ -514,6 +520,94 @@ public class OracleERPConfiguration extends AbstractConfiguration {
     public void setNoSchemaId(boolean noSchemaId) {
         this.noSchemaId = noSchemaId;
     }
+    
+    /**
+     * CLIENT_ENCRYPTION_ALGORITHMS
+     * old name = encryptionTypesClient, oracle.net.encryption_types_client
+     */
+    private String clientEncryptionType = DEFAULT_ENCRYPTION_TYPE;
+    
+    /**
+     * Getter
+     * @return clientEncryptionType value
+     */
+    public String getClientEncryptionType() {
+        return clientEncryptionType;
+    }
+
+    /**
+     * Setter
+     * @param clientEncryptionType
+     */
+    @ConfigurationProperty(order=17 ,displayMessageKey="CLIENT_ENCRYPTION_ALGORITHMS_DISPLAY", helpMessageKey="CLIENT_ENCRYPTION_ALGORITHMS_HELP")
+    public void setClientEncryptionType(String clientEncryptionType) {
+        this.clientEncryptionType = clientEncryptionType;
+    }
+
+    /**
+     * CLIENT_ENCRYPTION_LEVEL
+     * old name = encryptionClient, oracle.net.encryption_client
+     */
+    private String clientEncryptionLevel = DEFAULT_ENCRYPTION_LEVEL;    
+
+    /**
+     * Getter
+     * @return clientEncryptionLevel value
+     */
+    public String getClientEncryptionLevel() {
+        return clientEncryptionLevel;
+    }
+
+    /**
+     * Setter
+     * @param clientEncryptionLevel
+     */
+    @ConfigurationProperty(order=18 ,displayMessageKey="CLIENT_ENCRYPTION_LEVEL_DISPLAY", helpMessageKey="CLIENT_ENCRYPTION_LEVEL_HELP")
+    public void setClientEncryptionLevel(String clientEncryptionLevel) {
+        this.clientEncryptionLevel = clientEncryptionLevel;
+    }
+
+
+    /**
+     * This should be replaced by script attributes
+     */
+    private String userAfterActionScript;    
+
+    
+    public String getUserAfterActionScript() {
+        return userAfterActionScript;
+    }
+        
+    /**
+     * Set the user after action script 
+     * @param userGetUserAfterActionScript
+     */
+    @ConfigurationProperty(order=19 ,displayMessageKey="USER_AFTER_ACTION_SCRIPT_DISPLAY", helpMessageKey="USER_AFTER_ACTION_SCRIPT_HELP")
+    public void setUserAfterActionScript(String userGetUserAfterActionScript) {
+        this.userAfterActionScript = userGetUserAfterActionScript;
+    }
+    
+    /**
+     * This property will be integrated by script attribute
+     */
+    private String actionScriptLanguage = GROOVY;
+    
+    /**
+     * The action script language setter
+     * @return String 
+     */
+    public String getActionScriptLanguage() {
+        return actionScriptLanguage;
+    }
+
+    /**
+     * Action script language setter
+     * @param actionScriptLanguage
+     */
+    @ConfigurationProperty(order=20 ,displayMessageKey="ACTION_SCRIPT_LANGUAGE_DISPLAY", helpMessageKey="ACTION_SCRIPT_LANGUAGE_HELP")
+    public void setActionScriptLanguage(String actionScriptLanguage) {
+        this.actionScriptLanguage = actionScriptLanguage;
+    }
 
 
     /**
@@ -526,7 +620,7 @@ public class OracleERPConfiguration extends AbstractConfiguration {
      *
      * @return the respId
      */
-    public String getRespId() {
+    String getRespId() {
         return respId;
     }
 
@@ -548,7 +642,7 @@ public class OracleERPConfiguration extends AbstractConfiguration {
      *
      * @return the respApplId
      */
-    public String getRespApplId() {
+    String getRespApplId() {
         return respApplId;
     }
 
@@ -618,7 +712,7 @@ public class OracleERPConfiguration extends AbstractConfiguration {
      * Accessor for the userId property
      * @return the userId
      */
-    public String getUserId() {
+    String getUserId() {
         return userId;
     }
 
@@ -633,7 +727,7 @@ public class OracleERPConfiguration extends AbstractConfiguration {
      * Accessor for the adminUserId property
      * @return the adminUserId
      */
-    public int getAdminUserId() {
+    int getAdminUserId() {
         try {
             log.info("The adminUserId is : {0} ", userId);
             return new Integer(userId).intValue();
@@ -652,7 +746,7 @@ public class OracleERPConfiguration extends AbstractConfiguration {
      * Accessor for the schema property
      * @return the schema
      */
-    public Schema getSchema() {
+    Schema getSchema() {
         return schema;
     }
 
@@ -726,10 +820,8 @@ public class OracleERPConfiguration extends AbstractConfiguration {
     }
 
 
-    /**
-     * Format the connector message
-     * @param key key of the message
-     * @return return the formated message
+    /* (non-Javadoc)
+     * @see org.identityconnectors.oracleerp.Messages#getMessage(java.lang.String)
      */
     public String getMessage(String key) {
         String fmt = key;
@@ -741,11 +833,8 @@ public class OracleERPConfiguration extends AbstractConfiguration {
         return fmt;
     }
 
-    /**
-     * Format message with arguments
-     * @param key key of the message
-     * @param objects arguments
-     * @return the localized message string
+    /* (non-Javadoc)
+     * @see org.identityconnectors.oracleerp.Messages#getMessage(java.lang.String, java.lang.Object)
      */
     public String getMessage(String key, Object... objects) {
         String fmt = key;
@@ -762,7 +851,7 @@ public class OracleERPConfiguration extends AbstractConfiguration {
      * see the bug id. 19352
      * @return The "APPL." or empty, if noSchemaId is true
      */
-    public String app() {
+    String app() {
         if(isNoSchemaId()) return "";
         return getUser().trim().toUpperCase()+".";
     }

@@ -57,15 +57,13 @@ import org.identityconnectors.common.logging.Log;
  * @author Warren Strange
  */
 public class GoogleAppsConfiguration extends AbstractConfiguration {
-      
-    Log log = Log.getLog(GoogleAppsConnector.class);
 
+    Log log = Log.getLog(GoogleAppsConnector.class);
     // =======================================================================
     // Connect  URL  
     // =======================================================================
-    private String url;  
-   
-   
+    private String url;
+
     @ConfigurationProperty(order = 1, helpMessageKey = "ADMIN_URL_HELP", displayMessageKey = "ADMIN_URL_DISPLAY")
     public String getConnectionUrl() {
         return url;
@@ -77,20 +75,37 @@ public class GoogleAppsConfiguration extends AbstractConfiguration {
      */
     public void setConnectionUrl(String url) {
         this.url = url;
-    }    // =======================================================================
-   
-    
-    // Login - example: admin@mycompany.com
+    }
+
+    private String domain;
+
+    /**
+     * Return the domain name. Example: acme.com
+     * @return domain name
+     */
+    @ConfigurationProperty(order = 2, helpMessageKey = "DOMAIN_HELP", displayMessageKey = "DOMAIN_DISPLAY")
+    public String getDomain() {
+        return this.domain;
+    }
+
+    /**
+     * Set the domain
+     * @param domain
+     */
+    public void setDomain(String domain) {
+        this.domain = domain;
+    }
+
+    // =======================================================================
+    // Login - example: admin
     // =======================================================================
     private String login;
 
-    @ConfigurationProperty(order = 2, helpMessageKey = "LOGIN_HELP", displayMessageKey = "LOGIN_DISPLAY")
+    @ConfigurationProperty(order = 3, helpMessageKey = "LOGIN_HELP", displayMessageKey = "LOGIN_DISPLAY")
     public String getLogin() {
         return this.login;
     }
 
-    
-  
     /**
      * Set the admin login id for the google apps domain
      * @param login - example: admin@mycompany.com
@@ -102,7 +117,7 @@ public class GoogleAppsConfiguration extends AbstractConfiguration {
     // =======================================================================
     private String password;
 
-    @ConfigurationProperty(order = 3, confidential = true)
+    @ConfigurationProperty(order = 4, confidential = true)
     public String getPassword() {
         return this.password;
     }
@@ -113,8 +128,9 @@ public class GoogleAppsConfiguration extends AbstractConfiguration {
      */
     public void setPassword(String password) {
         this.password = password;
-    }    
-    
+    }
+   
+
     // =======================================================================
     // Configuration Interface
     // =======================================================================
@@ -124,16 +140,25 @@ public class GoogleAppsConfiguration extends AbstractConfiguration {
      * @see org.identityconnectors.framework.Configuration#validate()
      */
     public void validate() {
-        log.info("validate url={0} login={1} ", getConnectionUrl(), getLogin());
+        log.info("validate url={0} login={1} domain={2}", getConnectionUrl(),
+                getLogin(), getDomain());
         // determine if you can get a connection to the database..
-        if (isBlank(getConnectionUrl())) {
+        if (isBlank(getConnectionUrl())) 
             throw new IllegalArgumentException("Connection URL is mandatory");
-        }
-        
-        if( isBlank(getLogin() ) ) {
+
+        if (isBlank(getLogin())) 
             throw new IllegalArgumentException("Admin Login id is mandatory");
-        }
-        
+
+        if( getLogin().indexOf("@") >= 0 )
+             throw new IllegalArgumentException("Admin Login must not contain @domain component");
+
+        if( isBlank(getDomain()))
+             throw new IllegalArgumentException("Domain name is mandatory");
+
+         if( isBlank(getPassword()))
+             throw new IllegalArgumentException("password is mandatory");
+
+
         try {
             new URL(getConnectionUrl());
         } catch (MalformedURLException ex) {
@@ -143,6 +168,7 @@ public class GoogleAppsConfiguration extends AbstractConfiguration {
     }
 
     public String toString() {
-        return "GoogleAppsConfiguration( Url= " + getConnectionUrl() + " login= " + getLogin() + " )";
+        return "GoogleAppsConfiguration( Url= " + getConnectionUrl() + " login= " + getLogin() +
+                 " domain=" + getDomain() +")";
     }
 }

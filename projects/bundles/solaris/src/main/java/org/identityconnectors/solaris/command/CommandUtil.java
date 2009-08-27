@@ -24,7 +24,6 @@ package org.identityconnectors.solaris.command;
 
 import java.util.Set;
 
-import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -87,15 +86,14 @@ public class CommandUtil {
             
             try {
                 if (oclass.is(ObjectClass.ACCOUNT_NAME)) {
-                    try {
-                        command.append(AccountAttributes.formatCommandSwitch(attr));
-                    } catch (NullPointerException npe) {
-                        try {
-                            command.append(AccountAttributesForPassword.formatCommandSwitch(attr));
-                        } catch (NullPointerException npe2) {
-                            throw ConnectorException.wrap(npe2);
-                        }
+                    String toAppend = null;
+                    toAppend = AccountAttributes.formatCommandSwitch(attr);
+                    if (toAppend == null) {
+                        toAppend = AccountAttributesForPassword.formatCommandSwitch(attr);
                     }
+                    
+                    command.append(toAppend);
+                    
                 } else if (oclass.is(ObjectClass.GROUP_NAME)) {
                     command.append(GroupAttributes.formatCommandSwitch(attr));
                 } else throw new IllegalArgumentException("unknown objectClass: '" + oclass.getDisplayNameKey() + "'");

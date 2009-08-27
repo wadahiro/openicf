@@ -90,7 +90,9 @@ public class GoogleAppsConnection {
             String url = config.getConnectionUrl();
             String login = config.getLogin();
             String password = config.getPassword();
-            ret = new GoogleAppsClient(login, password, url);
+            String domain = config.getDomain();
+            ret = new GoogleAppsClient(login, password, url, domain);
+            
         } catch (Exception e) {
             throw ConnectorException.wrap(e);
         }

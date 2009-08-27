@@ -92,6 +92,18 @@ public class SolarisConnection {
             // .getPort());
             //break;
         }
+        
+        try {
+            waitFor(_configuration.getRootShellPrompt());
+            /*
+             * turn off the echoing of keyboard input on the resource.
+             * Saves bandwith too.
+             */
+            send("stty -echo");
+            waitFor(_configuration.getRootShellPrompt());
+        } catch (Exception e) {
+            throw ConnectorException.wrap(e);
+        }
     }
 
     /**
@@ -254,6 +266,11 @@ public class SolarisConnection {
 
     /** once connection is disposed it won't be used at all. */
     public void dispose() {
+        try {
+            send("exit");
+        } catch (IOException e) {
+            // OK
+        }
         log.info("dispose()");
         if (_expect4j != null) {
             _expect4j.close();

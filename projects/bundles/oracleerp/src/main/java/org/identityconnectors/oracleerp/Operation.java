@@ -36,18 +36,35 @@ abstract class Operation {
     /**
      * The instance or the parent object
      */
-    protected OracleERPConnection conn = null;
+    final private OracleERPConnection conn;
+
+    /**
+     * get method
+     * @return the connection
+     */
+    OracleERPConnection getConn() {
+        return conn;
+    }
+
+    /**
+     * get method
+     * @return the configuration
+     */
+    OracleERPConfiguration getCfg() {
+        return cfg;
+    }
+
 
     /**
      * The instance or the parent object
      */
-    protected OracleERPConfiguration cfg = null;
+    final private OracleERPConfiguration cfg;
 
 
     /**
+     * The base of all operation
      * @param conn
      * @param cfg
-     * @param schema
      */
     protected Operation(OracleERPConnection conn, OracleERPConfiguration cfg) {
         super();

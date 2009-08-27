@@ -29,6 +29,7 @@ import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.solaris.operation.search.PatternBuilder;
+import org.identityconnectors.solaris.operation.search.SearchPerformer.SearchCallback;
 
 
 /**
@@ -42,24 +43,26 @@ public enum AccountAttributes implements SolarisAttribute {
      * NOTE:
      * "logins -oxa" 
      * -oxma gives the full set of groups 
+     * 
      */
     
     /** home directory */
     DIR("dir", UpdateSwitches.DIR, CommandConstants.Logins.CMD, PatternBuilder.buildPattern(CommandConstants.Logins.COL_COUNT, CommandConstants.Logins.UID_COL, 6/*dir col.*/)), 
     SHELL("shell", UpdateSwitches.SHELL, CommandConstants.Logins.CMD, PatternBuilder.buildPattern(CommandConstants.Logins.COL_COUNT, CommandConstants.Logins.UID_COL, 7/*shell col.*/)),
     /** primary group */
-    GROUP("group", UpdateSwitches.GROUP, null, null /* TODO */),
-    SECONDARY_GROUP("secondary_group", UpdateSwitches.SECONDARY_GROUP, null, null /* TODO */),
+    GROUP("group", UpdateSwitches.GROUP, CommandConstants.Logins.CMD, PatternBuilder.buildPattern(CommandConstants.Logins.COL_COUNT, CommandConstants.Logins.UID_COL, 3/*groupName col.*/)),
+    SECONDARY_GROUP("secondary_group", UpdateSwitches.SECONDARY_GROUP, CommandConstants.Logins.CMD_EXTENDED, null, SecondaryGroupParser.Builder.getInstance()),
     /** ! this is the solaris native 'uid', *NOT* the one defined by the framework. */
     UID("uid", UpdateSwitches.UID, CommandConstants.Logins.CMD, PatternBuilder.buildPattern(CommandConstants.Logins.COL_COUNT, CommandConstants.Logins.UID_COL, 2/*solaris uid*/)),
     NAME(Name.NAME, UpdateSwitches.UNKNOWN, CommandConstants.Logins.CMD,  PatternBuilder.buildPattern(CommandConstants.Logins.COL_COUNT, CommandConstants.Logins.UID_COL)),
+    // FIXME: introduce AccountId attribute as in the adapter, maybe?
     /** ! this is the UID defined by the framework */
     FRAMEWORK_UID(Uid.NAME, AccountAttributes.NAME),    
-    EXPIRE("expire", UpdateSwitches.EXPIRE, null, null /* TODO */),
+    EXPIRE("expire", UpdateSwitches.EXPIRE, CommandConstants.Logins.CMD, PatternBuilder.buildPattern(CommandConstants.Logins.COL_COUNT, CommandConstants.Logins.UID_COL, 14/*expired*/)),
     INACTIVE("inactive", UpdateSwitches.INACTIVE, CommandConstants.Logins.CMD, PatternBuilder.buildPattern(CommandConstants.Logins.COL_COUNT, CommandConstants.Logins.UID_COL, 13/*inactive col.*/)), 
-    COMMENT("comment", UpdateSwitches.COMMENT, null, null /* TODO */),
-    TIME_LAST_LOGIN("time_last_login", UpdateSwitches.UNKNOWN, null, null /* TODO */),
-    AUTHORIZATION("authorization", UpdateSwitches.AUTHORIZATION, null, null /* TODO */),
+    COMMENT("comment", UpdateSwitches.COMMENT, CommandConstants.Logins.CMD, PatternBuilder.buildPattern(CommandConstants.Logins.COL_COUNT, CommandConstants.Logins.UID_COL, 5/*comment col.*/)),
+    TIME_LAST_LOGIN("time_last_login", UpdateSwitches.UNKNOWN, "last  -1 __username__", "[\\d]?\\d[\\s]+\\d\\d:\\d\\d" /* parses the date of last login */),
+    AUTHORIZATION("authorization", UpdateSwitches.AUTHORIZATION, "auths __username__", null /* TODO */),
     PROFILE("profile", UpdateSwitches.PROFILE, null, null /* TODO */),
     ROLES("role", UpdateSwitches.ROLE, "roles __user__", PatternBuilder.buildAcceptAllPattern() /* TODO */);
     
@@ -80,6 +83,9 @@ public enum AccountAttributes implements SolarisAttribute {
     private String command;
     /** regular expression to extract Uid and Attribute from the raw data gathered by {@link GroupAttributes#command} */
     private String regexp;
+    /** a callback method that is used for special search, that requires to parse multiple attributes.
+     * Mostly this attribute is really optional. */
+    private SearchCallback callback;
 
     
     /**
@@ -99,10 +105,7 @@ public enum AccountAttributes implements SolarisAttribute {
      *            to get the respective columns.
      */
     private AccountAttributes(String attrName, UpdateSwitches cmdSwitch, String command, String regexp) {
-        this.attrName = attrName;
-        this.cmdSwitch = cmdSwitch;
-        this.command = command;
-        this.regexp = regexp;
+        this(attrName, cmdSwitch, command, regexp, null);
     }
     
     /** 
@@ -117,12 +120,24 @@ public enum AccountAttributes implements SolarisAttribute {
     }
     
     /**
+     * {@see AccountAttributes#AccountAttributes(String, UpdateSwitches, String, String)}
+     * @param callback an optional attribute that is used for special searches.
+     */
+    private AccountAttributes(String attrName, UpdateSwitches cmdSwitch, String command, String regexp, SearchCallback callback) {
+        this.attrName = attrName;
+        this.cmdSwitch = cmdSwitch;
+        this.command = command;
+        this.regexp = regexp;
+        this.callback = callback;
+    }
+    
+    /**
      * Translate the Account's attribute name to item from list of allowed
      * account attributes.
      * @return the name of attribute, or null if it doesn't exist.
      */
     public static AccountAttributes fromAttributeName(String s) {
-        return AttributeHelper.getFromMap(map, s, "AccountAttributes");
+        return map.get(s);
     }
     
     /** 
@@ -162,17 +177,35 @@ public enum AccountAttributes implements SolarisAttribute {
     }
     
     /** holds the commands that are executed to acquire the attribute */
-    private static class CommandConstants {
+    public static class CommandConstants {
         /**
          * logins command
          */
-        private static class Logins {
+        public static class Logins {
+            /*
+             * comparison of 'logins' command's switches: root@prgvm8092:~#
+             * #logins -oxa -l root
+             * > root:0:root:0:Super-User:/root:/usr/bin/bash:PS:092408:-1:-1:-1:-1:0 
+             * # logins -oxma -l root
+             * root:0:root:0:Super-User:other:1:bin:2:sys:3:adm:4:uucp:5:mail:6:tty
+             * :7:lp:8:nuucp:9:daemon:12:/root:/usr/bin/bash:PS:092408:-1:-1:-1:-1:0
+             */
             /** the command that is executed to acquire the attributes. */
-            private static final String CMD = "logins -oxa";
+            static final String CMD = "logins -oxa";
+            /** extended version of logins command */
+            static final String CMD_EXTENDED = "logins -oxma";
             /** the total number of columns in output of the command (delimited by ":") */
-            private static final int COL_COUNT = 14;
-            /** the column which contains the UID */
-            private static final int UID_COL = 1;
+            static final int COL_COUNT = 14;
+            /** the column which contains the native solaris UID */
+            static final int UID_COL = 1;
+            public static final String DEFAULT_OUTPUT_DELIMITER = ":";
         }
+    }
+    
+    /**
+     * {@see SolarisAttribute#getCallbackMethod()}
+     */
+    public SearchCallback getCallbackMethod() {
+        return callback;
     }
 }

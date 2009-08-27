@@ -46,7 +46,7 @@ import org.identityconnectors.oracleerp.AccountOperations.CallParam;
  * @version 1.0
  * @since 1.0
  */
-public class AccountSQLCall {
+final class AccountSQLCall {
 
     /**
      * Setup logging. For builder too, so it is not private
@@ -56,13 +56,21 @@ public class AccountSQLCall {
     /**
      * The return sql of the builder class
      */
-    final public String callSql;
+    final private String callSql;
+    String getCallSql() {
+        return callSql;
+    }
+
+    List<SQLParam> getSqlParams() {
+        return sqlParams;
+    }
+
     /**
      * The sql params
      */
-    final public List<SQLParam> sqlParams;
+    final private List<SQLParam> sqlParams;
 
-    public AccountSQLCall(final String callSQL, final List<SQLParam> sqlParams) {
+    AccountSQLCall(final String callSQL, final List<SQLParam> sqlParams) {
         this.callSql = callSQL;
         this.sqlParams = CollectionUtil.newReadOnlyList(sqlParams);
     }
@@ -118,14 +126,8 @@ public class AccountSQLCall {
         }
 
         /**
-         * Return the userAccount create/update sql with defaults
-         *
-         * @param sqlParamsMap
-         *            the Map of user values
-         * @param create
-         *            true for create/false update
-         *
-         * @return a <CODE>String</CODE> sql string
+         * Build the AccountSQLCall object
+         * @return a AccountSQLCall
          */
         public AccountSQLCall build() {
             final List<SQLParam> sqlParams = new ArrayList<SQLParam>();
@@ -166,7 +168,7 @@ public class AccountSQLCall {
                 first = false;
             }
 
-            final String sql = createCallSQL(schemaId, fn, body);
+            final String sql = createCallSQL(fn, body);
 
             log.ok("getUserCallSQL done");
             return new AccountSQLCall(sql, sqlParams);
@@ -537,6 +539,19 @@ public class AccountSQLCall {
                         + columnName + " value " + oldValue + " to " + value);
             }
         }
+        
+
+        /**
+         * @param fn
+         * @param body
+         * @return The SQL string
+         */
+        private String createCallSQL(final String fn, StringBuilder body) {
+            // The SQL call update function SQL template
+            final String FND_USER_CALL = "fnd_user_pkg.";
+            
+            return "{ call " + schemaId + FND_USER_CALL + fn + " ( " + body.toString() + " ) }";
+        }        
 
         /**
          * Add parameter, if exist, it must be the same value
