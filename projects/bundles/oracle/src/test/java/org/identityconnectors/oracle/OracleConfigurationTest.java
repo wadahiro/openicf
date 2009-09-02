@@ -37,6 +37,7 @@ import org.junit.Test;
  *
  */
 public class OracleConfigurationTest {
+    private final static PropertyBag testProps = TestHelpers.getProperties(OracleConnector.class);
     private final static String WRONG_DATASOURCE = "wrongDatasource";
     private static ThreadLocal<OracleConfiguration> threadCfg = new ThreadLocal<OracleConfiguration>();
 
@@ -276,8 +277,7 @@ public class OracleConfigurationTest {
         cfg.validate();
         assertCreateAdminConnectionFail(cfg, "Create connection must fail on invalid url");
         
-        PropertyBag properties = TestHelpers.getProperties(OracleConnector.class);
-        String url = properties.getStringProperty("thin.url");
+        String url = testProps.getStringProperty("thin.url");
         assertNotNull(url);
         cfg.setUrl(url);
         cfg.validate();
@@ -317,11 +317,10 @@ public class OracleConfigurationTest {
      */
     @Test
     public void testCustomDriverConfiguration(){
-    	PropertyBag properties = TestHelpers.getProperties(OracleConnector.class);
-        String user = properties.getStringProperty("customDriver.user");
-        String password = properties.getStringProperty("customDriver.password");
-        String url = properties.getStringProperty("customDriver.url");
-        String driver = properties.getStringProperty("customDriver.driverClassName");
+        String user = testProps.getStringProperty("customDriver.user");
+        String password = testProps.getStringProperty("customDriver.password");
+        String url = testProps.getStringProperty("customDriver.url");
+        String driver = testProps.getStringProperty("customDriver.driverClassName");
         OracleConfiguration cfg = createEmptyCfg();
         cfg.setUser(user);
         cfg.setPassword(new GuardedString(password.toCharArray()));
@@ -345,14 +344,13 @@ public class OracleConfigurationTest {
     }
     
     static OracleConfiguration createThinConfiguration(){
-    	PropertyBag properties = TestHelpers.getProperties(OracleConnector.class);
-        String user = properties.getStringProperty("thin.user");
-        String passwordString = properties.getStringProperty("thin.password");
+        String user = testProps.getStringProperty("thin.user");
+        String passwordString = testProps.getStringProperty("thin.password");
         GuardedString password = new GuardedString(passwordString.toCharArray());
         String driver = OracleSpecifics.THIN_DRIVER;
-        String host = properties.getStringProperty("thin.host");
-        String port = properties.getStringProperty("thin.port");
-        String database = properties.getStringProperty("thin.database");
+        String host = testProps.getStringProperty("thin.host");
+        String port = testProps.getProperty("thin.port",String.class,OracleSpecifics.LISTENER_DEFAULT_PORT);
+        String database = testProps.getStringProperty("thin.database");
         OracleConfiguration cfg = new OracleConfiguration();
         cfg.setUser(user);
         cfg.setDatabase(database);
@@ -365,14 +363,13 @@ public class OracleConfigurationTest {
     }
     
     static OracleConfiguration createOciConfiguration(){
-    	PropertyBag properties = TestHelpers.getProperties(OracleConnector.class);
-        String user = properties.getStringProperty("oci.user");
-        String passwordString = properties.getStringProperty("oci.password");
+        String user = testProps.getStringProperty("oci.user");
+        String passwordString = testProps.getStringProperty("oci.password");
         GuardedString password = new GuardedString(passwordString.toCharArray());
-        String database = properties.getStringProperty("oci.database");
+        String database = testProps.getStringProperty("oci.database");
         String driver = OracleSpecifics.OCI_DRIVER;
-        String host = properties.getStringProperty("oci.host");
-        String port = properties.getStringProperty("oci.port");
+        String host = testProps.getStringProperty("oci.host");
+        String port = testProps.getProperty("oci.port",String.class,OracleSpecifics.LISTENER_DEFAULT_PORT);
         OracleConfiguration cfg = new OracleConfiguration();
         cfg.setUser(user);
         cfg.setDatabase(database);
