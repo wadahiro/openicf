@@ -23,12 +23,10 @@
 package org.identityconnectors.solaris.operation;
 
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.identityconnectors.solaris.SolarisConnection;
 import org.identityconnectors.solaris.SolarisConnector;
 import org.identityconnectors.solaris.SolarisUtil;
 
@@ -57,17 +55,7 @@ public class OpDeleteImpl extends AbstractOp {
         final String command = getCmdBuilder().build("userdel", accountId);
         
         try {
-            String output = null;
-            // if i run the tests separately, the login info is in the expect4j's buffer
-            // otherwise (when tests are run in batch), there is empty buffer, so this waitfor will timeout.
-            try {
-                output = getConnection().waitFor(
-                        getConfiguration().getRootShellPrompt(),
-                        SolarisConnection.WAIT);
-            } catch (ConnectorException ex) {
-                // OK
-            }
-            output = executeCommand(command);
+            String output = executeCommand(command);
             if (output.contains("does not exist") || output.contains("nknown user")) {
                 throw new UnknownUidException("Unknown Uid: " + accountId);
             }

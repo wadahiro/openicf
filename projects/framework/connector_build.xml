@@ -30,11 +30,6 @@
     </description>
     <!-- set a default for testConfig -->
     <property name="testConfig" value="default"/>
-<!-- the following two imports should not be necessary -->
-<!--load user project-testConfig properties -->
-<!--<property file="${user.home}/.connectors/${ant.project.name}/${testConfig}/config.groovy" /> -->
-<!--load user project properties -->
-<!--<property file="${user.home}/.connectors/${ant.project.name}.groovy" /> -->
     <!-- load user global properties -->
     <property file="${user.home}/.connectors/connectors.properties" />
 
@@ -42,14 +37,15 @@
     <property file="build.properties" />
     <!-- calculate the version from various properties -->
     <property name="BUILD_NUMBER" value="x" />
-    <property name="SVN_REVISION" value="x" />
-    <property name="ConnectorBundle-Version" 
-        value="${MAJOR}.${MINOR}.${SVN_REVISION}"/>
     <!-- set default properties for this build -->
     <property name="src.main.java" value="src/main/java" />
     <property name="src.test.java" value="src/test/java" />
     <property name="src.main.resources" value="src/main/resources" />
     <property name="src.test.resources" value="src/test/resources" />
+    <!-- Path to optional configuration and libraries needed for connector compilation or tests -->
+    <property name="dependencies.private" value="${user.home}/.connectors/${ant.project.name}"/>
+    <property name="config.public" value="src/test/config" />
+    <property name="config.private" value="${dependencies.private}/config" />
     <property name="lib" value="lib" />
     <property name="dist" value="dist" />
     <property name="build" value="build" />
@@ -61,13 +57,35 @@
     <property name="java.debug" value="true" />
     <property name="java.source" value="1.5" />
     <property name="java.target" value="1.5" />
+    <property name="java.compilerargs" value="" />
     <property name="javadoc.author" value="true" />
-    <property name="jar.file" 
-        value="${dist}/${ConnectorBundle-Name}-${ConnectorBundle-Version}.jar" />
-    <property name="zip.file" 
-        value="${ConnectorBundle-Name}-${ConnectorBundle-Version}.zip" />
     <property name="license.file" value="${framework.dir}/license.txt" />
     <property name="thirdpartyreadme.file" value="${framework.dir}/THIRDPARTYREADME.txt" />
+    <!--
+        Check if directories exist.
+    -->
+        <condition property="src.main.java.exists">
+            <available type="dir" file="${src.main.java}"/>
+        </condition>
+        <condition property="src.main.resources.exists">
+            <available type="dir" file="${src.main.resources}"/>
+        </condition>
+        <condition property="src.test.java.exists">
+            <available type="dir" file="${src.test.java}"/>
+        </condition>
+        <condition property="src.test.resources.exists">
+            <available type="dir" file="${src.test.resources}"/>
+        </condition>
+        <condition property="config.public.exists">
+            <available type="dir" file="${config.public}"/>
+        </condition>
+        <condition property="config.private.exists">
+            <available type="dir" file="${config.private}"/>
+        </condition>
+        <condition property="is.svn.working.directory">
+                <available file=".svn" type="dir"/>
+        </condition>
+        
     <!--
         Determine if this a coverage build.
     -->
@@ -105,9 +123,6 @@
         <patternset refid='ignore'/>
         <exclude name="**/*.java" />
     </patternset>
-    <patternset id="exclude.user">
-        <exclude name="${user.exclude}" if="user.exclude"/>
-    </patternset>
     <patternset id="exclude.test">
         <patternset refid="ignore" />
         <exclude name="**/*Test*" />
@@ -132,21 +147,21 @@
         User Libraries
     -->
     
-    <condition property="user.common.libs" value="${user.home}/.connectors/${ant.project.name}/lib" else="">
-	<available file="${user.home}/.connectors/${ant.project.name}/lib" type="dir"/>
-    </condition>	
-    <condition property="user.config.libs" value="${user.home}/.connectors/${ant.project.name}/lib/${testConfig}" else="">
-	<available file="${user.home}/.connectors/${ant.project.name}/lib/${testConfig}" type="dir"/>
-    </condition>	
-	
+    <condition property="user.common.libs" value="${dependencies.private}/lib" else="">
+        <available file="${dependencies.private}/lib" type="dir"/>
+    </condition>        
+    <condition property="user.config.libs" value="${dependencies.private}/lib/${testConfig}" else="">
+        <available file="${dependencies.private}/lib/${testConfig}" type="dir"/>
+    </condition>        
+        
     <path id="user.libs" >
-	<fileset dir="${user.config.libs}">
-		<include name="*.jar"/>
-	</fileset>	
-	<fileset dir="${user.common.libs}">
-		<include name="*.jar"/>
-	</fileset>	
-    </path>	
+        <fileset dir="${user.config.libs}">
+                <include name="*.jar"/>
+        </fileset>        
+        <fileset dir="${user.common.libs}">
+                <include name="*.jar"/>
+        </fileset>        
+    </path>        
 
     <!--
         Classpath to build the Connector.
@@ -179,27 +194,22 @@
     -->
     <echo>
         Building Project:  ${ant.project.name}
-        Connector Version: ${ConnectorBundle-Name}-${ConnectorBundle-Version}
     </echo>
 
     <target name="-pre-compile-extra" description="Override this for pre-compile."/>
-    <target name="-pre-compile-extra-test" description="Override this for pre-compile-test."/>
+    <target name="-pre-compile-test-extra" description="Override this for pre-compile-test."/>
 
     <!--
        Base Compile Target
     -->
 
+    <target name="compile-main" depends="compile-check, -pre-compile-extra, compile-main-internal, copy-main-resources" description="compile all main files"/>
+
     <target name="compile-check">
-	    <condition property="src.main.java.exists">
-		<available type="dir" file="${src.main.java}"/>
-	    </condition>
+        <fail unless="src.main.java.exists" message="Source folder ${src.main.java} does not exist. You may be using the old source layout, in which the Java source files are in a directory named src. In that case, import the toolkit's connector_build_old.xml and consider modifying your source layout according to http://identityconnectors.dev.java.net/issues/show_bug.cgi?id=395."/>
+    </target>                
 
-            <fail unless="src.main.java.exists" message="Source folder ${src.main.java} does not exist. You may be using the old source layout, in which the Java source files are in a directory named src. In that case, import the toolkit's connector_build_old.xml and consider modifying your source layout according to http://identityconnectors.dev.java.net/issues/show_bug.cgi?id=395.
-	    "/>		
-    </target>		
-
-    <target name="compile-main" depends="compile-check,-pre-compile-extra"
-        description="compile all main files">
+    <target name="compile-main-internal">
         <mkdir dir="${build.main}" />
         <javac
             debug="${java.debug}" 
@@ -209,108 +219,110 @@
                 <path refid="build.path"/>
                 <path refid="user.libs"/>
             </classpath>
+            <compilerarg line="${java.compilerargs}"/>
         </javac>
-	<!-- We support resources also in src/main/java, so copy to build -->
-	<copy todir="${build.main}">
-		<fileset dir="${src.main.java}">
-			<patternset refid="exclude.javasrc" />
-		</fileset>
-	</copy>
-        <condition property="src.main.resources.exists">
-		<available type="dir" file="${src.main.resources}"/>
-	</condition>
-	<antcall target="copy-main-resources" inheritRefs="true" inheritAll="true"/>
+        <!-- We support resources also in src/main/java, so copy to build -->
+        <copy todir="${build.main}">
+            <fileset dir="${src.main.java}">
+                <patternset refid="exclude.javasrc" />
+            </fileset>
+        </copy>
     </target>
 
     <target name="copy-main-resources" if="src.main.resources.exists">
-	<copy todir="${build.main}">
-		<fileset dir="${src.main.resources}"/>
-	</copy>
-    </target>		    	    		
+        <mkdir dir="${build.main}" />
+        <copy todir="${build.main}">
+            <fileset dir="${src.main.resources}"/>
+        </copy>
+    </target>                                                
 
-    <target name="compile-test">
-            <mkdir dir="${build.test}" />		
-	    <condition property="src.test.java.exists">
-		<available type="dir" file="${src.test.java}"/>
-	    </condition>
-	    <condition property="src.test.resources.exists">
-		<available type="dir" file="${src.test.resources}"/>
-	    </condition>
-	    <antcall target="compile-test-internal" inheritRefs="true" inheritAll="true"/>
-            <antcall target="copy-test-resources" inheritRefs="true" inheritAll="true"/>
-	    <mkdir dir="${build.test.config}"/>
-	    <!-- Copy public config to build -->
-	    <condition property="copy.public.config">
-		<and>
-			<available type="dir" file="${basedir}/src/test/config"/>
-		</and>
-	    </condition>
-	    <antcall target="copy-public-config" inheritRefs="true" inheritAll="true"/>
-	    <!-- Copy private config to build -->
-	    <condition property="copy.private.config">
-		<and>
-			<available type="dir" file="${user.home}/.connectors/${ant.project.name}/config"/>
-		</and>
-	    </condition>
-	    <antcall target="copy-private-config" inheritRefs="true" inheritAll="true"/>
-    </target>	
+    <target name="compile-test" depends="-pre-compile-test-extra, compile-test-internal, copy-test-resources, copy-public-config, copy-private-config" description="compile all test files"/>
 
-    <target name="compile-test-internal" depends="-pre-compile-extra-test" if="src.test.java.exists"
+    <target name="compile-test-internal" depends="-pre-compile-test-extra" if="src.test.java.exists"
         description="compile all test files">
+        <mkdir dir="${build.test}" />
         <javac
             debug="${java.debug}" 
             srcdir="${src.test.java}" destdir="${build.test}" 
             target="${java.target}" source="${java.source}">
             <classpath>
                 <path refid="build.path"/>
-		<pathelement path="${build.main}"/>
+                <pathelement path="${build.main}"/>
                 <path refid="user.libs"/>
             </classpath>
+            <compilerarg line="${java.compilerargs}"/>
         </javac>
-	<!-- Copy resources from src/test/java -->
-	<copy todir="${build.test}">
-		<fileset dir="${src.test.java}">
-			<patternset refid="exclude.javasrc" />
-		</fileset>
-	</copy>
+        <!-- Copy resources from src/test/java -->
+        <copy todir="${build.test}">
+            <fileset dir="${src.test.java}">
+                <patternset refid="exclude.javasrc" />
+            </fileset>
+        </copy>
     </target>
 
     <target name="copy-test-resources" if="src.test.resources.exists">
-	<copy todir="${build.test}">
-		<fileset dir="${src.test.resources}"/>
-	</copy>
+        <mkdir dir="${build.test}" />
+        <copy todir="${build.test}">
+            <fileset dir="${src.test.resources}"/>
+        </copy>
     </target>
 
-    <target name="copy-public-config" if="copy.public.config">
-	<copy todir="${build.test.config}">
-		<fileset dir="${basedir}/src/test/config">
-			<include name="**/config.groovy"/>
-		</fileset>
-	</copy>
+    <target name="copy-public-config" if="config.public.exists">
+        <mkdir dir="${build.test.config}"/>
+        <copy todir="${build.test.config}">
+            <fileset dir="${config.public}">
+                <include name="**/config.groovy"/>
+            </fileset>
+        </copy>
     </target>
 
-    <target name="copy-private-config" if="copy.private.config">
-	<copy todir="${build.test.config}">
-		<fileset dir="${user.home}/.connectors/${ant.project.name}/config">
-			<include name="**/config.groovy"/>
-		</fileset>
-	</copy>
+    <target name="copy-private-config" if="config.private.exists">
+        <mkdir dir="${build.test.config}"/>
+        <copy todir="${build.test.config}">
+            <fileset dir="${config.private}">
+                <include name="**/config.groovy"/>
+            </fileset>
+        </copy>
     </target>
-		    	    		
-
 
     <!--
        Bundle Building Target
     -->
-    <target name="dist" depends="jar, javadoc"
+
+    <target name="dist" depends="jar, javadoc, set-version"
         description="generates the distribution (excludes test classes)">
+        <property name="zip.file" value="${ConnectorBundle-Name}-${ConnectorBundle-Version}.zip" />
         <zip destfile="${zip.file}" basedir="${dist}"/>
         <move file="${zip.file}" todir="${dist}"/>
     </target>
+    
+    <target name="set-revision" if="is.svn.working.directory">
+        <tempfile property="svn.info.tmp" prefix="svn-info" suffix=".tmp"/>
+        <exec executable="svn" output="${svn.info.tmp}" failifexecutionfails="false">
+                <arg line="info --xml"/>
+        </exec>
+        <xmlproperty file="${svn.info.tmp}" prefix="svn" collapseAttributes="true"/>
+        <delete file="${svn.info.tmp}" failonerror="false"/>
+    </target>
+    
+    <target name="set-version" depends="set-revision">
+        <condition property="SVN_REVISION" value="${svn.info.entry.revision}" else="x">
+                <isset property="svn.info.entry.revision"/>
+        </condition>
+        <property name="ConnectorBundle-Version" value="${MAJOR}.${MINOR}.${SVN_REVISION}"/>
+    </target>
+    
 
-    <target name="jar" depends="compile-main, compile-test">
+    <target name="jar" depends="compile-main, set-version">
         <!-- Create the distribution directory -->
         <mkdir dir="${dist}" />
+        <property name="jar.file" value="${dist}/${ConnectorBundle-Name}-${ConnectorBundle-Version}.jar" />
+        
+        <echo>
+               Building jar:  ${jar.file}
+        </echo>
+        
+        
         <jar jarfile="${jar.file}" index="true">
             <!-- include all compiled classes -->
             <fileset dir="${build.main}">
@@ -322,16 +334,11 @@
             <fileset file="${license.file}"/>
             <fileset file="${thirdpartyreadme.file}"/>
             <manifest>
-                <attribute name="ConnectorBundle-FrameworkVersion"
-                    value="${ConnectorBundle-FrameworkVersion}" />
-                <attribute name="ConnectorBundle-Name"
-                    value="${ConnectorBundle-Name}" />
-                <attribute name="ConnectorBundle-Version"
-                    value="${ConnectorBundle-Version}" />
-                <attribute name="Build-Number"
-                    value="${BUILD_NUMBER}" />
-                <attribute name="Subversion-Revision"
-                    value="${SVN_REVISION}" />
+                <attribute name="ConnectorBundle-FrameworkVersion" value="${ConnectorBundle-FrameworkVersion}" />
+                <attribute name="ConnectorBundle-Name" value="${ConnectorBundle-Name}" />
+                <attribute name="ConnectorBundle-Version" value="${ConnectorBundle-Version}" />
+                <attribute name="Build-Number" value="${BUILD_NUMBER}" />
+                <attribute name="Subversion-Revision" value="${SVN_REVISION}" />
             </manifest>
         </jar>
     </target>
@@ -390,7 +397,7 @@
         Test Targets 
     -->
     <target  name="-pre-test-extra" description="Override this to execute tasks before the unit tests run"/>
-    <target name="test" depends="jar, -pre-test-extra, run-unit-tests, run-contract-tests, report-tests" />
+    <target name="test" depends="jar, compile-test, -pre-test-extra, run-unit-tests, run-contract-tests, report-tests" />
     <target name="test-init">
         <!-- clear out previous test results -->
         <delete dir="${reports}/junit" />
@@ -424,9 +431,9 @@
         depends="build-testclasspath-with-coverage">
         <path id="test-classpath">
             <path refid="test.path" />
-	    <pathelement location="${build.test.config}" />
+            <pathelement location="${build.test.config}" />
             <pathelement location="${build.test}" />
-	    <pathelement location="${build.main}" />
+            <pathelement location="${build.main}" />
         </path>
     </target>
     <target name="build-testclasspath-with-coverage" if="useCobertura">
@@ -441,13 +448,13 @@
             <path refid="cobertura.classpath" />
             <pathelement location="${instrumented}" />
             <path refid="test.path" />
-	    <pathelement location="${build.test.config}" />
+            <pathelement location="${build.test.config}" />
             <pathelement location="${build.test}" />
             <pathelement location="${build.main}" />
         </path>
     </target>
     <target name="run-unit-tests" depends="test-init, instrument, build-testclasspath" if="src.test.java.exists">
-	<echo message="Running junit tests with testConfig=[${testConfig}]"/>
+        <echo message="Running junit tests with testConfig=[${testConfig}]"/>
         <!-- run all the junits -->
         <junit fork="yes" forkmode="once" dir="${basedir}" showoutput="true"
             failureProperty="test.failed" printsummary="true">
@@ -499,7 +506,7 @@
 
     <target name="report-junits" unless="useExternalReporting"> 
         <fileset id="report.set" dir="${reports}">
-        	<include name="**/junit/TEST-*.xml"/>
+                <include name="**/junit/TEST-*.xml"/>
             <include name="**/contracts/TEST-*.xml"/>
         </fileset> 
         <junitreport todir="${reports}">
@@ -539,11 +546,11 @@
             <fileset dir="${reports}/rejar"/>
         </jar>
     </target>
-    <target name="contract-tests" if="do.contracts.run" depends="contract-check">
-	<fail unless="connectorName" message="To run contract tests, you must specify [connectorName] property with the value equal to FQN of your connector class"/>
+    <target name="contract-tests" if="do.contracts.run" depends="contract-check, set-version">
+        <fail unless="connectorName" message="To run contract tests, you must specify [connectorName] property with the value equal to FQN of your connector class"/>
         <property name="test.parameters.outFile" value=""/>
         <!-- run all the contract tests -->
-	<echo message="Running contract tests with testConfig=[${testConfig}]"/>
+        <echo message="Running contract tests with testConfig=[${testConfig}]"/>
         <junit fork="yes" printsummary="yes" forkmode="once"
             failureproperty="test.failure" errorproperty="test.error" maxmemory="512M">
             <!-- local connector properties -->
@@ -559,7 +566,7 @@
             <sysproperty key="data-provider" value="${data.provider}"/>            
             <sysproperty key="project.name" value="${ant.project.name}"/>
             <sysproperty key="testConfig" value="${testConfig}"/>
-	    <sysproperty key="connectorName" value="${connectorName}"/>
+            <sysproperty key="connectorName" value="${connectorName}"/>
             <sysproperty key="test.parameters.outFile" value="${test.parameters.outFile}"/>
             <sysproperty key="org.identityconnectors.common.logging.class" value="org.identityconnectors.common.logging.impl.JDKLogger"/>
             
@@ -569,14 +576,14 @@
             <formatter type="plain" usefile="false" />
             <classpath>
                 <fileset dir="${framework.dir}/dist" includes="*.jar"/>
-	    	<pathelement location="${build.test.config}"/>
+                <pathelement location="${build.test.config}"/>
             </classpath>
         </junit>
     </target>
 
     <target name="run-contract-tests" depends="contract-init, contract-dist, contract-tests"/>
     
-    <target name="run-cs-contract-tests" depends="contract-init-cs, contract-init, contract-tests"/>
+    <target name="run-cs-contract-tests" depends="contract-init-cs, contract-init, copy-public-config, copy-private-config, contract-tests"/>
     
     <target name="contract-init-cs">
         <property name="useConnectorServer" value="true"/>
