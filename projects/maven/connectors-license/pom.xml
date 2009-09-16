@@ -5,6 +5,7 @@
 	<groupId>org.identityconnectors</groupId>
 	<artifactId>connectors-parent</artifactId>
 	<version>1.0-SNAPSHOT</version>
+	<relativePath>../connectors-parent</relativePath>
   </parent>
   <artifactId>connectors-license</artifactId>
   <name>Connectors license</name>

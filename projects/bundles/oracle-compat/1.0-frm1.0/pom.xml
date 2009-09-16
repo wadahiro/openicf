@@ -3,18 +3,19 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
 	<groupId>org.identityconnectors</groupId>
-	<artifactId>bundles-parent</artifactId>
+	<artifactId>compat-tests-parent</artifactId>
 	<version>1.0-SNAPSHOT</version>
-	<relativePath>../../../maven/bundles-parent/pom.xml</relativePath>
+	<relativePath>../../../maven/compat-tests-parent/pom.xml</relativePath>
   </parent>
-  <version>1.0-SNAPSHOT</version>
-  <name>Oracle connector</name>	
-  <artifactId>org.identityconnectors.oracle</artifactId>	
-
+  <packaging>jar</packaging>
+  <artifactId>org.identityconnectors.oracle-compat</artifactId>
+  
   <properties>
 	<framework.version>1.1.0-SNAPSHOT</framework.version>
 	<connectorName>org.identityconnectors.oracle.OracleConnector</connectorName>
-	<privateConfigPath>${user.home}/.connectors/connector-oracle/config</privateConfigPath>
+	<connectorGroupId>${project.groupId}</connectorGroupId>
+        <connectorArtifactId>org.identityconnectors.oracle</connectorArtifactId>
+	<connectorVersion>1.0-SNAPSHOT</connectorVersion>
 
 	<skip.junit.noconfig>true</skip.junit.noconfig>
 	<skip.junit.config1>false</skip.junit.config1>
@@ -23,17 +24,10 @@
 	<skip.contract.noconfig>true</skip.contract.noconfig>
 	<skip.contract.config1>false</skip.contract.config1>
 	<contract.config1>localhost</contract.config1>
-
-	<embedded.dependencies>${project.groupId}.dbcommon</embedded.dependencies>
+        
   </properties>
-
+  
   <dependencies>
-	<dependency>
-		<groupId>${identityconnectors.groupId}</groupId>
-		<artifactId>${project.groupId}.dbcommon</artifactId>
-		<version>1.0-SNAPSHOT</version>
-	</dependency>
-
 	<dependency>
 	    <groupId>com.oracle</groupId>
 	    <artifactId>ojdbc14</artifactId>
@@ -41,7 +35,5 @@
 	    <scope>test</scope>
 	</dependency> 
   </dependencies>
-
-
-</project>
+</project>	
 
