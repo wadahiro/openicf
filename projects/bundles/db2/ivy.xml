@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="1.3"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:noNamespaceSchemaLocation=
+                  "http://www.jayasoft.org/misc/ivy/ivy.xsd">
+  <info organisation="org.identityconnectors" module="org.identityconnectors.oracle" revision="1.0"/>
+  
+  <configurations>
+     <conf name="default"/>
+     <conf name="test"/>
+  </configurations>  
+  
+  <dependencies>
+        <dependency org="org.identityconnectors" name="org.identityconnectors.dbcommon" rev="1.0"/>
+        <dependency org="org.identityconnectors" name="connector-framework" rev="1.0"/>
+        <dependency org="org.identityconnectors" name="connector-framework-internal" rev="1.0" conf="test->default"/>
+        <dependency org="org.identityconnectors" name="connector-test-common" rev="1.0" conf="test->default"/>
+        <dependency org="org.identityconnectors" name="connector-framework-contract" rev="1.0" conf="test->default"/>
+        <dependency org="org.codehaus.groovy" name="groovy-all" rev="1.6.2" conf="test->default"/>
+  </dependencies>
+</ivy-module>

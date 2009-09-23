@@ -20,7 +20,7 @@
   "Portions Copyrighted [year] [name of copyright owner]"
   ====================
 -->
-<project name="connector-framework" default="all" xmlns:oc='internal:tasks'>
+<project name="connector-framework" default="all" xmlns:oc='internal:tasks' xmlns:ivy="antlib:org.apache.ivy.ant">
     <description>
     + ==\_/=============C=o=n=n=e=c=t=o=r===F=r=a=m=e=w=o=r=k================ +
     +  \(_)/ This build file is responsible for building the Connector        +
@@ -677,6 +677,16 @@
             destfile="${toolkit.file}" 
             basedir="${build}" 
             includes="${toolkit.name}/**"/>
+            
+        <ivy:resolve file="framework/ivy.xml"/>
+        <ivy:publish resolver="local" artifactspattern="${dist}/connector-framework.[ext]" overwrite="true"/>
+        <ivy:resolve file="test-common/ivy.xml"/>
+        <ivy:publish resolver="local" artifactspattern="${dist}/connector-test-common.[ext]" overwrite="true"/>
+        <ivy:resolve file="framework-internal/ivy.xml"/>
+        <ivy:publish resolver="local" artifactspattern="${dist}/connector-framework-internal.[ext]" overwrite="true"/>
+        <ivy:resolve file="test-contract/ivy.xml"/>
+        <ivy:publish resolver="local" artifactspattern="${dist}/connector-framework-contract.[ext]" overwrite="true"/>
+            
     </target>
     
     <!--

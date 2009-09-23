@@ -20,7 +20,7 @@
   "Portions Copyrighted [year] [name of copyright owner]"
   ====================
 -->
-<project name="connector-build" default="all">
+<project name="connector-build" default="all" xmlns:ivy="antlib:org.apache.ivy.ant">
     <description>
     + ==\_/================================================================== +
     +  \(_)/ This is the default build for any Connector.                     +
@@ -49,6 +49,8 @@
     <property name="lib" value="lib" />
     <property name="dist" value="dist" />
     <property name="build" value="build" />
+    <property name="build.lib" value="${build}/lib" />
+    <property name="build.testlib" value="${build}/testlib" />
     <property name="build.main" value="build/classes" />
     <property name="build.test" value="build/test-classes" />
     <property name="build.test.config" value="build/test-config" />
@@ -170,14 +172,20 @@
     <path id="build.path">
         <fileset refid="dist.libs" />
         <fileset refid="build.libs" />
+        <fileset dir="${build.lib}" includes="*.jar"/>
+        <!--
         <fileset dir="${framework.dir}/dist"
             includes="*.jar" 
             excludes="connector-framework-internal*.jar" />
+        -->
     </path>
     <path id="test.path">
         <fileset refid="test.libs" />
+        <fileset dir="${build.testlib}" includes="*.jar"/>
+        <!--
         <fileset dir="${framework.dir}/dist" 
             includes="connector-framework-internal*.jar" />
+        -->    
         <path refid="build.path" />
     </path>
     <!-- Libraries available to use from the Groovy console -->
@@ -204,11 +212,24 @@
        Base Compile Target
     -->
 
-    <target name="compile-main" depends="compile-check, -pre-compile-extra, compile-main-internal, copy-main-resources" description="compile all main files"/>
+    <target name="compile-main" depends="compile-check, resolve-main, -pre-compile-extra, compile-main-internal, copy-main-resources" description="compile all main files"/>
 
     <target name="compile-check">
         <fail unless="src.main.java.exists" message="Source folder ${src.main.java} does not exist. You may be using the old source layout, in which the Java source files are in a directory named src. In that case, import the toolkit's connector_build_old.xml and consider modifying your source layout according to http://identityconnectors.dev.java.net/issues/show_bug.cgi?id=395."/>
-    </target>                
+    </target>
+    
+    <target name="resolve-main">
+        <ivy:resolve/>
+        <mkdir dir="${build.lib}"/>
+        <ivy:retrieve conf="default" pattern="${build.lib}/[artifact].[ext]"/>
+    </target>
+    
+    <target name="resolve-test">
+        <ivy:resolve conf="test"/>
+        <mkdir dir="${build.testlib}"/>
+        <ivy:retrieve conf="test" pattern="${build.testlib}/[artifact].[ext]"/>
+    </target>
+                    
 
     <target name="compile-main-internal">
         <mkdir dir="${build.main}" />
@@ -237,7 +258,7 @@
         </copy>
     </target>                                                
 
-    <target name="compile-test" depends="-pre-compile-test-extra, compile-test-internal, copy-test-resources, copy-public-config, copy-private-config" description="compile all test files"/>
+    <target name="compile-test" depends="resolve-test, -pre-compile-test-extra, compile-test-internal, copy-test-resources, copy-public-config, copy-private-config" description="compile all test files"/>
 
     <target name="compile-test-internal" depends="-pre-compile-test-extra" if="src.test.java.exists"
         description="compile all test files">
@@ -288,9 +309,12 @@
 
     <target name="dist" depends="jar, javadoc, set-version"
         description="generates the distribution (excludes test classes)">
-        <property name="zip.file" value="${ConnectorBundle-Name}-${ConnectorBundle-Version}.zip" />
+        <property name="zip.file" value="${basedir}/${ConnectorBundle-Name}-${ConnectorBundle-Version}.zip" />
         <zip destfile="${zip.file}" basedir="${dist}"/>
         <move file="${zip.file}" todir="${dist}"/>
+        
+        <ivy:resolve/>
+        <ivy:publish resolver="local" artifactspattern="${jar.file}" srcivypattern="${basedir}/ivy.xml" overwrite="true" />
     </target>
     
     <target name="set-revision" if="is.svn.working.directory">
@@ -572,6 +596,10 @@
                 <fileset dir="${framework.dir}/dist" includes="*.jar"/>
                 <pathelement location="${build.test.config}"/>
             </classpath>
+            <!--
+            <jvmarg value="-Xdebug"/>
+            <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000"/>
+            -->
         </junit>
     </target>
 
