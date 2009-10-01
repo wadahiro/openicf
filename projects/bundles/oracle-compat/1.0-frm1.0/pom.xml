@@ -7,7 +7,7 @@
 	<version>1.0-SNAPSHOT</version>
 	<relativePath>../../../maven/compat-tests-parent/pom.xml</relativePath>
   </parent>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
   <artifactId>org.identityconnectors.oracle-compat</artifactId>
   
   <properties>
@@ -15,16 +15,9 @@
 	<connectorName>org.identityconnectors.oracle.OracleConnector</connectorName>
 	<connectorGroupId>${project.groupId}</connectorGroupId>
         <connectorArtifactId>org.identityconnectors.oracle</connectorArtifactId>
-	<connectorVersion>1.0-SNAPSHOT</connectorVersion>
-
-	<skip.junit.noconfig>true</skip.junit.noconfig>
-	<skip.junit.config1>false</skip.junit.config1>
-	<junit.config1>localhost</junit.config1>
-
-	<skip.contract.noconfig>true</skip.contract.noconfig>
-	<skip.contract.config1>false</skip.contract.config1>
-	<contract.config1>localhost</contract.config1>
-        
+	<connectorVersion>1.0.0-SNAPSHOT</connectorVersion>
+	<junitsConfigurations>localhost</junitsConfigurations>
+	<contractsConfigurations>localhost</contractsConfigurations>
   </properties>
   
   <dependencies>

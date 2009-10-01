@@ -5,8 +5,9 @@
 	<groupId>org.identityconnectors</groupId>
 	<artifactId>connectors-parent</artifactId>
 	<version>1.0-SNAPSHOT</version>
+        <relativePath>../../maven/connectors-parent/pom.xml</relativePath>
   </parent>
-  <name>DB common library connector</name>	
+  <name>Common Database Library</name>	
   <artifactId>${project.groupId}.dbcommon</artifactId>
   <version>1.0-SNAPSHOT</version>	
 

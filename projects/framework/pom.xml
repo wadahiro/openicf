@@ -10,7 +10,6 @@
 
   <artifactId>framework-parent</artifactId>
   <name>Framework parent</name>
-  <!-- Framework version will be independent from parent -->
   <version>1.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
@@ -34,12 +33,10 @@
 		<scope>test</scope>
 	</dependency>
   </dependencies>
-
-
-
+  
   <build>
-
     <plugins>
+             <!-- Copy license to jars -->   
 	     <plugin>
 		<artifactId>maven-dependency-plugin</artifactId>
 		<executions>
@@ -55,7 +52,7 @@
 						</artifactItem>
 					</artifactItems>
 					<excludes>META-INF/**</excludes>
-					<outputDirectory>${project.build.directory}/classes</outputDirectory>
+					<outputDirectory>${project.build.outputDirectory}</outputDirectory>
 				</configuration>
 			</execution>
 		</executions>

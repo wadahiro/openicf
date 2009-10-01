@@ -10,27 +10,4 @@
   <artifactId>${framework.artifactId}</artifactId>
   <name>Framework</name>
   <packaging>jar</packaging>
-
-  <build>
-	<plugins>
-	   <plugin>
-		<artifactId>maven-surefire-plugin</artifactId>
-		<configuration>
-		  <skipTests>false</skipTests>
-		</configuration>
-          </plugin>
-
-	</plugins>
-  </build>	
-
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>jdepend-maven-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </reporting>
-
-
 </project>
