@@ -1,211 +1,221 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-	<groupId>org.identityconnectors</groupId>
-	<artifactId>connectors-parent</artifactId>
-	<version>1.0-SNAPSHOT</version>
-	<relativePath>../connectors-parent/pom.xml</relativePath>
+    <groupId>org.identityconnectors</groupId>
+    <artifactId>connectors-parent</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <relativePath>../connectors-parent/pom.xml</relativePath>
   </parent>
   <artifactId>compat-tests-parent</artifactId>
   <name>Compatibility tests  parent</name>
   <packaging>pom</packaging>
   <version>1.0-SNAPSHOT</version>
-  
+
   <properties>
-	<contract.suiteName>org.identityconnectors.contract.test.ContractTestSuite</contract.suiteName>
+    <contract.suiteName>org.identityconnectors.contract.test.ContractTestSuite</contract.suiteName>
   </properties>
-  
+
   <profiles>
-	<profile>
-	        <id>test-compat</id>
-	        <activation>
-		        <file>
-			        <missing>../compat-tests-parent</missing>
-		        </file>
-	        </activation>
-                  <dependencies>
-			<dependency>
-				<groupId>${framework.groupId}</groupId>
-				<artifactId>${framework.artifactId}</artifactId>
-				<version>${framework.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>${framework.groupId}</groupId>
-				<artifactId>connector-test-common</artifactId>
-				<version>${framework.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>${framework.groupId}</groupId>
-				<artifactId>connector-framework-internal</artifactId>
-				<version>${framework.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>${framework.groupId}</groupId>
-				<artifactId>connector-framework-contract</artifactId>
-				<version>${framework.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<scope>test</scope>
-			</dependency>
-                  
-                        <dependency>
-                                <groupId>${connectorGroupId}</groupId>
-                                <artifactId>${connectorArtifactId}</artifactId>
-                                <version>${connectorVersion}</version>
-                                <scope>test</scope>
-                        </dependency>
-                        <dependency>
-                                <groupId>${connectorGroupId}</groupId>
-                                <artifactId>${connectorArtifactId}</artifactId>
-                                <version>${connectorVersion}</version>
-                                <classifier>tests</classifier>
-                                <scope>test</scope>
-                        </dependency>
-                        <dependency>
-                                <groupId>${connectorGroupId}</groupId>
-                                <artifactId>${connectorArtifactId}</artifactId>
-                                <version>${connectorVersion}</version>
-                                <classifier>privatetestconfig</classifier>
-                                <scope>test</scope>
-                        </dependency>
-                        <dependency>
-                                <groupId>${connectorGroupId}</groupId>
-                                <artifactId>${connectorArtifactId}</artifactId>
-                                <version>${connectorVersion}</version>
-                                <classifier>publictestconfig</classifier>
-                                <scope>test</scope>
-                        </dependency>
-                  </dependencies>
-                  <build>
-                        <plugins>
-                             <plugin>
-			        <artifactId>maven-dependency-plugin</artifactId>
-			        <executions>
-				        <!-- Copy classes from connector tests jar -->
-				        <execution>
-					        <id>copy-testclasses</id>
-					        <phase>generate-test-sources</phase>
-					        <goals><goal>unpack</goal></goals>
-					        <configuration>
-                       					<artifactItems>
-                						<artifactItem>
-                							<groupId>${connectorGroupId}</groupId>
-                       							<artifactId>${connectorArtifactId}</artifactId>
-                       							<outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
-                       							<classifier>tests</classifier>
-                        					</artifactItem>
-                					</artifactItems>
-					        </configuration>
-				        </execution>
-			                <!-- Copy classes from contract tests -->
-			                <execution>
-				                <id>copy-contractclasses</id>
-				                <phase>generate-test-sources</phase>
-				                <goals><goal>unpack</goal></goals>
-				                <configuration>
-					                <artifactItems>
-						                <artifactItem>
-							                <groupId>${framework.groupId}</groupId>
-							                <artifactId>connector-framework-contract</artifactId>
-							                <outputDirectory>${project.build.directory}/contractClasses</outputDirectory>
-						                </artifactItem>
-						                <artifactItem>
-							                <groupId>${framework.groupId}</groupId>
-							                <artifactId>connector-framework-contract</artifactId>
-							                <classifier>sources</classifier>
-							                <outputDirectory>${project.build.directory}/contractSources</outputDirectory>
-						                </artifactItem>
-					                </artifactItems>
-				                </configuration>
-			                </execution>
-				        <!-- Copy bundle jar to some location -->
-				        <execution>
-					        <id>copy-bundleJar</id>
-					        <phase>generate-test-sources</phase>
-					        <goals><goal>copy</goal></goals>
-					        <configuration>
-                       					<artifactItems>
-                						<artifactItem>
-                							<groupId>${connectorGroupId}</groupId>
-                       							<artifactId>${connectorArtifactId}</artifactId>
-                       							<outputDirectory>${project.build.directory}</outputDirectory>
-                       							<classifier></classifier>
-                        					</artifactItem>
-                					</artifactItems>
-					        </configuration>
-				        </execution>
-				        
-			        </executions>
-	              	     </plugin>
-	              	     
-                               <!-- Run surefire-execs plugin -->
-                               <plugin>
-                                <artifactId>maven-surefire-execs-plugin</artifactId>
-                                <executions>
-                                  <!-- Run junits with configuration -->
-                                  <execution>
-                                    <id>test-junits</id> 
-                                    <phase>test</phase>
-                                    <goals>
-                                      <goal>test</goal>
-                                    </goals>
-                                    <configuration>
-                                        <skipTests>${skip.junit.noconfig}</skipTests>
-                                        <testExecutionsPropertyValues>
-                                                <propertyName>testConfig</propertyName>
-                                                <propertyValues>${junitsConfigurations}</propertyValues>
-                                        </testExecutionsPropertyValues>
-                                    </configuration>
-                                  </execution>
-                                  <!-- Run contract tests -->
-		                  <execution>
-			                <id>test-contracts</id>
-			                <phase>integration-test</phase>
-			                <goals><goal>test</goal></goals>
-			                <configuration>
-					                  <testSourceDirectory>${project.build.directory}/contractSources</testSourceDirectory>
-					                  <testClassesDirectory>${project.build.directory}/contractClasses</testClassesDirectory>
-					                  <additionalClasspathElements>
-			                                  	<additionalClasspathElement>${project.build.testOutputDirectory}</additionalClasspathElement>
-					                  </additionalClasspathElements>
-					                  <test>${contract.suiteName}</test>
-					                  <systemProperties>
-						                <property>
-							                <name>connectorName</name>
-							                <value>${connectorName}</value>
-						                </property>
-						                <property>
-							                <name>bundleJar</name>
-							                <value>${project.build.directory}/${connectorArtifactId}-${connectorVersion}.jar</value>
-						                </property>
-						                <property>
-							                <name>bundleName</name>
-							                <value>${connectorArtifactId}</value>
-						                </property>
-						                <property>
-							                <name>bundleVersion</name>
-							                <value>${connectorVersion}</value>
-						                </property>
-					                  </systemProperties>
-		                                          <testExecutionsPropertyValues>
-                                                                <propertyName>testConfig</propertyName>
-                                                                <propertyValues>${contractsConfigurations}</propertyValues>
-                                                          </testExecutionsPropertyValues>
-			                </configuration>
-		                  </execution>
-                                </executions>
-                              </plugin>
-          	              	     
-	              	     
-                        </plugins>
-                  </build>      
-	 </profile>
+    <profile>
+      <id>test-compat</id>
+      <activation>
+        <file>
+          <missing>../compat-tests-parent</missing>
+        </file>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>${framework.groupId}</groupId>
+          <artifactId>${framework.artifactId}</artifactId>
+          <version>${framework.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${framework.groupId}</groupId>
+          <artifactId>connector-test-common</artifactId>
+          <version>${framework.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${framework.groupId}</groupId>
+          <artifactId>connector-framework-internal</artifactId>
+          <version>${framework.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${framework.groupId}</groupId>
+          <artifactId>connector-framework-contract</artifactId>
+          <version>${framework.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <scope>test</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>${connectorGroupId}</groupId>
+          <artifactId>${connectorArtifactId}</artifactId>
+          <version>${connectorVersion}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${connectorGroupId}</groupId>
+          <artifactId>${connectorArtifactId}</artifactId>
+          <version>${connectorVersion}</version>
+          <classifier>tests</classifier>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${connectorGroupId}</groupId>
+          <artifactId>${connectorArtifactId}</artifactId>
+          <version>${connectorVersion}</version>
+          <classifier>privatetestconfig</classifier>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${connectorGroupId}</groupId>
+          <artifactId>${connectorArtifactId}</artifactId>
+          <version>${connectorVersion}</version>
+          <classifier>publictestconfig</classifier>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <!-- Copy classes from connector tests jar -->
+              <execution>
+                <id>copy-testclasses</id>
+                <phase>generate-test-sources</phase>
+                <goals>
+                  <goal>unpack</goal>
+                </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>${connectorGroupId}</groupId>
+                      <artifactId>${connectorArtifactId}</artifactId>
+                      <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
+                      <classifier>tests</classifier>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+              </execution>
+              <!-- Copy classes from contract tests -->
+              <execution>
+                <id>copy-contractclasses</id>
+                <phase>generate-test-sources</phase>
+                <goals>
+                  <goal>unpack</goal>
+                </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>${framework.groupId}</groupId>
+                      <artifactId>connector-framework-contract</artifactId>
+                      <outputDirectory>${project.build.directory}/contractClasses</outputDirectory>
+                    </artifactItem>
+                    <artifactItem>
+                      <groupId>${framework.groupId}</groupId>
+                      <artifactId>connector-framework-contract</artifactId>
+                      <classifier>sources</classifier>
+                      <outputDirectory>${project.build.directory}/contractSources</outputDirectory>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+              </execution>
+              <!-- Copy bundle jar to some location -->
+              <execution>
+                <id>copy-bundleJar</id>
+                <phase>generate-test-sources</phase>
+                <goals>
+                  <goal>copy</goal>
+                </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>${connectorGroupId}</groupId>
+                      <artifactId>${connectorArtifactId}</artifactId>
+                      <outputDirectory>${project.build.directory}</outputDirectory>
+                      <classifier></classifier>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+              </execution>
+
+            </executions>
+          </plugin>
+
+          <!-- Run surefire-execs plugin -->
+          <plugin>
+            <artifactId>maven-surefire-execs-plugin</artifactId>
+            <executions>
+              <!-- Run junits with configuration -->
+              <execution>
+                <id>test-junits</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+                <configuration>
+                  <skipTests>${junits.skip}</skipTests>
+                  <testExecutionsPropertyValues>
+                    <propertyName>testConfig</propertyName>
+                    <propertyValues>${junitsConfigurations}</propertyValues>
+                  </testExecutionsPropertyValues>
+                </configuration>
+              </execution>
+              <!-- Run contract tests -->
+              <execution>
+                <id>test-contracts</id>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+                <configuration>
+                  <skipTests>${contracts.skip}</skipTests>
+                  <testSourceDirectory>${project.build.directory}/contractSources</testSourceDirectory>
+                  <testClassesDirectory>${project.build.directory}/contractClasses</testClassesDirectory>
+                  <additionalClasspathElements>
+                    <additionalClasspathElement>${project.build.testOutputDirectory}</additionalClasspathElement>
+                  </additionalClasspathElements>
+                  <test>${contract.suiteName}</test>
+                  <systemProperties>
+                    <property>
+                      <name>connectorName</name>
+                      <value>${connectorName}</value>
+                    </property>
+                    <property>
+                      <name>bundleJar</name>
+                      <value>${project.build.directory}/${connectorArtifactId}-${connectorVersion}.jar</value>
+                    </property>
+                    <property>
+                      <name>bundleName</name>
+                      <value>${connectorArtifactId}</value>
+                    </property>
+                    <property>
+                      <name>bundleVersion</name>
+                      <value>${connectorVersion}</value>
+                    </property>
+                  </systemProperties>
+                  <testExecutionsPropertyValues>
+                    <propertyName>testConfig</propertyName>
+                    <propertyValues>${contractsConfigurations}</propertyValues>
+                  </testExecutionsPropertyValues>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 </project>
 

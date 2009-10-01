@@ -1,38 +1,39 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-	<groupId>org.identityconnectors</groupId>
-	<artifactId>bundles-parent</artifactId>
-	<version>1.0-SNAPSHOT</version>
-	<relativePath>../../maven/bundles-parent/pom.xml</relativePath>
+    <groupId>org.identityconnectors</groupId>
+    <artifactId>bundles-parent</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <relativePath>../../maven/bundles-parent/pom.xml</relativePath>
   </parent>
   <version>1.0.0-SNAPSHOT</version>
-  <name>Oracle connector</name>	
-  <artifactId>org.identityconnectors.oracle</artifactId>	
+  <name>Oracle connector</name>
+  <artifactId>org.identityconnectors.oracle</artifactId>
 
   <properties>
-	<framework.version>1.1.0-SNAPSHOT</framework.version>
-	<connectorName>org.identityconnectors.oracle.OracleConnector</connectorName>
-	<privateConfigPath>${user.home}/.connectors/connector-oracle/config</privateConfigPath>
-	<junitsConfigurations>localhost</junitsConfigurations>
-	<contractsConfigurations>localhost</contractsConfigurations>
-	<embedded.dependencies>${project.groupId}.dbcommon</embedded.dependencies>
+    <framework.version>1.1.0-SNAPSHOT</framework.version>
+    <connectorName>org.identityconnectors.oracle.OracleConnector</connectorName>
+    <privateConfigPath>${user.home}/.connectors/connector-oracle/config</privateConfigPath>
+    <junitsConfigurations>localhost</junitsConfigurations>
+    <contractsConfigurations>localhost</contractsConfigurations>
+    <embedded.dependencies>${project.groupId}.dbcommon</embedded.dependencies>
   </properties>
 
   <dependencies>
-	<dependency>
-		<groupId>${identityconnectors.groupId}</groupId>
-		<artifactId>${project.groupId}.dbcommon</artifactId>
-		<version>1.0-SNAPSHOT</version>
-	</dependency>
+    <dependency>
+      <groupId>${identityconnectors.groupId}</groupId>
+      <artifactId>${project.groupId}.dbcommon</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
 
-	<dependency>
-	    <groupId>com.oracle</groupId>
-	    <artifactId>ojdbc14</artifactId>
-	    <version>10.2.04</version>
-	    <scope>test</scope>
-	</dependency> 
+    <dependency>
+      <groupId>com.oracle</groupId>
+      <artifactId>ojdbc14</artifactId>
+      <version>10.2.04</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>
 

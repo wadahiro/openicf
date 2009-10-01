@@ -1,68 +1,69 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-	<groupId>org.identityconnectors</groupId>
-	<artifactId>bundles-parent</artifactId>
-	<version>1.0-SNAPSHOT</version>
-	<relativePath>../../maven/bundles-parent/pom.xml</relativePath>
+    <groupId>org.identityconnectors</groupId>
+    <artifactId>bundles-parent</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <relativePath>../../maven/bundles-parent/pom.xml</relativePath>
   </parent>
   <version>1.0-SNAPSHOT</version>
-  <name>Database Table Connector</name>	
+  <name>Database Table Connector</name>
   <artifactId>org.identityconnectors.databasetable</artifactId>
   <packaging>jar</packaging>
 
   <properties>
-	<framework.version>1.1.0-SNAPSHOT</framework.version>
-	<connectorName>org.identityconnectors.databasetable.DatabaseTableConnector</connectorName>
-	<privateConfigPath>${user.home}/.connectors/connector-databasetable/config</privateConfigPath>
-	<junitsConfigurations>default</junitsConfigurations>
-	<contractsConfigurations>mysql,mssql,db2,oracle</contractsConfigurations>
-	<embedded.dependencies>${project.groupId}.dbcommon</embedded.dependencies>
+    <framework.version>1.1.0-SNAPSHOT</framework.version>
+    <connectorName>org.identityconnectors.databasetable.DatabaseTableConnector</connectorName>
+    <privateConfigPath>${user.home}/.connectors/connector-databasetable/config</privateConfigPath>
+    <junitsConfigurations>default</junitsConfigurations>
+    <contractsConfigurations>mysql,mssql,db2,oracle</contractsConfigurations>
+    <embedded.dependencies>${project.groupId}.dbcommon</embedded.dependencies>
   </properties>
 
   <dependencies>
-	<dependency>
-		<groupId>${identityconnectors.groupId}</groupId>
-		<artifactId>${project.groupId}.dbcommon</artifactId>
-		<version>1.0-SNAPSHOT</version>
-	</dependency>
+    <dependency>
+      <groupId>${identityconnectors.groupId}</groupId>
+      <artifactId>${project.groupId}.dbcommon</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
 
-	<dependency>
-	    <groupId>com.oracle</groupId>
-	    <artifactId>ojdbc14</artifactId>
-	    <version>10.2.04</version>
-	    <scope>test</scope>
-	</dependency>
-        
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>5.0.8</version>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.microsoft.mssql</groupId>
-            <artifactId>sqljdbc</artifactId>
-            <version>1.0</version>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.ibm.db2</groupId>
-            <artifactId>db2jcc</artifactId>
-            <version>9.5</version>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.apache.derby</groupId>
-            <artifactId>derby</artifactId>
-            <version>10.4.2.0</version>
-            <scope>test</scope>
-        </dependency>         
-        
+    <dependency>
+      <groupId>com.oracle</groupId>
+      <artifactId>ojdbc14</artifactId>
+      <version>10.2.04</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>5.0.8</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.microsoft.mssql</groupId>
+      <artifactId>sqljdbc</artifactId>
+      <version>1.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.ibm.db2</groupId>
+      <artifactId>db2jcc</artifactId>
+      <version>9.5</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.derby</groupId>
+      <artifactId>derby</artifactId>
+      <version>10.4.2.0</version>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 
 
