@@ -33,7 +33,9 @@ import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.solaris.SolarisConfiguration;
+import org.identityconnectors.solaris.SolarisConnection;
 import org.identityconnectors.solaris.SolarisConnector;
+import org.identityconnectors.solaris.attr.NativeAttribute;
 import org.identityconnectors.test.common.PropertyBag;
 import org.identityconnectors.test.common.TestHelpers;
 
@@ -116,5 +118,19 @@ public class SolarisTestCommon {
         res.add(AttributeBuilder.buildPassword(new GuardedString(samplePasswd.toCharArray())));
         
         return res;
+    }
+    
+    public static SolarisConnection getSolarisConn() {
+        SolarisConfiguration config = SolarisTestCommon.createConfiguration();
+        SolarisConnection conn = new SolarisConnection(config);
+        return conn;
+    }
+    
+    /** checks if the given attribute has same name of NativeAttribute. */
+    public static boolean checkIfNativeAttrPresent(NativeAttribute auths, Attribute attribute) {
+        if (auths.getName().equals(attribute.getName())) {
+            return true;
+        }
+        return false;
     }
 }

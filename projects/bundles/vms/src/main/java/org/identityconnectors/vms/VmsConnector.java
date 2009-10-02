@@ -79,6 +79,7 @@ import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.SchemaBuilder;
 import org.identityconnectors.framework.common.objects.ScriptContext;
 import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.framework.spi.AttributeNormalizer;
 import org.identityconnectors.framework.spi.Configuration;
@@ -87,6 +88,7 @@ import org.identityconnectors.framework.spi.PoolableConnector;
 import org.identityconnectors.framework.spi.operations.AuthenticateOp;
 import org.identityconnectors.framework.spi.operations.CreateOp;
 import org.identityconnectors.framework.spi.operations.DeleteOp;
+import org.identityconnectors.framework.spi.operations.ResolveUsernameOp;
 import org.identityconnectors.framework.spi.operations.SchemaOp;
 import org.identityconnectors.framework.spi.operations.ScriptOnResourceOp;
 import org.identityconnectors.framework.spi.operations.SearchOp;
@@ -96,7 +98,7 @@ import org.identityconnectors.patternparser.Transform;
 
 @ConnectorClass(displayNameKey="VMSConnector", configurationClass= VmsConfiguration.class)
 public class VmsConnector implements PoolableConnector, AuthenticateOp, CreateOp,
-DeleteOp, SearchOp<String>, UpdateOp, SchemaOp, AttributeNormalizer, ScriptOnResourceOp {
+DeleteOp, SearchOp<String>, UpdateOp, SchemaOp, AttributeNormalizer, ScriptOnResourceOp, ResolveUsernameOp {
     private Log                         _log = Log.getLog(VmsConnector.class);
     private DateFormat                  _vmsDateFormatWithSecs;
     private DateFormat                  _vmsDateFormatWithoutSecs;
@@ -2041,6 +2043,18 @@ DeleteOp, SearchOp<String>, UpdateOp, SchemaOp, AttributeNormalizer, ScriptOnRes
         return new Uid(username);
     }
 
+    public Uid resolveUsername(ObjectClass objectClass, String username,
+            OperationOptions options) {
+        if (!objectClass.is(ObjectClass.ACCOUNT_NAME))
+            throw new IllegalArgumentException(_configuration.getMessage(VmsMessages.UNSUPPORTED_OBJECT_CLASS, objectClass.getObjectClassValue()));
+        LocalHandler handler = new LocalHandler();
+        List<String> query = createFilterTranslator(objectClass, options).translate(new EqualsFilter(AttributeBuilder.build(Name.NAME, username)));
+        executeQuery(ObjectClass.ACCOUNT, query.get(0), handler, options);
+        if (!handler.iterator().hasNext())
+            throw new UnknownUidException();
+        return handler.iterator().next().getUid();
+    }
+    
     private String getCreateDirCommand(Map<String, Attribute> attrMap, Attribute createDirectory) {
         if (createDirectory==null || !AttributeUtil.getBooleanValue(createDirectory))
             return null;

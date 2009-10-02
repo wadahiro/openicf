@@ -18,7 +18,7 @@
     <privateConfigPath>${user.home}/.connectors/connector-oracle/config</privateConfigPath>
     <junitsConfigurations>localhost</junitsConfigurations>
     <contractsConfigurations>localhost</contractsConfigurations>
-    <embedded.dependencies>${project.groupId}.dbcommon</embedded.dependencies>
+    <embedded.dependencies>${project.groupId}.dbcommon,ojdbc14</embedded.dependencies>
   </properties>
 
   <dependencies>

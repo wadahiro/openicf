@@ -31,6 +31,7 @@ import java.math.BigInteger
 import org.identityconnectors.contract.data.groovy.Lazy;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.contract.exceptions.ObjectNotFoundException;
+import org.identityconnectors.common.script.Script
 
 /* JUNIT tests configurations */
 configuration{
@@ -44,7 +45,7 @@ configuration{
     tst.manageSecuringAttrs=false
     tst.noSchemaId=false
     tst.returnSobOrgAttrs=false
-    tst.userActions=""
+    tst.userActionScript=""
     
     sysadm.driver="oracle.jdbc.driver.OracleDriver"
     sysadm.url="__configureme__"
@@ -56,7 +57,6 @@ configuration{
     sysadm.manageSecuringAttrs=true
     sysadm.noSchemaId=false
     sysadm.returnSobOrgAttrs=true
-    sysadm.userActions=""
     sysadm.clientEncryptionType="RC4_40"
     sysadm.clientEncryptionLevel="REJECTED" 
     
@@ -100,6 +100,7 @@ account{
     all.fax="555-555-5555"
     //all.customer_id=11223344
     //all.supplier_id=102
+    all.person_party_id=new BigDecimal(3044)
     
     all.directResponsibilities="Cash Forecasting||Cash Management||Standard||2004-04-12||null"
     all.responsibilityKeys="Cash Forecasting||Cash Management||Standard"
@@ -130,12 +131,7 @@ account{
     auditor.formNames=["CEFFCOPI", "CEFFCDFN", "FNDFFMDC", "FNDFFMSV", "CEFFCAST", "FNDPOMSV", "FNDRSSET", "FNDRSRUN", "FNDRSRUN", "CEFQFCST"]
     auditor.userFormNames=["Define External Forecast Sources", "Define Templates", "Define Descriptive Flexfield Segments", "Define Segment Values", "Maintain Forecasts", "Update Personal Profile Values", "Administer Report Sets", "Run Reports", "Run Reports", "Inquire Forecasts"]
     
-    enabled.__PASSWORD_EXPIRED__=false
-//   enabled.__ENABLE_DATE__=getDt(-10)
-//   enabled.__LAST_LOGIN_DATE__=getDt(0)
-//   enabled.__DISSABLE_DATE__=getDt(+10)
     enabled.__ENABLE__=true
-    dissabled.__PASSWORD_EXPIRED__=false
     dissabled.__ENABLE__=false
 }
 
@@ -147,17 +143,17 @@ connector{
     database="PROD"
     user="__configureme__"
     password=new GuardedString("__configureme__".toCharArray());
-    accountsIncluded=""
-    activeAccountsOnly=true
+    accountsIncluded="where USER_NAME like 'CTU-%' AND (START_DATE - SYSDATE <= 0) AND ((END_DATE IS NULL) OR (END_DATE - SYSDATE > 0))"
+    activeAccountsOnly=false  // accountsIncluded clause invalidate activeAccountsOnly
     auditResponsibility="System Administrator"
     manageSecuringAttrs=true
     noSchemaId=false
     returnSobOrgAttrs=false
-    userActions=""
+    userActionScript=""
     /* WRONG configuration for ValidateApiOpTests */
     i1.wrong.host=""
     i2.wrong.user=""
-    i3.wrong.password=""
+    i3.wrong.password=new GuardedString("".toCharArray())
     i4.wrong.database=""
     i53.wrong.driver=""
 }
@@ -173,11 +169,11 @@ testsuite {
     
     /* AuthenticationApiOpTests: */
     Authentication.__ACCOUNT__.username=Lazy.get("i0.Authentication.__ACCOUNT__.__NAME__")
-    Authentication.__ACCOUNT__.wrong.password="__configureme__"
+    Authentication.__ACCOUNT__.wrong.password=new GuardedString("WRONG".toCharArray())
     /* SchemaApiOpTests: */
     
     /* declared object classes */
-    Schema.oclasses=[ "__ACCOUNT__", "responsibilityNames" ]
+    Schema.oclasses=[ "__ACCOUNT__", "directResponsibilityNames" ]
     
     /* list of attributes which contains object class "__ACCOUNT__" */
     Schema.attributes.__ACCOUNT__.oclasses=[ "__NAME__", "__PASSWORD__" ]
@@ -207,8 +203,7 @@ testsuite {
     Schema.__NAME__.attribute.__ACCOUNT__.oclasses=[type:"java.lang.String", readable:"true", updateable:"true", createable:"true",
                                                     required:"true", multiValue:"false", returnedByDefault:"true"]
     /* attributes of "__PASSWORD__" */
-    Schema.__PASSWORD__.attribute.__ACCOUNT__.oclasses=[type:"org.identityconnectors.common.security.GuardedString", readable:"false",   updateable:"true",
-    
+    Schema.__PASSWORD__.attribute.__ACCOUNT__.oclasses=[type:"org.identityconnectors.common.security.GuardedString", readable:"false",   updateable:"true",    
                                                         createable:"true", required:"true", multiValue:"false", returnedByDefault:"true"]
     Schema.MIDDLENAME.attribute.__ACCOUNT__.oclasses=testsuite.Schema.common.attribute
     
@@ -223,16 +218,15 @@ testsuite {
         DeleteApiOp:["__ACCOUNT__"],
         ScriptOnConnectorApiOp:["__ACCOUNT__"],
         UpdateApiOp:["__ACCOUNT__"],
+        ResolveUsernameApiOp: ['__ACCOUNT__'],
         AuthenticationApiOp:["__ACCOUNT__"]
      ]
      
+     
 //  Connector WRONG configuration for ValidateApiOpTests
   Validate.invalidConfig = [
-//     [ host : "" ],
-//     [ login : "" ],
-//     [ password : "" ],
-//     [ databaseName : "" ],
-//     [ driver : "" ]
+     [ user : "" ],
+     [ driver : "" ]
   ]
   
 //  Connector WRONG configuration for TestApiOpTests
@@ -244,6 +238,7 @@ testsuite {
          __NAME__="CTU-" + Lazy.random("AAAAAA######")
          __PASSWORD__= new GuardedString("password".toCharArray())
 modified.__PASSWORD__= new GuardedString("modpasswd".toCharArray())
+         __ENABLE__= true
          owner="CUST"
          session_number=0
 
@@ -257,17 +252,17 @@ modified.description="Connector test user mod"
 
          password_date=stringDate(0)
 
-         password_accesses_left=56
-modified.password_accesses_left=30
-         password_lifespan_accesses=5
-modified.password_lifespan_accesses=10
-         password_lifespan_days=30
-modified.password_lifespan_days=20
+         password_accesses_left="56"
+modified.password_accesses_left="30"
+         password_lifespan_accesses="5"
+modified.password_lifespan_accesses="10"
+         password_lifespan_days="30"
+modified.password_lifespan_days="20"
 
          employee_id=empty()
-         employee_number=5
+         employee_number="5"
          person_fullname="Monster, Cookie"
-         person_party_id=3044
+         person_party_id="3044"
          npw_number=empty()
          email_address="person@somewhere.com"
 modified.email_address="person1@somewhere.com"
@@ -290,7 +285,7 @@ def currentTimeMillis(){
 }
 
 def stringDate( dife ){
-    return new java.sql.Timestamp(System.currentTimeMillis() + dife*24*3600000 ).toString()
+    return new java.sql.Timestamp(System.currentTimeMillis() + dife*24*3600000 ).toString().substring(0, 10)+" 00:00:00.0"
 }
 
 def getDt( dife ){

@@ -66,7 +66,9 @@ namespace Org.IdentityConnectors.Framework.Common
                 new Dictionary<SafeType<SPIOperation>,SafeType<APIOperation>>();
             temp[SafeType<SPIOperation>.Get<AuthenticateOp>()]=
                 SafeType<APIOperation>.Get<AuthenticationApiOp>();
-            temp[SafeType<SPIOperation>.Get<CreateOp>()]=
+            temp[SafeType<SPIOperation>.Get<ResolveUsernameOp>()] =
+                SafeType<APIOperation>.Get<ResolveUsernameApiOp>();
+            temp[SafeType<SPIOperation>.Get<CreateOp>()] =
                 SafeType<APIOperation>.Get<CreateApiOp>();
             temp[SafeType<SPIOperation>.Get<DeleteOp>()]=
                 SafeType<APIOperation>.Get<DeleteApiOp>();
@@ -106,7 +108,8 @@ namespace Org.IdentityConnectors.Framework.Common
                 typeof(Uri),
                 typeof(FileName),
                 typeof(GuardedByteArray),
-                typeof(GuardedString)
+                typeof(GuardedString),
+                typeof(Script)
             );
             ATTR_SUPPORTED_TYPES = CollectionUtil.NewReadOnlySet<Type>
             ( 
@@ -284,6 +287,15 @@ namespace Org.IdentityConnectors.Framework.Common
             if ( val != null ) {
                 CheckOperationOptionType(val.GetType());
             }
+        }
+
+        /**
+         * Returns the version of the framework.
+         * 
+         * @return the framework version; never null.
+         */
+        public static Version GetFrameworkVersion() {
+            return Assembly.GetExecutingAssembly().GetName().Version;
         }
     }
 }

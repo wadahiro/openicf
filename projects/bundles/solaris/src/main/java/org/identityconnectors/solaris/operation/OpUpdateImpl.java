@@ -34,12 +34,9 @@ import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.identityconnectors.solaris.SolarisConfiguration;
 import org.identityconnectors.solaris.SolarisConnector;
 import org.identityconnectors.solaris.SolarisUtil;
-import org.identityconnectors.solaris.command.CommandUtil;
-import org.identityconnectors.solaris.command.MatchBuilder;
-import org.identityconnectors.solaris.command.closure.ClosureFactory;
+import org.identityconnectors.solaris.operation.search.SolarisEntry;
 
 /**
  * Implementation of update SPI operation
@@ -47,181 +44,70 @@ import org.identityconnectors.solaris.command.closure.ClosureFactory;
  * @author David Adam
  */
 public class OpUpdateImpl extends AbstractOp {
-
-    /** mutex acquire constants */
-    private static final String tmpPidMutexFile = "/tmp/WSlockuid.$$";
-    private static final String pidMutexFile = "/tmp/WSlockuid";
-    private static final String pidFoundFile = "/tmp/WSpidfound.$$";
+    
+    private static final Log _log = Log.getLog(OpUpdateImpl.class);
 
     /** These objectclasses are valid for update operation. */
     final ObjectClass[] acceptOC = { ObjectClass.ACCOUNT, ObjectClass.GROUP };
 
-    public OpUpdateImpl(Log log, SolarisConnector conn) {
-        super(log, conn);
+    public OpUpdateImpl(SolarisConnector conn) {
+        super(conn);
     }
 
     /** main update method */
-    public Uid update(ObjectClass objclass, Uid uid,
-            Set<Attribute> replaceAttributes, OperationOptions options) {
+    public Uid update(ObjectClass objclass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
+
+        if (!objclass.is(ObjectClass.ACCOUNT_NAME)) {
+            throw new UnsupportedOperationException("GROUP and other objectclasses are not yet supported.");
+        }
+
+        _log.info("update ('{0}', name: '{1}'", objclass.toString(), uid.getUidValue());
 
         SolarisUtil.controlObjectClassValidity(objclass, acceptOC, getClass());
 
         // Read only list of attributes
-        final Map<String, Attribute> attrMap = new HashMap<String, Attribute>(
-                AttributeUtil.toMap(replaceAttributes));
-
-        Uid name = (Uid) attrMap.get(Uid.NAME);
-        final String accountId = name.getUidValue();
-
-        doSudoStart();
+        final Map<String, Attribute> attrMap = new HashMap<String, Attribute>(AttributeUtil.toMap(replaceAttributes));
 
         /*
-         * ACCOUNT
+         * START SUDO
          */
-        if (objclass.is(ObjectClass.ACCOUNT_NAME)) {
-            final String commandSwitches = CommandUtil.prepareCommand(replaceAttributes, ObjectClass.ACCOUNT);
-
-            if (commandSwitches.length() > 0) {
-                try {
-                    // First acquire the "mutex" for uid creation
-                    getConnection().send(getAcquireMutexScript());
-                    MatchBuilder builder = new MatchBuilder();
-                    builder.addRegExpMatch(getConfiguration()
-                            .getRootShellPrompt(), ClosureFactory.newNullClosure());
-                    builder.addRegExpMatch("ERROR", ClosureFactory.newConnectorException("acquiring mutex failed"));
-
-                    getConnection().expect(builder.build());
-
-                    // perform the UPDATE
-                    builder = new MatchBuilder();
-                    builder.addRegExpMatch(getConfiguration().getRootShellPrompt(), ClosureFactory.newNullClosure());
-                    builder.addRegExpMatch("ERROR", ClosureFactory.newConnectorException("ERROR occured during update [usermod]"));
-                    builder.addRegExpMatch("command not found", ClosureFactory.newConnectorException("usermod command is not found"));
-                    builder.addRegExpMatch("not allowed to execute", ClosureFactory.newConnectorException("not allowed to execute usermod"));
-
-                    getConnection().send(getCmdBuilder().build("usermod", commandSwitches, accountId));
-                    getConnection().expect(builder.build());
-
-                    // Release the uid "mutex"
-                    getConnection().send(getMutexReleaseScript());
-                    getConnection().waitFor(getConfiguration().getRootShellPrompt());
-                } catch (Exception ex) {
-                    throw ConnectorException.wrap(ex);
-                }
-            }
-
-            // PASSWORD UPDATE
-            GuardedString passwd = SolarisUtil.getPasswordFromMap(attrMap);
-            if (passwd != null) {
-                handlePasswdUpdate(accountId, passwd);
-            }
-
-        } else if (objclass.is(ObjectClass.GROUP_NAME)) {
-            /*
-             * GROUP
-             */
-            throw new UnsupportedOperationException("Update on Group is not yet implemented");
+        doSudoStart();
+        /*
+         * First acquire the "mutex" for uid creation
+         */
+        String mutexOut = getConnection().executeCommand(SolarisUtil.getAcquireMutexScript(getConnection()));
+        if (mutexOut.contains("ERROR")) {
+            throw new ConnectorException("error when acquiring mutex (update operation). Buffer content: <" + mutexOut + ">");
+        }
+        
+        // UPDATE OF ALL ATTRIBUTES EXCEPT PASSWORD
+        final SolarisEntry entry = SolarisUtil.forConnectorAttributeSet(uid.getUidValue(), replaceAttributes);
+        UpdateCommand.updateUser(entry, getConnection());
+        
+        /*
+         * Release the uid "mutex"
+         */
+        getConnection().executeCommand(SolarisUtil.getMutexReleaseScript(getConnection()));
+       
+        // PASSWORD UPDATE
+        GuardedString passwd = SolarisUtil.getPasswordFromMap(attrMap);
+        if (passwd != null) {
+            PasswdCommand.configureUserPassword(entry, passwd, getConnection());
         }
 
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        // TODO
-        Uid newUid = null; // TODO
-
+        
+        /*
+         * SUDO STOP
+         */
         doSudoReset();
+
+        _log.info("update successful ('{0}', name: '{1}')",
+                objclass.toString(), uid.getUidValue());
+        
+        Uid replaceUid = (Uid) attrMap.get(Uid.NAME);
+        Uid newUid = (replaceUid == null) ? uid : replaceUid;
         return newUid;
     }
 
-    private void handlePasswdUpdate(String accountId, GuardedString passwd) {
-        try {
-            MatchBuilder builder = new MatchBuilder();
-            builder.addCaseInsensitiveRegExpMatch("ew password:", ClosureFactory.newNullClosure());
-            builder.addRegExpMatch("Permission denied", ClosureFactory.newConnectorException("permission denied when executing passwd"));
-            builder.addRegExpMatch("command not found", ClosureFactory.newConnectorException("passwd command not found"));
-            builder.addRegExpMatch("not allowed to execute", ClosureFactory.newConnectorException("user is not allowed to execute passwd"));
-            //for nonexisting UID (note: match not present in the adapter)
-            builder.addCaseInsensitiveRegExpMatch("User unknown", ClosureFactory.newUnknownUidException(String.format("Unknown Uid: '%s'", accountId)));
 
-            getConnection().send(getCmdBuilder().build("passwd -r files", accountId));
-            getConnection().expect(builder.build());
-
-            SolarisUtil.sendPassword(passwd, getConnection());
-
-            getConnection().waitForCaseInsensitive("ew password:");
-            SolarisUtil.sendPassword(passwd, getConnection());
-
-            getConnection().waitFor(getConfiguration().getRootShellPrompt());
-        } catch (Exception e) {
-            throw ConnectorException.wrap(e);
-        }
-    }
-
-    private String getAcquireMutexScript() {
-        Long timeout = getConfiguration().getMutexAcquireTimeout();
-        String rmCmd = getCmdBuilder().build("rm");
-        String catCmd = getCmdBuilder().build("cat");
-
-        if (timeout < 1) {
-            timeout = SolarisConfiguration.DEFAULT_MUTEX_ACQUIRE_TIMEOUT;
-        }
-
-        String pidMutexAcquireScript =
-            "TIMEOUT=" + timeout + "; " +
-            "echo $$ > " + tmpPidMutexFile + "; " +
-            "while test 1; " +
-            "do " +
-              "ln -n " + tmpPidMutexFile + " " + pidMutexFile + " 2>/dev/null; " +
-              "rc=$?; " +
-              "if [ $rc -eq 0 ]; then\n" +
-                "LOCKPID=`" + catCmd + " " +  pidMutexFile + "`; " +
-                "if [ \"$LOCKPID\" = \"$$\" ]; then " +
-                  rmCmd + " -f " + tmpPidMutexFile + "; " +
-                  "break; " +
-                "fi; " +
-              "fi\n" +
-              "if [ -f " + pidMutexFile + " ]; then " +
-                "LOCKPID=`" + catCmd + " " + pidMutexFile + "`; " +
-                "if [ \"$LOCKPID\" = \"$$\" ]; then " +
-                  rmCmd + " -f " + pidMutexFile + "\n" +
-                "else " +
-                  "ps -ef | while read REPLY\n" +
-                  "do " +
-                    "TESTPID=`echo $REPLY | awk '{ print $2 }'`; " +
-                    "if [ \"$LOCKPID\" = \"$TESTPID\" ]; then " +
-                      "touch " + pidFoundFile + "; " +
-                      "break; " +
-                    "fi\n" +
-                  "done\n" +
-                  "if [ ! -f " + pidFoundFile + " ]; then " +
-                    rmCmd + " -f " + pidMutexFile + "; " +
-                  "else " +
-                    rmCmd + " -f " + pidFoundFile + "; " +
-                  "fi\n" +
-                "fi\n" +
-              "fi\n" +
-              "TIMEOUT=`echo | awk 'BEGIN { n = '$TIMEOUT' } { n -= 1 } END { print n }'`\n" +
-              "if [ $TIMEOUT = 0 ]; then " +
-                "echo \"ERROR: failed to obtain uid mutex\"; " +
-                rmCmd + " -f " + tmpPidMutexFile + "; " +
-                "break; " +
-              "fi\n" +
-              "sleep 1; " +
-            "done";
-
-        return pidMutexAcquireScript;
-    }
-
-    private String getMutexReleaseScript() {
-        String rmCmd = getCmdBuilder().build("rm");
-        String pidMutexReleaseScript =
-            "if [ -f " + pidMutexFile + " ]; then " +
-              "LOCKPID=`cat " + pidMutexFile + "`; " +
-              "if [ \"$LOCKPID\" = \"$$\" ]; then " +
-                rmCmd + " -f " + pidMutexFile + "; " +
-              "fi; " +
-            "fi";
-        return pidMutexReleaseScript;
-    }
 }

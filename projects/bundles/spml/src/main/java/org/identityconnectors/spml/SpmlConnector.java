@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -58,12 +59,14 @@ import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.SchemaBuilder;
 import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.ConnectorClass;
 import org.identityconnectors.framework.spi.PoolableConnector;
 import org.identityconnectors.framework.spi.operations.CreateOp;
 import org.identityconnectors.framework.spi.operations.DeleteOp;
+import org.identityconnectors.framework.spi.operations.ResolveUsernameOp;
 import org.identityconnectors.framework.spi.operations.SchemaOp;
 import org.identityconnectors.framework.spi.operations.SearchOp;
 import org.identityconnectors.framework.spi.operations.TestOp;
@@ -128,7 +131,7 @@ import org.openspml.v2.util.xml.ObjectFactory;
 @ConnectorClass(
         displayNameKey="SPMLConnector",
         configurationClass= SpmlConfiguration.class)
-public class SpmlConnector implements PoolableConnector, CreateOp,
+public class SpmlConnector implements PoolableConnector, CreateOp, ResolveUsernameOp,
         DeleteOp, SearchOp<FilterItem>, UpdateOp, SchemaOp, TestOp {
     private Log log = Log.getLog(SpmlConnector.class);
     private ScriptExecutorFactory _factory;
@@ -216,7 +219,19 @@ public class SpmlConnector implements PoolableConnector, CreateOp,
             }
         }
     }
-
+    
+    public Uid resolveUsername(ObjectClass objectClass, String username,
+            OperationOptions options) {
+        if (!objectClass.is(ObjectClass.ACCOUNT_NAME))
+            throw new IllegalArgumentException(_configuration.getMessage(SpmlMessages.UNSUPPORTED_OBJECTCLASS, objectClass.getObjectClassValue()));
+        LocalHandler handler = new LocalHandler();
+        List<FilterItem> query = createFilterTranslator(objectClass, options).translate(new EqualsFilter(AttributeBuilder.build(Name.NAME, username)));
+        executeQuery(ObjectClass.ACCOUNT, query.get(0), handler, options);
+        if (!handler.iterator().hasNext())
+            throw new UnknownUidException();
+        return handler.iterator().next().getUid();
+    }
+    
     /**
      * {@inheritDoc}
      */
@@ -874,6 +889,19 @@ public class SpmlConnector implements PoolableConnector, CreateOp,
             return _objectClassMap.get(objectClass);
         } else {
             throw new ConnectorException(_configuration.getMessage(SpmlMessages.UNSUPPORTED_OBJECTCLASS, objectClass));
+        }
+    }
+
+    public static class LocalHandler implements ResultsHandler, Iterable<ConnectorObject> {
+        private List<ConnectorObject> objects = new LinkedList<ConnectorObject>();
+
+        public boolean handle(ConnectorObject object) {
+            objects.add(object);
+            return true;
+        }
+
+        public Iterator<ConnectorObject> iterator() {
+            return objects.iterator();
         }
     }
 }

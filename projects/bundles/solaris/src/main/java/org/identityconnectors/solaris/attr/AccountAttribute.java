@@ -23,12 +23,16 @@
 
 package org.identityconnectors.solaris.attr;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.Uid;
-
+/**
+ * Every {@link AccountAttribute} has been assigned a {@link NativeAttribute}.
+ * @author David Adam
+ *
+ */
 public enum AccountAttribute implements ConnectorAttribute {
     DIR("dir", NativeAttribute.DIR), 
     SHELL("shell", NativeAttribute.SHELL),
@@ -59,43 +63,30 @@ public enum AccountAttribute implements ConnectorAttribute {
     LOCK("lock", NativeAttribute.LOCK),
     PASSWD_FORCE_CHANGE("force_change", NativeAttribute.PWSTAT);
 
-    private String n;
-    private NativeAttribute nattr;
-
-    private static final Map<NativeAttribute, AccountAttribute> nativeToAccount = new EnumMap<NativeAttribute, AccountAttribute>(NativeAttribute.class);
+    private String name;
+    private NativeAttribute nativeAttr;
+    
+    private static final Map<String, AccountAttribute> stringToAccount = new HashMap<String, AccountAttribute>();
     static {
         for (AccountAttribute accAttr : values()) {
-            switch (accAttr) {
-            /*
-             * NAME, UID and FRAMEWORK_UID are mapped to the same native attribute
-             */
-            case NAME:
-            case UID:
-            case FRAMEWORK_UID:
-                nativeToAccount.put(accAttr.getNative(), NAME);
-                break;
-
-            default:
-                nativeToAccount.put(accAttr.getNative(), accAttr);
-                break;
-            }
+            stringToAccount.put(accAttr.getName(), accAttr);
         }
     }
-
-    public static AccountAttribute fromNative(NativeAttribute nativeAttr) {
-        return nativeToAccount.get(nativeAttr);
+    
+    public static AccountAttribute forAttributeName(String accountAttr) {
+        return stringToAccount.get(accountAttr);
     }
 
     private AccountAttribute(String name, NativeAttribute nativeAttr) {
-        n = name;
-        nattr = nativeAttr;
+        this.name = name;
+        this.nativeAttr = nativeAttr;
     }
     
     public String getName() {
-        return n;
+        return name;
     }
 
     public NativeAttribute getNative() {
-        return nattr;
+        return nativeAttr;
     }
 }

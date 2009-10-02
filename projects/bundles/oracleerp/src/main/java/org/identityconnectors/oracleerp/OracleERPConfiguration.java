@@ -28,6 +28,7 @@ import java.text.MessageFormat;
 
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.common.script.Script;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.dbcommon.JNDIUtil;
 import org.identityconnectors.framework.common.objects.Schema;
@@ -256,7 +257,6 @@ final public class OracleERPConfiguration extends AbstractConfiguration implemen
      *
      * imported adapter attribute
      * name="user" displayName="USER" type="string" multi="false"
-     * description="HELP_286"  value="APPL"
      */
     private String user = DEFAULT_USER_NAME;
 
@@ -302,30 +302,6 @@ final public class OracleERPConfiguration extends AbstractConfiguration implemen
     public void setPassword(GuardedString password) {
         this.password = password;
     }
-
-    /*
-     * implemented by framework, left as comment for the reference
-     * name="useConnectionPool" type="string" multi="false" value="FALSE"
-     * displayName="CONN_POOLING" description="HELP_395"
-     */
-
-    /*
-     * implemented by framework, left as comment for the reference
-     * name="idleTimeout" type="string" multi="false" value="" + IDLE_TIMEOUT
-     * displayName="DBPOOL_IDLETIMEOUT" description="DBPOOL_IDLETIMEOUT_HELP"
-     */
-
-    /*
-     * implemented by framework, left as comment for the reference
-     * name="encryptionTypesClient"  type="string" multi="false"  value="RC4_128"
-     * displayName="ENCRYPTION_TYPES_CLIENT" description="HELP_ORACLE_ERP_CLIENT_ENCRYPTION_ALGORITHMS"
-     */
-
-    /*
-     * implemented by framework, left as comment for the reference
-     * name="encryptionClient" type="string" multi="false" value="DEFAULT_ENCRYPTION_LEVEL"
-     * displayName="ENCRYPTION_CLIENT" description="HELP_ORACLE_ERP_CLIENT_ENCRYPTION_LEVEL"
-     */
 
     /**
      * Audit Responsibility attribute,  desired Oracle ERP responsibility
@@ -473,25 +449,25 @@ final public class OracleERPConfiguration extends AbstractConfiguration implemen
      * name="GetUser Actions"  type="string" multi="false" required="false"
      * displayName="GETUSER_AFTER_ACTION" description="GETUSER_AFTER_ACTION_HELP"
      */
-    private String userAfterActions = "";
+    private Script userAfterActionScript = null;
 
     /**
      * Getter for the userAfterActions attribute.
      * @return userAfterActions attribute
      */
-    public String getUserAfterActions() {
-        return userAfterActions;
+    public Script getUserAfterActionScript() {
+        return userAfterActionScript;
     }
 
     /**
      * Setter for the userAfterActions attribute.
-     * @param userAfterActions attribute.
+     * @param userAfterActionScript attribute.
      */
-    @ConfigurationProperty(order=15 ,displayMessageKey="AFTER_ACTION_DISPLAY", helpMessageKey="AFTER_ACTION_HELP")
-    public void setUserAfterActions(String userAfterActions) {
-        this.userAfterActions = userAfterActions;
-    }
-
+    @ConfigurationProperty(order=15 ,displayMessageKey="USER_AFTER_ACTION_SCRIPT_DISPLAY", helpMessageKey="USER_AFTER_ACTION_SCRIPT_HELP")
+    public void setUserAfterActionScript(Script userAfterActionScript) {
+        this.userAfterActionScript = userAfterActionScript;
+    }   
+    
     /**
      * When true, the schema identifier will not be prefixed to table names.
      * When false, a schema identifier is prefixed to tables names.
@@ -516,12 +492,17 @@ final public class OracleERPConfiguration extends AbstractConfiguration implemen
      * Setter for the noSchemaId attribute.
      * @param noSchemaId
      */
-    @ConfigurationProperty(order=16 ,displayMessageKey="NO_SCHEMA_ID_DISPLAY", helpMessageKey="NO_SCHEMA_ID_HELP")
+    @ConfigurationProperty(order=17 ,displayMessageKey="NO_SCHEMA_ID_DISPLAY", helpMessageKey="NO_SCHEMA_ID_HELP")
     public void setNoSchemaId(boolean noSchemaId) {
         this.noSchemaId = noSchemaId;
     }
     
-    /**
+
+    /*
+     * implemented by framework, left as comment for the reference
+     * name="encryptionTypesClient"  type="string" multi="false"  value="RC4_128"
+     * displayName="ENCRYPTION_TYPES_CLIENT" description="HELP_ORACLE_ERP_CLIENT_ENCRYPTION_ALGORITHMS"
+     * 
      * CLIENT_ENCRYPTION_ALGORITHMS
      * old name = encryptionTypesClient, oracle.net.encryption_types_client
      */
@@ -539,12 +520,17 @@ final public class OracleERPConfiguration extends AbstractConfiguration implemen
      * Setter
      * @param clientEncryptionType
      */
-    @ConfigurationProperty(order=17 ,displayMessageKey="CLIENT_ENCRYPTION_ALGORITHMS_DISPLAY", helpMessageKey="CLIENT_ENCRYPTION_ALGORITHMS_HELP")
+    @ConfigurationProperty(order=18 ,displayMessageKey="CLIENT_ENCRYPTION_ALGORITHMS_DISPLAY", helpMessageKey="CLIENT_ENCRYPTION_ALGORITHMS_HELP")
     public void setClientEncryptionType(String clientEncryptionType) {
         this.clientEncryptionType = clientEncryptionType;
     }
 
     /**
+    /*
+     * implemented by framework, left as comment for the reference
+     * name="encryptionClient" type="string" multi="false" value="DEFAULT_ENCRYPTION_LEVEL"
+     * displayName="ENCRYPTION_CLIENT" description="HELP_ORACLE_ERP_CLIENT_ENCRYPTION_LEVEL"
+     * 
      * CLIENT_ENCRYPTION_LEVEL
      * old name = encryptionClient, oracle.net.encryption_client
      */
@@ -562,53 +548,10 @@ final public class OracleERPConfiguration extends AbstractConfiguration implemen
      * Setter
      * @param clientEncryptionLevel
      */
-    @ConfigurationProperty(order=18 ,displayMessageKey="CLIENT_ENCRYPTION_LEVEL_DISPLAY", helpMessageKey="CLIENT_ENCRYPTION_LEVEL_HELP")
+    @ConfigurationProperty(order=19 ,displayMessageKey="CLIENT_ENCRYPTION_LEVEL_DISPLAY", helpMessageKey="CLIENT_ENCRYPTION_LEVEL_HELP")
     public void setClientEncryptionLevel(String clientEncryptionLevel) {
         this.clientEncryptionLevel = clientEncryptionLevel;
     }
-
-
-    /**
-     * This should be replaced by script attributes
-     */
-    private String userAfterActionScript;    
-
-    
-    public String getUserAfterActionScript() {
-        return userAfterActionScript;
-    }
-        
-    /**
-     * Set the user after action script 
-     * @param userGetUserAfterActionScript
-     */
-    @ConfigurationProperty(order=19 ,displayMessageKey="USER_AFTER_ACTION_SCRIPT_DISPLAY", helpMessageKey="USER_AFTER_ACTION_SCRIPT_HELP")
-    public void setUserAfterActionScript(String userGetUserAfterActionScript) {
-        this.userAfterActionScript = userGetUserAfterActionScript;
-    }
-    
-    /**
-     * This property will be integrated by script attribute
-     */
-    private String actionScriptLanguage = GROOVY;
-    
-    /**
-     * The action script language setter
-     * @return String 
-     */
-    public String getActionScriptLanguage() {
-        return actionScriptLanguage;
-    }
-
-    /**
-     * Action script language setter
-     * @param actionScriptLanguage
-     */
-    @ConfigurationProperty(order=20 ,displayMessageKey="ACTION_SCRIPT_LANGUAGE_DISPLAY", helpMessageKey="ACTION_SCRIPT_LANGUAGE_HELP")
-    public void setActionScriptLanguage(String actionScriptLanguage) {
-        this.actionScriptLanguage = actionScriptLanguage;
-    }
-
 
     /**
      * Responsibility Id
@@ -729,7 +672,7 @@ final public class OracleERPConfiguration extends AbstractConfiguration implemen
      */
     int getAdminUserId() {
         try {
-            log.info("The adminUserId is : {0} ", userId);
+            log.ok("The adminUserId is : {0} ", userId);
             return new Integer(userId).intValue();
         } catch (Exception ex) {
             log.error(ex, "The User Id String {0} is not a number", userId);
@@ -770,12 +713,12 @@ final public class OracleERPConfiguration extends AbstractConfiguration implemen
      */
     @Override
     public void validate() {
-        if(StringUtil.isBlank(user)){
-            throw new IllegalArgumentException(getMessage(MSG_USER_BLANK));
-        }
         if (StringUtil.isBlank(dataSource)) {
             if(getPassword()==null){
                 throw new IllegalArgumentException(getMessage(MSG_PASSWORD_BLANK));
+            }
+            if(StringUtil.isBlank(user)){
+                throw new IllegalArgumentException(getMessage(MSG_USER_BLANK));
             }
             if(StringUtil.isBlank(driver)){
                 throw new IllegalArgumentException(getMessage(MSG_DRIVER_BLANK));
@@ -796,11 +739,11 @@ final public class OracleERPConfiguration extends AbstractConfiguration implemen
                     throw new IllegalArgumentException(getMessage(MSG_DATABASE_BLANK));
                 }
             }
-            log.info("driver configuration is ok");
+            log.ok("driver configuration is ok");
         } else {
             //Validate the JNDI properties
             JNDIUtil.arrayToHashtable(jndiProperties, getConnectorMessages());
-            log.info("dataSource configuration is ok");
+            log.ok("dataSource configuration is ok");
         }
     }
 
@@ -846,6 +789,9 @@ final public class OracleERPConfiguration extends AbstractConfiguration implemen
         return fmt;
     }
 
+    /** application prefix cache */
+    private String app;
+    
     /**
      * The application id from the user
      * see the bug id. 19352
@@ -853,6 +799,22 @@ final public class OracleERPConfiguration extends AbstractConfiguration implemen
      */
     String app() {
         if(isNoSchemaId()) return "";
-        return getUser().trim().toUpperCase()+".";
+        if(StringUtil.isNotBlank(app)) {
+            return app;
+        }
+        app = getOraUserName()+".";
+        return app;
+    }
+
+    /**
+     * OraUser name is a user if not empty, or DEFAULT_USER_NAME
+     * @return the ora user name
+     */
+    String getOraUserName() {
+        String userName = getUser();
+        if (StringUtil.isBlank(userName)) {
+            userName = DEFAULT_USER_NAME;
+        } 
+        return userName.trim().toUpperCase();
     }
 }

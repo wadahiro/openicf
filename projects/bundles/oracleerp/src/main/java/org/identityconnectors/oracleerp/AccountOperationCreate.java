@@ -30,11 +30,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Set;
 
-import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.dbcommon.SQLUtil;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
-import org.identityconnectors.framework.common.objects.*;
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
+import org.identityconnectors.framework.common.objects.AttributeUtil;
+import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.OperationOptions;
+import org.identityconnectors.framework.common.objects.OperationalAttributes;
+import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.spi.operations.CreateOp;
 import org.identityconnectors.oracleerp.AccountSQLCall.AccountSQLCallBuilder;
 
@@ -42,7 +48,7 @@ import org.identityconnectors.oracleerp.AccountSQLCall.AccountSQLCallBuilder;
 /**
  * The Account CreateOp implementation of the SPI
  *
- * { call {0}fnd_user_pkg.{1} ( {2} ) } // {0} .. "APPL.", {1} .. "CreateUser"
+ * { call {0}fnd_user_pkg.{1} ( {2} ) } // {0} .. "APPS.", {1} .. "CreateUser"
  * {2} ...  is an array of
  * x_user_name => ?,
  * x_owner => ?,
@@ -98,25 +104,30 @@ final class AccountOperationCreate extends Operation implements CreateOp {
             throw new IllegalArgumentException(getCfg().getMessage(MSG_ACCOUNT_NAME_REQUIRED));
         }
         final String name = nameAttr.getNameValue().toUpperCase();
-        log.info("create user ''{0}''", name);
+        log.ok("create user ''{0}''", name);
 
-        Set<Attribute> attrsMod = CollectionUtil.newSet(attrs); //modifiable set
-        //add required owner, if missing
-        if (AttributeUtil.find(OWNER, attrsMod) == null) {
-            attrsMod.add(AttributeBuilder.build(OWNER, getCfg().getUser() ));
-        }
-
-        //Get the person_id and set is it as a employee id
-        final Integer person_id = getPersonId(name, attrsMod);
-        if (person_id != null) {
-            // Person Id as a Employee_Id
-            attrsMod.add(AttributeBuilder.build(EMP_ID, person_id));
-        }
 
         // Get the User values
         final AccountSQLCallBuilder asb = new AccountSQLCallBuilder(getCfg().app(), true);
-        for (Attribute attr : attrsMod) {
-            asb.addAttribute(oclass, attr, options);
+        //add required owner, if missing
+        if (AttributeUtil.find(OWNER, attrs) == null) {
+            asb.setAttribute(oclass, AttributeBuilder.build(OWNER, getCfg().getUser()), options);
+        }
+        
+        //Get the person_id and set is it as a employee id
+        final Integer person_id = getPersonId(name, attrs);
+        if (person_id != null) {
+            // Person Id as a Employee_Id
+            asb.setAttribute(oclass, AttributeBuilder.build(EMP_ID, person_id), options);
+        }
+        
+        //Add password not expired in create
+        if (AttributeUtil.find(EXP_PWD, attrs) == null && AttributeUtil.find(OperationalAttributes.PASSWORD_EXPIRED_NAME, attrs) == null) {
+            asb.setAttribute(oclass, AttributeBuilder.buildPasswordExpired(false), options);
+        }
+        
+        for (Attribute attr : attrs) {
+            asb.setAttribute(oclass, attr, options);
         }
         // Run the create call, new style is using the defaults
 
@@ -130,33 +141,32 @@ final class AccountOperationCreate extends Operation implements CreateOp {
                 // Create the user
                 cs = getConn().prepareCall(aSql.getCallSql(), aSql.getSqlParams());
                 cs.execute();
-
             } catch (Exception e) {
                 SQLUtil.rollbackQuietly(getConn());
                 final String message = getCfg().getMessage(MSG_ACCOUNT_NOT_CREATE, name);
                 log.error(e, message);
-                throw new IllegalStateException(message, e);
+                throw new ConnectorException(message, e);
             } finally {
                 SQLUtil.closeQuietly(cs);
             }
         }
 
         // Update responsibilities
-        final Attribute resp = AttributeUtil.find(RESPS, attrsMod);
-        final Attribute directResp = AttributeUtil.find(DIRECT_RESPS, attrsMod);
+        final Attribute resp = AttributeUtil.find(RESPS, attrs);
+        final Attribute directResp = AttributeUtil.find(DIRECT_RESPS, attrs);
         if ( resp != null ) {
             respOps.updateUserResponsibilities( resp, name);
         } else if ( directResp != null ) {
             respOps.updateUserResponsibilities( directResp, name);
         }
         // update securing attributes
-        final Attribute secAttr = AttributeUtil.find(SEC_ATTRS, attrsMod);
+        final Attribute secAttr = AttributeUtil.find(SEC_ATTRS, attrs);
         if ( secAttr != null ) {
             secAttrOps.updateUserSecuringAttrs(secAttr, name);
         }
 
         getConn().commit();
-        log.info("create user ''{0}'' done", name);
+        log.ok("create user ''{0}'' done", name);
         return new Uid(name);
     }
     
@@ -174,11 +184,11 @@ final class AccountOperationCreate extends Operation implements CreateOp {
         final Attribute empAttr = AttributeUtil.find(EMP_NUM, attrs);
         final Attribute npwAttr = AttributeUtil.find(NPW_NUM, attrs);
         if (empAttr != null) {
-            num = AttributeUtil.getIntegerValue(empAttr);
+            num = Integer.valueOf(AttributeUtil.getAsStringValue(empAttr));
             columnName = EMP_NUM;
             log.ok("{0} present with value ''{1}''", columnName, num);
         } else if (npwAttr != null) {
-            num = AttributeUtil.getIntegerValue(npwAttr);
+            num = Integer.valueOf(AttributeUtil.getAsStringValue(npwAttr));
             columnName = NPW_NUM;
             log.ok("{0} present with value ''{1}''", columnName, num);
         } else {

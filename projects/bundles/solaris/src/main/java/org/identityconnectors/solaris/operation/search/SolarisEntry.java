@@ -34,9 +34,11 @@ import org.identityconnectors.solaris.attr.NativeAttribute;
 /**
  * Encapsulates an entry and its attributes.
  * Type of attributes must be {@link org.identityconnectors.solaris.attr.NativeAttribute}.
+ * 
+ * Contract: internally this class should contain NativeAttributes!
  * @author David Adam
  */
-class SolarisEntry {
+public class SolarisEntry {
     private String name;
     private Set<Attribute> attrSet;
     
@@ -63,7 +65,7 @@ class SolarisEntry {
         }
         
 //        /** add an attribute with null value */
-//        public Builder addNullAttr(NativeAttribute name) {
+//        public Builder addEmptyAttr(NativeAttribute name) {
 //            attrSet.add(AttributeBuilder.build(name.getName()));
 //            return this;
 //        }
@@ -94,5 +96,10 @@ class SolarisEntry {
     
     public Set<Attribute> getAttributeSet() {
         return attrSet;
+    }
+    
+    @Override
+    public String toString() {
+        return String.format("<Name: '%s', Attributes: [%s]", name, attrSet.toString());
     }
 }

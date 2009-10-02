@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
@@ -47,71 +46,64 @@ public class LdapAuthenticate {
     private final LdapConnection conn;
     private final ObjectClass oclass;
     private final String username;
-    private final GuardedString password;
     private final OperationOptions options;
 
-    public LdapAuthenticate(LdapConnection conn, ObjectClass oclass, String username, GuardedString password, OperationOptions options) {
+    public LdapAuthenticate(LdapConnection conn, ObjectClass oclass, String username, OperationOptions options) {
         this.conn = conn;
         this.oclass = oclass;
         this.username = username;
-        this.password = password;
         this.options = options;
     }
 
-    public Uid execute() {
-        List<String> userNameAttrs = getUserNameAttributes();
-        Map<ConnectorObject, AuthenticationResult> object2SuccessAuthn = new HashMap<ConnectorObject, AuthenticationResult>();
-        int matchedObjectCount = 0;
-
-        ctxLoop: for (String baseContext : conn.getConfiguration().getBaseContexts()) {
-            /* attrLoop: */ for (String userNameAttr : userNameAttrs) {
-                Attribute attr = AttributeBuilder.build(userNameAttr, username);
-                List<ConnectorObject> objects = LdapSearches.findObjects(conn, oclass, baseContext, attr, "entryDN");
-                matchedObjectCount += objects.size();
-
-                for (ConnectorObject object : objects) {
-                    String entryDN = object.getAttributeByName("entryDN").getValue().get(0).toString();
-                    AuthenticationResult authnResult = conn.authenticate(entryDN, password);
-
-                    if (isSuccess(authnResult)) {
-                        object2SuccessAuthn.put(object, authnResult);
-                        if (object2SuccessAuthn.size() > 1) {
-                            // We will throw an exception below for more than one authenticated objects,
-                            // so it is useless to try for more.
-                            break ctxLoop;
-                        }
-                        // Does not make a lot of sense to stop when having authenticated
-                        // the first user for the current attribute, but that's what the adapter does.
-                        // break attrLoop;
-                    }
-                }
-            }
+    public Uid authenticate(GuardedString password) {
+        ConnectorObject authnObject = getObjectToAuthenticate();
+        AuthenticationResult authnResult = null;
+        if (authnObject != null) {
+            String entryDN = authnObject.getAttributeByName("entryDN").getValue().get(0).toString();
+            authnResult = conn.authenticate(entryDN, password);
         }
 
-        if (object2SuccessAuthn.isEmpty()) {
-            switch (matchedObjectCount) {
-                case 0:
-                    throw new ConnectorSecurityException(conn.format("noUserMatched", null, username));
-                case 1:
-                    throw new InvalidCredentialException(conn.format("authenticationFailed", null, username));
-                default:
-                    throw new ConnectorSecurityException(conn.format("moreThanOneUserMatched", null, username));
-            }
-        } else if (object2SuccessAuthn.size() > 1) {
-            throw new ConnectorSecurityException(conn.format("moreThanOneUserMatchedWithPassword", null, username));
+        if (authnResult == null || !isSuccess(authnResult)) {
+            throw new InvalidCredentialException(conn.format("authenticationFailed", null, username));
         }
-
-        Entry<ConnectorObject, AuthenticationResult> entry = object2SuccessAuthn.entrySet().iterator().next();
-        ConnectorObject object = entry.getKey();
-        AuthenticationResult authnResult = entry.getValue();
         try {
             authnResult.propagate();
         } catch (PasswordExpiredException e) {
-            e.initUid(object.getUid());
+            e.initUid(authnObject.getUid());
             throw e;
         }
         // AuthenticationResult did not throw an exception, so this authentication was successful.
-        return object.getUid();
+        return authnObject.getUid();
+    }
+
+    public Uid resolveUsername() {
+        ConnectorObject authnObject = getObjectToAuthenticate();
+        if (authnObject == null) {
+            throw new InvalidCredentialException(conn.format("cannotResolveUsername", null, username));
+        }
+        return authnObject.getUid();
+    }
+
+    private ConnectorObject getObjectToAuthenticate() {
+        List<String> userNameAttrs = getUserNameAttributes();
+        Map<String, ConnectorObject> entryDN2Object = new HashMap<String, ConnectorObject>();
+        for (String baseContext : conn.getConfiguration().getBaseContexts()) {
+            for (String userNameAttr : userNameAttrs) {
+                Attribute attr = AttributeBuilder.build(userNameAttr, username);
+                for (ConnectorObject object : LdapSearches.findObjects(conn, oclass, baseContext, attr, "entryDN")) {
+                    String entryDN = object.getAttributeByName("entryDN").getValue().get(0).toString();
+                    entryDN2Object.put(entryDN, object);
+                }
+                // If we found more than one authentication candidates, no need to continue
+                if (entryDN2Object.size() > 1) {
+                    throw new ConnectorSecurityException(conn.format("moreThanOneEntryMatched", null, username));
+                }
+            }
+        }
+        if (!entryDN2Object.isEmpty()) {
+            return entryDN2Object.values().iterator().next();
+        }
+        return null;
     }
 
     private List<String> getUserNameAttributes() {

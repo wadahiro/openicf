@@ -20,7 +20,15 @@
   "Portions Copyrighted [year] [name of copyright owner]"
   ====================
 -->
-<project name="3270ConnectionPool" default="all"> 
+<project name="3270common" default="all"> 
     <property name="framework.dir" value="../../framework"/>
     <import file="${framework.dir}/connector_build.xml"/>
+    <target name="-pre-clean-extra">
+        <delete>
+            <fileset dir="${lib}" includes="**/*.jar">
+                <exclude name="expect4j-*.jar"/>
+                <exclude name="jakarta-oro-*.jar"/>
+            </fileset>
+        </delete> 
+    </target>
 </project>

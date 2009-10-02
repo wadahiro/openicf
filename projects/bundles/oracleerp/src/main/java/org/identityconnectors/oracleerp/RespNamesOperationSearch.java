@@ -78,7 +78,7 @@ final class RespNamesOperationSearch extends Operation implements SearchOp<Filte
     public void executeQuery(ObjectClass oclass, FilterWhereBuilder where, ResultsHandler handler,
             OperationOptions options) {
         final String method = "executeQuery";
-        log.info(method);
+        log.ok(method);
 
         final Set<AttributeInfo> ais = getAttributeInfos(getCfg().getSchema(), RESP_NAMES);
         final Set<String> atg = getAttributesToGet(options, ais, getCfg());
@@ -122,6 +122,11 @@ final class RespNamesOperationSearch extends Operation implements SearchOp<Filte
                     break;
                 }
             }
+        } catch (ConnectorException e) {
+            final String msg = getCfg().getMessage(MSG_COULD_NOT_READ);
+            log.error(e, msg);
+            SQLUtil.rollbackQuietly(getConn());
+            throw e;
         } catch (Exception e) {
             final String msg = getCfg().getMessage(MSG_COULD_NOT_READ);
             log.error(e, msg);
@@ -134,6 +139,6 @@ final class RespNamesOperationSearch extends Operation implements SearchOp<Filte
             st = null;
         }
         getConn().commit();
-        log.info(method + " ok");
+        log.ok(method + " ok");
     }
 }

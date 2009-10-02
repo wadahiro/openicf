@@ -35,7 +35,7 @@ import org.identityconnectors.framework.api.RemoteFrameworkConnectionInfo;
 import org.identityconnectors.framework.server.ConnectorServer;
 
 
-public class RemoteConnectorInfoManagerClearTests extends ConnectorInfoManagerTests {
+public class RemoteConnectorInfoManagerClearTests extends ConnectorInfoManagerTestBase {
 
     private static ConnectorServer _server;
     

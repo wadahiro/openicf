@@ -27,10 +27,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum NativeAttribute {
-    /** USER attribute */
+    /** USER/GROUP attribute */
     NAME,
-    /** USER attribute */
-    UID,
+    /** USER/GROUP attribute */
+    ID,
     /** USER attribute: primary group */
     GROUP_PRIM,
     /** USER attribute */
@@ -41,10 +41,13 @@ public enum NativeAttribute {
     DIR,
     /** USER attribute */
     SHELL,
-    /** USER attribute */
+    /**
+     * USER attribute. Other nick for {@link NativeAttribute.PWSTAT} in the
+     * adapter for this attribute was PASSWORD_FORCE_CHANGE.
+     */
     PWSTAT,
-    /** USER attribute */
-    PW_LAST_CHANGE,
+//    /** USER attribute */ // not used see SVIDRA#
+//    PW_LAST_CHANGE,
     /** USER attribute */
     MIN_DAYS_BETWEEN_CHNG,
     /** USER attribute */
@@ -68,13 +71,8 @@ public enum NativeAttribute {
     LAST_LOGIN,
     
     
-    
     /** GROUP attribute */
-    G_NAME,
-    /** GROUP attribute */
-    GID,
-    /** GROUP attribute */
-    G_USERS;
+    USERS;
 
     private static final Map<String, NativeAttribute> stringToNative = new HashMap<String, NativeAttribute>();
     static {
@@ -87,12 +85,30 @@ public enum NativeAttribute {
      * is able to transform string value into NativeAttribute, given, that we
      * respect the name defined by {@see NativeAttribute#getName()}.
      */
-    public static NativeAttribute fromString(String nativeAttr) {
+    public static NativeAttribute forAttributeName(String nativeAttr) {
         return stringToNative.get(nativeAttr);
     }
     
     /** @return String representation of the native attribute name. */
     public String getName() {
         return this.toString();
+    }
+
+    public String getCmdSwitch() {
+        throw new UnsupportedOperationException();
+    }
+    
+    private final String cmdSwitch;
+    
+    public String getCommandSwitch() {
+        return cmdSwitch;
+    }
+    
+    private NativeAttribute() {
+        this(null);
+    }
+    
+    private NativeAttribute(String cmdSwitch) {
+        this.cmdSwitch = cmdSwitch;
     }
 }

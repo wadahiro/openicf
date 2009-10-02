@@ -74,7 +74,7 @@ public class OpSearchImplTest {
      * no exception should be thrown.
      * Searching for all account on the resource -- by null filter.
      */
-    @Test
+    @Test 
     public void testSearchNullFilter() {
         final int NR_OF_USERS = 3;
         List<Pair<String, GuardedString>> pairs = null;
@@ -146,7 +146,7 @@ public class OpSearchImplTest {
     /**
      * Searching using filter
      */
-    @Test
+    @Test 
     public void testSearchWithFilter() {
         
         final Set<Attribute> attrs = SolarisTestCommon.initSampleUser();

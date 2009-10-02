@@ -69,6 +69,7 @@ import org.identityconnectors.framework.common.objects.SchemaBuilder;
 import org.identityconnectors.framework.common.objects.SyncResultsHandler;
 import org.identityconnectors.framework.common.objects.SyncToken;
 import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.framework.spi.AttributeNormalizer;
 import org.identityconnectors.framework.spi.Configuration;
@@ -77,6 +78,7 @@ import org.identityconnectors.framework.spi.ConnectorClass;
 import org.identityconnectors.framework.spi.PoolableConnector;
 import org.identityconnectors.framework.spi.operations.CreateOp;
 import org.identityconnectors.framework.spi.operations.DeleteOp;
+import org.identityconnectors.framework.spi.operations.ResolveUsernameOp;
 import org.identityconnectors.framework.spi.operations.SchemaOp;
 import org.identityconnectors.framework.spi.operations.SearchOp;
 import org.identityconnectors.framework.spi.operations.SyncOp;
@@ -91,7 +93,7 @@ import org.identityconnectors.framework.spi.operations.UpdateOp;
                              "org.identityconnectors.rw3270.wrq.Messages",  
                              "org.identityconnectors.rw3270.freehost3270.Messages"})
 public class RacfConnector implements Connector, CreateOp, PoolableConnector,
-DeleteOp, SearchOp<String>, UpdateOp, SchemaOp, SyncOp, TestOp, AttributeNormalizer {
+DeleteOp, SearchOp<String>, UpdateOp, SchemaOp, SyncOp, TestOp, AttributeNormalizer, ResolveUsernameOp {
     
     static final List<String>   POSSIBLE_ATTRIBUTES         = Arrays.asList(
             "ADSP", "AUDITOR", "SPECIAL", "GRPACC", "OIDCARD", "OPERATIONS");
@@ -169,7 +171,7 @@ DeleteOp, SearchOp<String>, UpdateOp, SchemaOp, SyncOp, TestOp, AttributeNormali
         if (isLdapConnectionAvailable()) {
             Uid uid = _ldapUtil.createViaLdap(objectClass, ldapAttrs, options);
             if (hasNonSpecialAttributes(commandLineAttrs)) {
-                if (_configuration.getUserName()==null)
+                if (!isCommandLineAvailable())
                     throw new ConnectorException(_configuration.getMessage(RacfMessages.NEED_COMMAND_LINE));
                 _clUtil.updateViaCommandLine(objectClass, commandLineAttrs, options);
             }
@@ -390,7 +392,7 @@ DeleteOp, SearchOp<String>, UpdateOp, SchemaOp, SyncOp, TestOp, AttributeNormali
             int commandLineSize = commandLineAttrs.size();
             if (commandLineAttrs.contains(Name.NAME))
                 commandLineSize--;
-            if (StringUtil.isBlank(_configuration.getUserName()) && commandLineSize>0)
+            if (!isCommandLineAvailable() && commandLineSize>0)
                 throw new IllegalArgumentException(_configuration.getMessage(RacfMessages.ATTRS_NO_CL));
             
             for (String name : names) {
@@ -425,6 +427,10 @@ DeleteOp, SearchOp<String>, UpdateOp, SchemaOp, SyncOp, TestOp, AttributeNormali
         }
     }
     
+    private boolean isCommandLineAvailable() {
+        return !_configuration.isNoCommandLine();
+    }
+    
     private TreeSet<String> getDefaultAttributes(Map<String, AttributeInfo> infos) {
         TreeSet<String> results = new TreeSet<String>();
         for (Map.Entry<String, AttributeInfo> entry : infos.entrySet()) {
@@ -434,7 +440,7 @@ DeleteOp, SearchOp<String>, UpdateOp, SchemaOp, SyncOp, TestOp, AttributeNormali
         return results;
     }
     
-    private boolean isEmpty(Map map) {
+    private boolean isEmpty(Map<?,?> map) {
         return (map==null || map.isEmpty());
     }
 
@@ -472,8 +478,8 @@ DeleteOp, SearchOp<String>, UpdateOp, SchemaOp, SyncOp, TestOp, AttributeNormali
             String name = entry.getKey();
             Object value = entry.getValue();
             if (includeInAttributes(objectClass, name, attributesToGet)) {
-                if (value instanceof Collection)
-                    builder.addAttribute(name, (Collection<? extends Object>)value);
+                if (value instanceof Collection<?>)
+                    builder.addAttribute(name, (Collection<?>)value);
                 else if (value==null)
                     builder.addAttribute(name);
                 else
@@ -679,7 +685,7 @@ DeleteOp, SearchOp<String>, UpdateOp, SchemaOp, SyncOp, TestOp, AttributeNormali
         if (isLdapConnectionAvailable()) {
             Uid uid = _ldapUtil.updateViaLdap(objectClass, ldapAttrs, options);
             if (hasNonSpecialAttributes(commandLineAttrs)) {
-                if (_configuration.getUserName()==null)
+                if (!isCommandLineAvailable())
                     throw new ConnectorException(_configuration.getMessage(RacfMessages.NEED_COMMAND_LINE));
                 _clUtil.updateViaCommandLine(objectClass, commandLineAttrs, options);
             }
@@ -745,8 +751,8 @@ DeleteOp, SearchOp<String>, UpdateOp, SchemaOp, SyncOp, TestOp, AttributeNormali
            
             attributes.add(buildMultivaluedAttribute(ATTR_CL_NETVIEW_OPCLASS,           String.class, false));
             attributes.add(buildMultivaluedAttribute(ATTR_CL_NETVIEW_DOMAINS,           String.class, false));
-            attributes.add(AttributeInfoBuilder.build(ATTR_CL_NETVIEW_NGMFVSPN,         boolean.class));
-            attributes.add(AttributeInfoBuilder.build(ATTR_CL_NETVIEW_NGMFADMN,         String.class));
+            attributes.add(AttributeInfoBuilder.build(ATTR_CL_NETVIEW_NGMFVSPN,         String.class));
+            attributes.add(AttributeInfoBuilder.build(ATTR_CL_NETVIEW_NGMFADMN,         boolean.class));
             attributes.add(AttributeInfoBuilder.build(ATTR_CL_NETVIEW_MSGRECVR,         boolean.class));
             attributes.add(AttributeInfoBuilder.build(ATTR_CL_NETVIEW_IC,               String.class));
             attributes.add(AttributeInfoBuilder.build(ATTR_CL_NETVIEW_CTL,              String.class));
@@ -969,7 +975,7 @@ DeleteOp, SearchOp<String>, UpdateOp, SchemaOp, SyncOp, TestOp, AttributeNormali
             // Operational Attributes
             //
             attributes.add(buildReadonlyAttribute(PredefinedAttributes.PASSWORD_CHANGE_INTERVAL_NAME, long.class));
-            if (_configuration.getUserName()!=null) {
+            if (isCommandLineAvailable()) {
                 attributes.add(OperationalAttributeInfos.ENABLE);
                 attributes.add(OperationalAttributeInfos.ENABLE_DATE);
                 attributes.add(OperationalAttributeInfos.DISABLE_DATE);
@@ -1312,10 +1318,9 @@ DeleteOp, SearchOp<String>, UpdateOp, SchemaOp, SyncOp, TestOp, AttributeNormali
     }
 
     public SyncToken getLatestSyncToken(ObjectClass objClass) {
-        if (_syncUtil==null)
-            _syncUtil = new SyncUtil(this);
-        
         if (isLdapConnectionAvailable()) {
+            if (_syncUtil==null)
+                _syncUtil = new SyncUtil(this);
             return _syncUtil.getLatestSyncToken(objClass);
         } else {
             throw new UnsupportedOperationException();
@@ -1324,14 +1329,25 @@ DeleteOp, SearchOp<String>, UpdateOp, SchemaOp, SyncOp, TestOp, AttributeNormali
 
     public void sync(ObjectClass objClass, SyncToken token,
             SyncResultsHandler handler, OperationOptions options) {
-        if (_syncUtil==null)
-            _syncUtil = new SyncUtil(this);
-        
         if (isLdapConnectionAvailable()) {
+            if (_syncUtil==null)
+                _syncUtil = new SyncUtil(this);
             _syncUtil.sync(objClass, token, handler, options);
         } else {
             throw new UnsupportedOperationException();
         }
+    }
+
+    public Uid resolveUsername(ObjectClass objectClass, String username,
+            OperationOptions options) {
+        if (!objectClass.is(ObjectClass.ACCOUNT_NAME))
+            throw new IllegalArgumentException(_configuration.getMessage(RacfMessages.UNSUPPORTED_OBJECT_CLASS, objectClass.getObjectClassValue()));
+        LocalHandler handler = new LocalHandler();
+        List<String> query = createFilterTranslator(objectClass, options).translate(new EqualsFilter(AttributeBuilder.build(Name.NAME, username)));
+        executeQuery(ObjectClass.ACCOUNT, query.get(0), handler, options);
+        if (!handler.iterator().hasNext())
+            throw new UnknownUidException();
+        return handler.iterator().next().getUid();
     }
     
 }

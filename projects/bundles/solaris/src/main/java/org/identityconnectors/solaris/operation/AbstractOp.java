@@ -23,36 +23,23 @@
 package org.identityconnectors.solaris.operation;
 
 import org.identityconnectors.common.Assertions;
-import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.solaris.SolarisConfiguration;
 import org.identityconnectors.solaris.SolarisConnection;
 import org.identityconnectors.solaris.SolarisConnector;
-import org.identityconnectors.solaris.command.CommandBuilder;
 
 public abstract class AbstractOp {
     private SolarisConfiguration _configuration;
     private SolarisConnection _connection;
-    private Log _log;
-    private CommandBuilder _cmdBuilder;
     private SolarisConnector _connector;
     
-    public AbstractOp(Log log, SolarisConnector conn) {
+    public AbstractOp(SolarisConnector conn) {
         _connector = conn;
-        _configuration = (SolarisConfiguration) conn.getConfiguration();
         
         final SolarisConnection connection = conn.getConnection();
         Assertions.nullCheck(connection, "connection");
+        _configuration = connection.getConfiguration();
         _connection = connection;
-        
-        // TODO introduce separate logs for every operation.
-        _log = log;
-        _cmdBuilder = new CommandBuilder(_configuration);
-        
-    }
-
-    protected final Log getLog() {
-        return _log;
     }
 
     protected final SolarisConfiguration getConfiguration() {
@@ -67,20 +54,19 @@ public abstract class AbstractOp {
         return getConnection().executeCommand(command);
     }
     
-    /** @return the command formatter */
-    public final CommandBuilder getCmdBuilder() {
-        return _cmdBuilder;
-    }
-    
     protected final void doSudoStart() {
-        SudoUtil.doSudoStart(getConfiguration(), getConnection());
+        SudoUtil.doSudoStart(getConnection());
     }
 
     protected final void doSudoReset() {
-        SudoUtil.doSudoReset(getConfiguration(), getConnection());
+        SudoUtil.doSudoReset(getConnection());
     }
     
     protected final Schema getSchema() {
         return _connector.schema();
+    }
+    
+    protected final String getRootShellPrompt() {
+        return _connection.getRootShellPrompt();
     }
 }

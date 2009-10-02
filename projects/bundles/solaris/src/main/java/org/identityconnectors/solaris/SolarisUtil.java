@@ -26,6 +26,7 @@ import static org.identityconnectors.solaris.SolarisMessages.MSG_NOT_SUPPORTED_O
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
@@ -33,24 +34,57 @@ import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
-import org.identityconnectors.solaris.constants.AccountAttributes;
-import org.identityconnectors.solaris.constants.AccountAttributesForPassword;
-import org.identityconnectors.solaris.constants.GroupAttributes;
-import org.identityconnectors.solaris.constants.SolarisAttribute;
+import org.identityconnectors.solaris.attr.AccountAttribute;
+import org.identityconnectors.solaris.command.MatchBuilder;
 import org.identityconnectors.solaris.operation.AbstractOp;
+import org.identityconnectors.solaris.operation.OpCreateImpl;
+import org.identityconnectors.solaris.operation.OpUpdateImpl;
+import org.identityconnectors.solaris.operation.search.SolarisEntry;
+
+import expect4j.matches.Match;
 
 
 /** helper class for Solaris specific operations */
 public class SolarisUtil {
     
+    /** Maximum number of characters per line in Solaris shells */
+    public static final int DEFAULT_LIMIT = 120;
+    
+    private static StringBuilder limitString(StringBuilder data, int limit) {
+        StringBuilder result = new StringBuilder(limit);
+        if (data.length() > limit) {
+            result.append(data.substring(0, limit));
+            result.append("\\\n"); // /<newline> separator of Unix command line cmds.
+            
+            final String remainder = data.substring(limit, data.length()); 
+            if (remainder.length() > limit) {
+                // TODO performance: might be a more effective way to handle this copying. Maybe skip copying and pass the respective part of stringbuffer directly to the recursive call.
+                StringBuilder sbtmp = new StringBuilder();
+                sbtmp.append(remainder);
+                result.append(limitString(sbtmp, limit));
+            } else {
+                result.append(remainder);
+            }
+        } else {
+            return data;
+        }
+        return result;
+    }
+
+    /**
+     * Cut the command into pieces, so it doesn't have a longer line than the given DEFAULT_LIMIT
+     * @param data
+     * @return
+     */
+    public static String limitString(StringBuilder data) {
+        return limitString(data, DEFAULT_LIMIT /* == max length of line from SolarisResourceAdapter#getUpdateNativeUserScript(), line userattribparams */).toString();
+    }
+    
     /** helper method for getting the password from an attribute map */
     public static GuardedString getPasswordFromMap(Map<String, Attribute> attrMap) {
         Attribute attrPasswd = attrMap.get(OperationalAttributes.PASSWORD_NAME);
         if (attrPasswd == null) {
-            String msg = String.format("password should be of type GuardedString, inside attribute map: %s",
-                    attrMap.toString());
-            
-            throw new IllegalArgumentException(msg);
+            throw new IllegalArgumentException("Password missing from attribute map");
         }
         return AttributeUtil.getGuardedStringValue(attrPasswd);
     }
@@ -78,23 +112,103 @@ public class SolarisUtil {
         });
     }
     
-    /**
-     * Acquire the metadata (commands, switches, etc.) for the given attribute.
-     * @param attrName the attribute name
-     * @return the {@link SolarisAttribute} that we search for.
-     */
-    public static SolarisAttribute getAttributeBasedOnName(String attrName) {
-        SolarisAttribute result = null;
-        try {
-            result = AccountAttributes.fromAttributeName(attrName);
-        } catch (Exception ex) {
-            // if attribute constant not found, retry the other contants:
-            try {
-                result = AccountAttributesForPassword.fromAttributeName(attrName);
-            } catch (Exception exc) {
-                result = GroupAttributes.fromGroupName(attrName);
+    public static Match[] prepareMatches(String string, Match[] commonErrMatches) {
+        MatchBuilder builder = new MatchBuilder();
+        builder.addNoActionMatch(string);
+        builder.addMatches(commonErrMatches);
+        
+        return builder.build();
+    }
+    
+    public static SolarisEntry forConnectorAttributeSet(String userName, Set<Attribute> attrs) {
+        // translate connector attributes to native counterparts
+        final SolarisEntry.Builder builder = new SolarisEntry.Builder(userName);
+        for (Attribute attribute : attrs) {
+            final AccountAttribute accAttrName = AccountAttribute.forAttributeName(attribute.getName());
+            if (accAttrName != null) {
+                builder.addAttr(accAttrName.getNative(), attribute.getValue());
             }
         }
-        return result;
+        return builder.build();
+    }
+    
+    /*
+     * MUTEXING
+     */
+    /** mutex acquire constants */
+    private static final String tmpPidMutexFile = "/tmp/WSlockuid.$$";
+    private static final String pidMutexFile = "/tmp/WSlockuid";
+    private static final String pidFoundFile = "/tmp/WSpidfound.$$";
+    /**
+     * Mutexing script is used to prevernt race conditions when creating
+     * multiple users. These conditions are present at {@link OpCreateImpl} and
+     * {@link OpUpdateImpl}. The code is taken from the resource adapter.
+     */
+    public static String getAcquireMutexScript(SolarisConnection conn) {
+        Long timeout = conn.getConfiguration().getMutexAcquireTimeout();
+        String rmCmd = conn.buildCommand("rm");
+        String catCmd = conn.buildCommand("cat");
+
+        if (timeout < 1) {
+            timeout = SolarisConfiguration.DEFAULT_MUTEX_ACQUIRE_TIMEOUT;
+        }
+
+        String pidMutexAcquireScript =
+            "TIMEOUT=" + timeout + "; " +
+            "echo $$ > " + tmpPidMutexFile + "; " +
+            "while test 1; " +
+            "do " +
+              "ln -n " + tmpPidMutexFile + " " + pidMutexFile + " 2>/dev/null; " +
+              "rc=$?; " +
+              "if [ $rc -eq 0 ]; then\n" +
+                "LOCKPID=`" + catCmd + " " +  pidMutexFile + "`; " +
+                "if [ \"$LOCKPID\" = \"$$\" ]; then " +
+                  rmCmd + " -f " + tmpPidMutexFile + "; " +
+                  "break; " +
+                "fi; " +
+              "fi\n" +
+              "if [ -f " + pidMutexFile + " ]; then " +
+                "LOCKPID=`" + catCmd + " " + pidMutexFile + "`; " +
+                "if [ \"$LOCKPID\" = \"$$\" ]; then " +
+                  rmCmd + " -f " + pidMutexFile + "\n" +
+                "else " +
+                  "ps -ef | while read REPLY\n" +
+                  "do " +
+                    "TESTPID=`echo $REPLY | awk '{ print $2 }'`; " +
+                    "if [ \"$LOCKPID\" = \"$TESTPID\" ]; then " +
+                      "touch " + pidFoundFile + "; " +
+                      "break; " +
+                    "fi\n" +
+                  "done\n" +
+                  "if [ ! -f " + pidFoundFile + " ]; then " +
+                    rmCmd + " -f " + pidMutexFile + "; " +
+                  "else " +
+                    rmCmd + " -f " + pidFoundFile + "; " +
+                  "fi\n" +
+                "fi\n" +
+              "fi\n" +
+              "TIMEOUT=`echo | awk 'BEGIN { n = '$TIMEOUT' } { n -= 1 } END { print n }'`\n" +
+              "if [ $TIMEOUT = 0 ]; then " +
+                "echo \"ERROR: failed to obtain uid mutex\"; " +
+                rmCmd + " -f " + tmpPidMutexFile + "; " +
+                "break; " +
+              "fi\n" +
+              "sleep 1; " +
+            "done";
+
+        return pidMutexAcquireScript;
+    }
+
+    /** Counterpart of {@link OpUpdateImpl#getAcquireMutexScript(SolarisConnection)} */
+    public static String getMutexReleaseScript(SolarisConnection conn) {
+        String rmCmd = conn.buildCommand("rm");
+        String pidMutexReleaseScript =
+            "if [ -f " + pidMutexFile + " ]; then " +
+              "LOCKPID=`cat " + pidMutexFile + "`; " +
+              "if [ \"$LOCKPID\" = \"$$\" ]; then " +
+                rmCmd + " -f " + pidMutexFile + "; " +
+              "fi; " +
+            "fi";
+        return pidMutexReleaseScript;
     }
 }

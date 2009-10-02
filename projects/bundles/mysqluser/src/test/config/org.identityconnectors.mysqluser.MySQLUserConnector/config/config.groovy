@@ -88,7 +88,7 @@ testsuite {
     
     /* AuthenticationApiOpTests: */
     Authentication.__ACCOUNT__.username=Lazy.get("i0.Authentication.__ACCOUNT__.__NAME__")
-    Authentication.__ACCOUNT__.wrong.password="bogus"
+    Authentication.__ACCOUNT__.wrong.password=new GuardedString("bogus".toCharArray())
     
     // Connector WRONG configuration for ValidateApiOpTests    
     Test.invalidConfig = [
@@ -128,7 +128,8 @@ testsuite {
                         DeleteApiOp:["__ACCOUNT__"], 
                         ScriptOnConnectorApiOp:["__ACCOUNT__"], 
                         UpdateApiOp:["__ACCOUNT__"],   
-                        AuthenticationApiOp:["__ACCOUNT__"]
+                        AuthenticationApiOp:["__ACCOUNT__"],
+                        ResolveUsernameApiOp: ["__ACCOUNT__"]
                         ]
 }
  

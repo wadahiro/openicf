@@ -24,12 +24,10 @@ package org.identityconnectors.racf;
 
 import static org.identityconnectors.racf.RacfConstants.*;
 
-import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -37,9 +35,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.security.GuardedString;
@@ -54,14 +49,10 @@ import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.PredefinedAttributes;
-import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.identityconnectors.patternparser.MapTransform;
+import org.identityconnectors.parser.factory.OutputParser;
+import org.identityconnectors.parser.factory.OutputParserFactory;
 import org.identityconnectors.rw3270.RW3270Connection;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 import expect4j.Closure;
 import expect4j.ExpectState;
@@ -70,6 +61,7 @@ import expect4j.matches.RegExpMatch;
 import expect4j.matches.TimeoutMatch;
 
 class CommandLineUtil {
+    private static final String         DEFAULT_PARSER_FACTORY      = "org.identityconnectors.parser.factory.patternparser.MapTransformParserFactory";
     private static final String         OUTPUT_COMPLETE_PATTERN     = "\\sREADY\\s{74}";
     private static final String         OUTPUT_COMPLETE             = " READY";
     private static final String         OUTPUT_CONTINUING_PATTERN   = "\\s[*]{3}\\s{76}";
@@ -81,7 +73,7 @@ class CommandLineUtil {
     private static final String         NAME_NOT_FOUND              = "NAME NOT FOUND";
     private static final String         UNABLE_TO_LOCATE_USER       = "UNABLE TO LOCATE USER";
     
-    private Map<String, MapTransform>   _segmentParsers;
+    private Map<String, OutputParser>   _segmentParsers;
     
     private RacfConnector               _connector;
     
@@ -95,12 +87,15 @@ class CommandLineUtil {
             //
             String[] segmentNames = ((RacfConfiguration)_connector.getConfiguration()).getSegmentNames();
             String[] segmentParsers = ((RacfConfiguration)_connector.getConfiguration()).getSegmentParsers();
-            _segmentParsers = new HashMap<String, MapTransform>();
+            _segmentParsers = new HashMap<String, OutputParser>();
+            String factoryName = ((RacfConfiguration)connector.getConfiguration()).getParserFactory();
+            if (StringUtil.isEmpty(factoryName))
+                factoryName = DEFAULT_PARSER_FACTORY;
+            OutputParserFactory factory = (OutputParserFactory)Class.forName(factoryName).newInstance();
             if (segmentNames!=null)
                 for (int i=0; i<segmentNames.length; i++) {
                     String name = segmentNames[i];
-                    MapTransform transform = asMapTransform(segmentParsers[i]);
-                    _segmentParsers.put(name, transform);
+                    _segmentParsers.put(name, factory.createOutputParser(segmentParsers[i]));
                 }
         } catch (Exception e) {
             throw ConnectorException.wrap(e);
@@ -111,19 +106,6 @@ class CommandLineUtil {
         return _connector.getConnection().getRacfConnection();
     }
     
-    private static MapTransform asMapTransform(String xml) throws Exception {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setValidating(false);
-        DocumentBuilder parser = factory.newDocumentBuilder();
-        Document document = parser.parse(new InputSource(new StringReader(xml)));
-        NodeList elements = document.getChildNodes();
-        for (int i = 0; i < elements.getLength(); i++)
-            if (elements.item(i) instanceof Element) {
-                return new MapTransform((Element) elements.item(i));
-            }
-        return null;
-    }
-
     private Uid createOrUpdateViaCommandLine(ObjectClass objectClass, String name, CharArrayBuffer command) {
         checkCommand(command);
         return new Uid(name);
@@ -346,12 +328,19 @@ class CommandLineUtil {
             char[] currentArray = accessor.getArray();
             return currentArray;
         } else {
-            StringBuffer buffer = new StringBuffer();
-            for (Object value : values) {
-                value = computeValue(value.toString(), segmentName, attributeName);
-                buffer.append(" "+value);
+            if (values.size()==1 && values.get(0) instanceof Boolean) {
+                if ((Boolean)values.get(0))
+                    return "YES".toCharArray();
+                else
+                    return "NO".toCharArray();
+            } else {
+                StringBuffer buffer = new StringBuffer();
+                for (Object value : values) {
+                    value = computeValue(value.toString(), segmentName, attributeName);
+                    buffer.append(" "+value);
+                }
+                return buffer.substring(1).toCharArray();
             }
-            return buffer.substring(1).toCharArray();
         }
     }
 
@@ -425,8 +414,8 @@ class CommandLineUtil {
             setCatalogAttributes(attributes);
             buffer.clear();
             if (groups!=null) {
-                List groupsValue = groups.getValue();
-                List ownersValue = owners==null?null:owners.getValue();
+                List<Object> groupsValue = groups.getValue();
+                List<Object> ownersValue = owners==null?null:owners.getValue();
                 for (int i=0; i<groupsValue.size(); i++) {
                     createConnection(name, (String)groupsValue.get(i), (String)(ownersValue==null?null:ownersValue.get(i)));
                 }
@@ -455,15 +444,15 @@ class CommandLineUtil {
             Uid uid = createOrUpdateViaCommandLine(objectClass, name, buffer);
             buffer.clear();
             if (accounts!=null) {
-                List accountsValue = accounts.getValue();
-                List ownersValue = owners==null?null:owners.getValue();
+                List<Object> accountsValue = accounts.getValue();
+                List<Object> ownersValue = owners==null?null:owners.getValue();
                 for (int i=0; i<accountsValue.size(); i++) {
                     createConnection((String)accountsValue.get(i), name, (String)(ownersValue==null?null:ownersValue.get(i)));
                 }
             }
             return uid;
         } else if (objectClass.is(RacfConnector.RACF_CONNECTION_NAME)) {
-            String[] info = _connector.extractRacfIdAndGroupIdFromLdapId(name);
+            String[] info = RacfConnector.extractRacfIdAndGroupIdFromLdapId(name);
             String user = info[0];
             String group = info[1];
             Attribute owner = AttributeUtil.find(ATTR_LDAP_OWNER, attrs);
@@ -515,7 +504,7 @@ class CommandLineUtil {
                 throw e;
             }
         } else if (objectClass.is(RacfConnector.RACF_CONNECTION_NAME)) {
-            String[] info = _connector.extractRacfIdAndGroupIdFromLdapId(uidString);
+            String[] info = RacfConnector.extractRacfIdAndGroupIdFromLdapId(uidString);
             String user = info[0];
             String group = info[1];
             String command = "REMOVE "+user+" GROUP("+group+")";
@@ -547,10 +536,10 @@ class CommandLineUtil {
         if (notFound)
             throw new UnknownUidException();
         try {
-            MapTransform transform = _segmentParsers.get("GROUP.RACF");
+            OutputParser transform = _segmentParsers.get("GROUP.RACF");
             if (transform==null)
                 throw new ConnectorException(((RacfConfiguration)_connector.getConfiguration()).getMessage(RacfMessages.UNKNOWN_SEGMENT, ATTR_CL_MEMBERS));
-            Map<String, Object> attributes = (Map<String, Object>)transform.transform(output);
+            Map<String, Object> attributes = (Map<String, Object>)transform.parse(output);
             List<Object> members = (List<Object>)attributes.get(ATTR_CL_MEMBERS);
             if (members==null)
                 return 0;
@@ -582,10 +571,10 @@ class CommandLineUtil {
         String command = "LISTGRP "+group;
         String output = getCommandOutput(command);
         try {
-            MapTransform transform = _segmentParsers.get("GROUP.RACF");
+            OutputParser transform = _segmentParsers.get("GROUP.RACF");
             if (transform==null)
                 throw new ConnectorException(((RacfConfiguration)_connector.getConfiguration()).getMessage(RacfMessages.UNKNOWN_SEGMENT, ATTR_CL_MEMBERS));
-            Map<String, Object> attributes = (Map<String, Object>)transform.transform(output);
+            Map<String, Object> attributes = transform.parse(output);
             List<Object> members = (List<Object>)attributes.get(ATTR_CL_MEMBERS);
             List<String> membersAsString = new LinkedList<String>();
             if (members!=null) {
@@ -602,11 +591,11 @@ class CommandLineUtil {
         validateName(user, ((RacfConfiguration)_connector.getConfiguration()));
         String command = "LISTUSER "+user;
         String output = getCommandOutput(command);
-        MapTransform transform = _segmentParsers.get("ACCOUNT.RACF");
+        OutputParser transform = _segmentParsers.get("ACCOUNT.RACF");
         if (transform==null)
             throw new ConnectorException(((RacfConfiguration)_connector.getConfiguration()).getMessage(RacfMessages.UNKNOWN_SEGMENT, ATTR_CL_GROUPS));
         try {
-            Map<String, Object> map = (Map<String, Object>)transform.transform(output);
+            Map<String, Object> map = transform.parse(output);
             List<String> groups = (List<String>)map.get(ATTR_CL_GROUPS);
             String defaultGroup = (String)map.get(ATTR_CL_DFLTGRP);
             List<String> groupsAsString = new LinkedList<String>();
@@ -814,9 +803,9 @@ class CommandLineUtil {
     private void getCatalogAttributes(String identifier, Map<String, Object> attributesFromCommandLine) {
         String command = "LISTC ENT('"+identifier+"') ALL";
         String output = getCommandOutput(command);
-        MapTransform transform = _segmentParsers.get("ACCOUNT."+CATALOG);
+        OutputParser transform = _segmentParsers.get("ACCOUNT."+CATALOG);
         try {
-            attributesFromCommandLine.putAll((Map<String, Object>)transform.transform(output));
+            attributesFromCommandLine.putAll(transform.parse(output));
         } catch (Exception e) {
             throw ConnectorException.wrap(e);
         }
@@ -881,64 +870,59 @@ class CommandLineUtil {
         
         Map<String, Object> attributesFromCommandLine = new HashMap<String, Object>();
         if (segmentsNeeded.size()>0 || ((RacfConfiguration)_connector.getConfiguration()).getUserName()==null) {
-            try {
-                boolean racfNeeded = segmentsNeeded.remove(RACF);
-                boolean catalogNeeded = segmentsNeeded.remove(CATALOG);
-                StringBuffer buffer = new StringBuffer();
-                buffer.append(listCommand+" "+racfName);
-                if (!racfNeeded)
-                    buffer.append(" NORACF");
-                for (String segment : segmentsNeeded)
-                    buffer.append(" "+segment);
+            boolean racfNeeded = segmentsNeeded.remove(RACF);
+            boolean catalogNeeded = segmentsNeeded.remove(CATALOG);
+            StringBuffer buffer = new StringBuffer();
+            buffer.append(listCommand+" "+racfName);
+            if (!racfNeeded)
+                buffer.append(" NORACF");
+            for (String segment : segmentsNeeded)
+                buffer.append(" "+segment);
 
-                String output = getCommandOutput(buffer.toString());
-                
-                // Split out the various segments
+            String output = getCommandOutput(buffer.toString())+"\n";
+            
+            // Split out the various segments
+            //
+            StringBuffer segmentPatternString = new StringBuffer();
+            if (racfNeeded)
+                segmentPatternString.append("(.+?)");
+            for (String segment : segmentsNeeded) {
+                segmentPatternString.append("(NO )?"+segment.toUpperCase()+" INFORMATION (.+?)");
+            }
+            Pattern segmentsPattern = Pattern.compile(segmentPatternString.toString()+"$", Pattern.DOTALL);
+            Matcher segmentsMatcher = segmentsPattern.matcher(output);
+            if (segmentsMatcher.find()) {
+                // Deal with RACF first
                 //
-                StringBuffer segmentPatternString = new StringBuffer();
-                if (racfNeeded)
-                    segmentPatternString.append("(.+?)");
+                int offset = 0;
+                if (racfNeeded) {
+                    OutputParser transform = _segmentParsers.get(objectClassPrefix+"RACF");
+                    try {
+                        attributesFromCommandLine.putAll(transform.parse(segmentsMatcher.group(1)));
+                    } catch (Exception e) {
+                        if (_debug) System.out.println(_buffer2.toString().replaceAll("(.{80})", "$1\n"));
+                        throw new ConnectorException(((RacfConfiguration)_connector.getConfiguration()).getMessage(RacfMessages.UNPARSEABLE_RESPONSE, "LISTUSER", output));
+                    }
+                    offset = 1;
+                }
+                // Parse the other segments, and add the attributes to the set of
+                // attributes received
+                //
+                int i=0;
                 for (String segment : segmentsNeeded) {
-                    segmentPatternString.append("(NO )?"+segment.toUpperCase()+" INFORMATION (.+?)");
-                }
-                Pattern segmentsPattern = Pattern.compile(segmentPatternString.toString()+"$", Pattern.DOTALL);
-                Matcher segmentsMatcher = segmentsPattern.matcher(output);
-                if (segmentsMatcher.find()) {
-                    // Deal with RACF first
-                    //
-                    int offset = 0;
-                    if (racfNeeded) {
-                        MapTransform transform = _segmentParsers.get(objectClassPrefix+"RACF");
-                        try {
-                            attributesFromCommandLine.putAll((Map<String, Object>)transform.transform(segmentsMatcher.group(1)));
-                        } catch (Exception e) {
-                            if (_debug) System.out.println(_buffer2.toString().replaceAll("(.{80})", "$1\n"));
-                            throw new ConnectorException(((RacfConfiguration)_connector.getConfiguration()).getMessage(RacfMessages.UNPARSEABLE_RESPONSE, "LISTUSER", output));
-                        }
-                        offset = 1;
+                    String noValue = segmentsMatcher.group(2*i+offset+1);
+                    String segmentValue = segmentsMatcher.group(2*i+offset+2);
+                    if (StringUtil.isBlank(noValue)) {
+                        OutputParser transform = _segmentParsers.get(objectClassPrefix+segment);
+                        attributesFromCommandLine.putAll(transform.parse(segmentValue));
                     }
-                    // Parse the other segments, and add the attributes to the set of
-                    // attributes received
-                    //
-                    int i=0;
-                    for (String segment : segmentsNeeded) {
-                        String noValue = segmentsMatcher.group(2*i+offset+1);
-                        String segmentValue = segmentsMatcher.group(2*i+offset+2);
-                        if (StringUtil.isBlank(noValue)) {
-                            MapTransform transform = _segmentParsers.get(objectClassPrefix+segment);
-                            attributesFromCommandLine.putAll((Map<String, Object>)transform.transform(segmentValue));
-                        }
-                        i++;
-                    }
-                } else if (output.toUpperCase().contains(UNABLE_TO_LOCATE_USER)) {
-                    throw new UnknownUidException();
-                } else {
-                    if (_debug) System.out.println(_buffer2.toString().replaceAll("(.{80})", "$1\n"));
-                    throw new ConnectorException(((RacfConfiguration)_connector.getConfiguration()).getMessage(RacfMessages.UNPARSEABLE_RESPONSE, "LISTUSER", output));
+                    i++;
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw ConnectorException.wrap(e);
+            } else if (output.toUpperCase().contains(UNABLE_TO_LOCATE_USER)) {
+                throw new UnknownUidException();
+            } else {
+                if (_debug) System.out.println(_buffer2.toString().replaceAll("(.{80})", "$1\n"));
+                throw new ConnectorException(((RacfConfiguration)_connector.getConfiguration()).getMessage(RacfMessages.UNPARSEABLE_RESPONSE, "LISTUSER", output));
             }
         }
         
@@ -1185,6 +1169,7 @@ class CommandLineUtil {
             buffer.setLength(buffer.length()-1);
         return buffer.toString();
     }
+    
     private static class CharArrayBuffer {
         private char[]  _array;
         private int     _position;
@@ -1223,7 +1208,4 @@ class CommandLineUtil {
             return result;
         }
     }
-
-
-
 }

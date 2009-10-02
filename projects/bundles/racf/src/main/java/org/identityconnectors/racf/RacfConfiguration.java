@@ -28,6 +28,8 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 
 import org.identityconnectors.common.StringUtil;
+import org.identityconnectors.common.script.Script;
+import org.identityconnectors.common.script.ScriptBuilder;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
@@ -44,18 +46,19 @@ public class RacfConfiguration extends AbstractConfiguration implements RW3270Co
     private Integer        _hostLdapPortNumber;
     private Integer        _hostTelnetPortNumber;
     private Integer        _commandTimeout;
+    private String[]       _userQueries;
 
     private String[]       _userObjectClasses;
     private String[]       _groupObjectClasses;
 
     private String[]       _segmentNames;
     private String[]       _segmentParsers;
+    private String         _parserFactory;
     private String         _userName;
     private GuardedString  _password;
 
-    private String         _scriptingLanguage;
-    private String         _connectScript;
-    private String         _disconnectScript;
+    private Script         _connectScript;
+    private Script         _disconnectScript;
     private String         _connectionClassName;
     private String[]       _connectionProperties;
 
@@ -135,39 +138,50 @@ public class RacfConfiguration extends AbstractConfiguration implements RW3270Co
             is.close();
         }
     }
-    
-    private String getLoginScript() {
+
+    private Script getLoginScript() {
         String script =
             "connection.connect();\n" +
-            "connection.waitFor(\"=====>\", SHORT_WAIT);\n" +
+            "connection.waitFor(\"PRESS THE ENTER KEY\", SHORT_WAIT);\n" +
             "connection.send(\"TSO[enter]\");\n" +
             "connection.waitFor(\"ENTER USERID -\", SHORT_WAIT);\n" +
             "connection.send(USERNAME+\"[enter]\");\n" +
             "connection.waitFor(\"Password  ===>\", SHORT_WAIT);\n" +
             "connection.send(PASSWORD);\n" +
             "connection.send(\"[enter]\");\n" +
-            "connection.waitFor(\" \\\\*\\\\*\\\\* \", SHORT_WAIT);\n" +
+            "connection.waitFor(\"\\\\*\\\\*\\\\*\", SHORT_WAIT);\n" +
             "connection.send(\"[enter]\");\n" +
             "connection.waitFor(\"Option ===>\", SHORT_WAIT);\n" +
             "connection.send(\"[pf3]\");\n" +
-            "connection.waitFor(\"READY\\\\s{74}\", SHORT_WAIT);";
-        return script;
+            "connection.waitFor(\" READY\\\\s{74}\", SHORT_WAIT);";
+        ScriptBuilder builder = new ScriptBuilder();
+        builder.setScriptLanguage("GROOVY");
+        builder.setScriptText(script);
+        return builder.build();
     }
 
-    private String getLogoffScript() {
+    private Script getLogoffScript() {
         String script = "connection.send(\"LOGOFF[enter]\");\n";
-//            "connection.send(\"LOGOFF[enter]\");\n" +
-//            "connection.waitFor(\"=====>\", SHORT_WAIT);\n" +
-//            "connection.dispose();\n";
-        return script;
+        ScriptBuilder builder = new ScriptBuilder();
+        builder.setScriptLanguage("GROOVY");
+        builder.setScriptText(script);
+        return builder.build();
     }
 
+    boolean isNoLdap() {
+        return (StringUtil.isBlank(_suffix) || _hostLdapPortNumber==null || isBlank(_ldapPassword) || StringUtil.isBlank(_ldapUserName));
+    }
+
+    boolean isNoCommandLine() {
+        return StringUtil.isBlank(_userName) || isBlank(_password);
+    }
+    
     public void validate() {
         // It's OK for all LDAP or all CommandLine connection info to be missing
         // but not both
         //
-        boolean noLdap = (StringUtil.isBlank(_suffix) || _hostLdapPortNumber==null || isBlank(_ldapPassword) || StringUtil.isBlank(_ldapUserName));
-        boolean noCommandLine = StringUtil.isBlank(_userName) || isBlank(_password);
+        boolean noLdap = isNoLdap();
+        boolean noCommandLine = isNoCommandLine();
         
         if (noLdap && noCommandLine)
             throw new IllegalArgumentException(getMessage(RacfMessages.BAD_CONNECTION_INFO));
@@ -185,6 +199,8 @@ public class RacfConfiguration extends AbstractConfiguration implements RW3270Co
             throw new IllegalArgumentException(getMessage(RacfMessages.USERNAME_NULL));
         if (!noLdap && isBlank(_ldapPassword))
             throw new IllegalArgumentException(getMessage(RacfMessages.PASSWORD_NULL));
+        if (!noLdap && _isUseSsl==null)
+            throw new IllegalArgumentException(getMessage(RacfMessages.SSL_NULL));
 
         if (!noCommandLine && _hostTelnetPortNumber==null)
             throw new IllegalArgumentException(getMessage(RacfMessages.TELNET_PORT_NULL));
@@ -198,9 +214,17 @@ public class RacfConfiguration extends AbstractConfiguration implements RW3270Co
             throw new IllegalArgumentException(getMessage(RacfMessages.PASSWORDS_NULL));
         if (!noCommandLine && StringUtil.isBlank(_connectionClassName))
             throw new IllegalArgumentException(getMessage(RacfMessages.CONNECTION_CLASS_NULL));
-        
-        if (_isUseSsl==null)
-            throw new IllegalArgumentException(getMessage(RacfMessages.SSL_NULL));
+        if (!noCommandLine && isBlank(_disconnectScript))
+            throw new IllegalArgumentException(getMessage(RacfMessages.DISCONNECT_SCRIPT_NULL));
+        if (!noCommandLine && isBlank(_connectScript))
+            throw new IllegalArgumentException(getMessage(RacfMessages.CONNECT_SCRIPT_NULL));
+
+    }
+
+    boolean isBlank(Script script) {
+        if (script==null)
+            return true;
+        return StringUtil.isBlank(script.getScriptText());
     }
     
     boolean isBlank(GuardedString string) {
@@ -303,6 +327,23 @@ public class RacfConfiguration extends AbstractConfiguration implements RW3270Co
     }
 
     /**
+     * Get the user queries
+     * @return an array of query strings that can fetch all users
+     */
+    @ConfigurationProperty(order=5, displayMessageKey="UserQueries", helpMessageKey="UserQueriesHelp")
+    public String[] getUserQueries() {
+        return arrayCopy(_userQueries);
+    }
+
+    /**
+     * Set the query strings that can fetch all users
+     * @param userObjectClasses -- an array of query strings that can fetch all users
+     */
+    public void setUserQueries(String[] userQueries) {
+        _userQueries = arrayCopy(userQueries);
+    }
+
+    /**
      * Get the password for the LDAP connection
      * @return LDAP password
      */
@@ -390,11 +431,11 @@ public class RacfConfiguration extends AbstractConfiguration implements RW3270Co
 
     @ConfigurationProperty(order=19, confidential=true)
     public String[] getConnectionProperties() {
-        return _connectionProperties;
+        return arrayCopy(_connectionProperties);
     }
 
     public void setConnectionProperties(String[] properties) {
-        _connectionProperties = properties;
+        _connectionProperties = arrayCopy(properties);
     }
 
     @ConfigurationProperty(order=11)
@@ -415,18 +456,27 @@ public class RacfConfiguration extends AbstractConfiguration implements RW3270Co
         _segmentParsers = arrayCopy(segmentParsers);
     }
 
+    @ConfigurationProperty(order=14)
+    public String getParserFactory() {
+        return _parserFactory;
+    }
+
+    public void setParserFactory(String parserFactory) {
+        _parserFactory = parserFactory;
+    }
+
     /**
      * {@inheritDoc}
      */
     @ConfigurationProperty(order=16)
-    public String getConnectScript() {
+    public Script getConnectScript() {
         return _connectScript;
     }
 
     /**
      * {@inheritDoc}
      */
-    public void setConnectScript(String script) {
+    public void setConnectScript(Script script) {
         _connectScript = script;
     }
 
@@ -434,14 +484,14 @@ public class RacfConfiguration extends AbstractConfiguration implements RW3270Co
      * {@inheritDoc}
      */
     @ConfigurationProperty(order=16)
-    public String getDisconnectScript() {
+    public Script getDisconnectScript() {
         return _disconnectScript;
     }
 
     /**
      * {@inheritDoc}
      */
-    public void setDisconnectScript(String script) {
+    public void setDisconnectScript(Script script) {
         _disconnectScript = script;
     }
 
@@ -475,14 +525,6 @@ public class RacfConfiguration extends AbstractConfiguration implements RW3270Co
         _connectionClassName = className;
     }
 
-    public String getScriptingLanguage() {
-        return _scriptingLanguage;
-    }
-
-    public void setScriptingLanguage(String language) {
-        _scriptingLanguage = language;
-    }
-    
     @ConfigurationProperty
     public String[] getActiveSyncCertificate() {
         return arrayCopy(_asCertificate);

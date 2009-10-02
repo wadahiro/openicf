@@ -29,11 +29,17 @@ import java.sql.PreparedStatement;
 import java.text.MessageFormat;
 import java.util.Set;
 
-import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.dbcommon.SQLUtil;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
-import org.identityconnectors.framework.common.objects.*;
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
+import org.identityconnectors.framework.common.objects.AttributeUtil;
+import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.OperationOptions;
+import org.identityconnectors.framework.common.objects.OperationalAttributes;
+import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.spi.operations.UpdateOp;
 import org.identityconnectors.oracleerp.AccountSQLCall.AccountSQLCallBuilder;
 
@@ -41,7 +47,7 @@ import org.identityconnectors.oracleerp.AccountSQLCall.AccountSQLCallBuilder;
 /**
  * The Account CreateOp implementation of the SPI
  *
- * { call {0}fnd_user_pkg.{1} ( {2} ) } // {0} .. "APPL.", {1} .. "UpdateUser"
+ * { call {0}fnd_user_pkg.{1} ( {2} ) } // {0} .. "APPS.", {1} .. "UpdateUser"
  * {2} ...  is an array of
  * x_user_name => ?,
  * x_owner => ?,
@@ -93,36 +99,11 @@ final class AccountOperationUpdate extends Operation implements UpdateOp {
      */
     public Uid update(ObjectClass objclass, Uid uid, Set<Attribute> attrs, OperationOptions options) {
         final String name = uid.getUidValue().toUpperCase();
-        log.info("update user ''{0}''", name );
+        log.ok("update user ''{0}''", name );
 
-        Set<Attribute> attrsMod = CollectionUtil.newSet(attrs); //modifiable set
-
-        //Name is not present
-        final Name nameAttr = AttributeUtil.getNameFromAttributes(attrsMod);
-        if (nameAttr == null) {
-            attrsMod.add(AttributeBuilder.build(Name.NAME, name));
-        } else {
-            //Cannot rename user
-            if (nameAttr.getNameValue() != null) {
-                final String newName = nameAttr.getNameValue();
-                if (!name.equalsIgnoreCase(newName)) {
-                    final String emsg = getCfg().getMessage(MSG_COULD_NOT_RENAME_USER, name, newName);
-                    throw new IllegalStateException(emsg);
-                }
-            } else {
-               //empty name, replace using UID
-                attrsMod.remove(nameAttr);
-                attrsMod.add(AttributeBuilder.build(Name.NAME, name));
-            }
-        }
-
-        //Add default owner
-        if (AttributeUtil.find(OWNER, attrsMod) == null) {
-            attrsMod.add(AttributeBuilder.build(OWNER, CUST));
-        }
 
         // Enable/dissable user
-        final Attribute enableAttr = AttributeUtil.find(OperationalAttributes.ENABLE_NAME, attrsMod);
+        final Attribute enableAttr = AttributeUtil.find(OperationalAttributes.ENABLE_NAME, attrs);
         if ( enableAttr != null ) {
             boolean enable =AttributeUtil.getBooleanValue(enableAttr);
             if ( enable ) {
@@ -133,10 +114,26 @@ final class AccountOperationUpdate extends Operation implements UpdateOp {
             }
         }
 
+        final Name nameAttr = AttributeUtil.getNameFromAttributes(attrs);
+        if (nameAttr != null) {
+            //Cannot rename user
+            if (nameAttr.getNameValue() != null) {
+                final String newName = nameAttr.getNameValue();
+                if (!name.equalsIgnoreCase(newName)) {
+                    final String emsg = getCfg().getMessage(MSG_COULD_NOT_RENAME_USER, name, newName);
+                    throw new IllegalStateException(emsg);
+                }
+            }
+        }
+
         // Get the User values
         final AccountSQLCallBuilder asb = new AccountSQLCallBuilder(getCfg().app(), false);
-        for (Attribute attr : attrsMod) {
-            asb.addAttribute(objclass, attr, options);
+        asb.setAttribute(objclass, AttributeBuilder.build(Name.NAME, name), options);
+        //Add default owner
+        asb.setAttribute(objclass, AttributeBuilder.build(OWNER, CUST), options);
+        
+        for (Attribute attr : attrs) {
+            asb.setAttribute(objclass, attr, options);
         }
 
         if ( !asb.isEmpty() ) {
@@ -160,22 +157,22 @@ final class AccountOperationUpdate extends Operation implements UpdateOp {
         }
 
         // Update responsibilities
-        final Attribute resp = AttributeUtil.find(RESPS, attrsMod);
-        final Attribute directResp = AttributeUtil.find(DIRECT_RESPS, attrsMod);
+        final Attribute resp = AttributeUtil.find(RESPS, attrs);
+        final Attribute directResp = AttributeUtil.find(DIRECT_RESPS, attrs);
         if ( resp != null ) {
             respOps.updateUserResponsibilities( resp, name);
         } else if ( directResp != null ) {
             respOps.updateUserResponsibilities( directResp, name);
         }
 
-        final Attribute secAttr = AttributeUtil.find(SEC_ATTRS, attrsMod);
+        final Attribute secAttr = AttributeUtil.find(SEC_ATTRS, attrs);
         if ( secAttr != null ) {
             new SecuringAttributesOperations(getConn(), getCfg()).updateUserSecuringAttrs(secAttr, name);
         }
 
         getConn().commit();
         //Return new UID
-        log.info( "update user ''{0}'' done", name );
+        log.ok( "update user ''{0}'' done", name );
         return new Uid(name);
     }
 
@@ -186,7 +183,7 @@ final class AccountOperationUpdate extends Operation implements UpdateOp {
      */
     private void enable(ObjectClass objclass, String userName, OperationOptions options) {
         final String method = "enable";
-        log.info( method);
+        log.ok( method);
         //Map attrs = _actionUtil.getAccountAttributes(user, JActionUtil.OP_ENABLE_USER);
 
         // no enable user stored procedure that I could find, null out
@@ -213,7 +210,7 @@ final class AccountOperationUpdate extends Operation implements UpdateOp {
             SQLUtil.closeQuietly(st);
             st = null;
         }
-        log.info( method);
+        log.ok( method);
     }
 
     /**
@@ -224,7 +221,7 @@ final class AccountOperationUpdate extends Operation implements UpdateOp {
     private void disable(ObjectClass objclass, String userName, OperationOptions options) {
         final String sql = "{ call "+getCfg().app()+"fnd_user_pkg.disableuser(?) }";
         final String method = "disable";
-        log.info( method);
+        log.ok( method);
         CallableStatement cs = null;
         try {
             cs = getConn().prepareCall(sql);
@@ -234,11 +231,11 @@ final class AccountOperationUpdate extends Operation implements UpdateOp {
         } catch (Exception e) {
             final String msg = getCfg().getMessage(MSG_COULD_NOT_DISABLE_USER, userName);
             SQLUtil.rollbackQuietly(getConn());
-            throw new IllegalArgumentException(MessageFormat.format(msg, userName),e);
+            throw new ConnectorException(MessageFormat.format(msg, userName),e);
         } finally {
             SQLUtil.closeQuietly(cs);
             cs = null;
         }
-        log.info( method);
+        log.ok( method);
     }
 }

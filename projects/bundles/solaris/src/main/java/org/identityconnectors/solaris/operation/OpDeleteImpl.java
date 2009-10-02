@@ -23,6 +23,7 @@
 package org.identityconnectors.solaris.operation;
 
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
@@ -32,10 +33,12 @@ import org.identityconnectors.solaris.SolarisUtil;
 
 public class OpDeleteImpl extends AbstractOp {
 
+    private static final Log _log = Log.getLog(OpDeleteImpl.class);
+    
     final ObjectClass[] acceptOC = { ObjectClass.ACCOUNT, ObjectClass.GROUP };
 
-    public OpDeleteImpl(Log log, SolarisConnector conn) {
-        super(log, conn);
+    public OpDeleteImpl(SolarisConnector conn) {
+        super(conn);
     }
     
     // TODO
@@ -49,25 +52,29 @@ public class OpDeleteImpl extends AbstractOp {
         final String accountId = uid.getUidValue();
         // checkIfUserExists(accountId);
         
-        getLog().info("delete(''{0}'')", accountId);
+        _log.info("delete(''{0}'')", accountId);
         
         // USERDEL accountId
-        final String command = getCmdBuilder().build("userdel", accountId);
+        final String command = getConnection().buildCommand("userdel", ((getConfiguration().isDelHomeDir()) ? "-r" : ""), accountId);
         
         try {
             String output = executeCommand(command);
             if (output.contains("does not exist") || output.contains("nknown user")) {
                 throw new UnknownUidException("Unknown Uid: " + accountId);
+            } else if (output.contains("ERROR")) {
+                throw new ConnectorException("ERROR during delete operation for user '" + accountId + "', buffer content: <" + output + ">");
             }
-        } catch (RuntimeException ex) {
-            throw ex;
+            
+            output = executeCommand("echo $?");
+            if (!output.equals("0")) {
+                throw new ConnectorException("ERROR during delete operation for user '" + accountId + "', buffer content: <" + output + ">" + " the error code returned from userdel was not '0'");
+            }
         } catch (Exception ex) {
-            getLog().error(ex, null);
+            throw ConnectorException.wrap(ex);
         }
 
         // TODO add handling of exceptions: existing user, etc.
-        getLog().ok("userdel(''{0}'')", accountId);
+        _log.ok("userdel(''{0}'')", accountId);
 
     }
-
 }

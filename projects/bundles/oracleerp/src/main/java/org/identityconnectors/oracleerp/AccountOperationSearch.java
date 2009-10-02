@@ -24,6 +24,7 @@ package org.identityconnectors.oracleerp;
 
 import static org.identityconnectors.oracleerp.OracleERPUtil.*;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -94,7 +95,7 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
     public void executeQuery(ObjectClass oclass, FilterWhereBuilder where, ResultsHandler handler,
             OperationOptions options) {
         final String method = "executeQuery";
-        log.info(method);
+        log.ok(method);
 
         final String tblname = getCfg().app() + "fnd_user";
         final Set<AttributeInfo> ais = getAttributeInfos(getCfg().getSchema(), ObjectClass.ACCOUNT_NAME);
@@ -111,9 +112,8 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
         fndUserColumnNames.add(USER_NAME); //User id
         fndUserColumnNames.add(START_DATE); //Enable Date
         fndUserColumnNames.add(END_DATE); // Disable date
-        fndUserColumnNames.add(PWD_ACCESSES_LEFT); // Disable date
-        fndUserColumnNames.add(PWD_DATE); // Last logon date
-        fndUserColumnNames.add(PWD_LIFESPAN_DAYS); // Alloved days from last logon
+        fndUserColumnNames.add(PWD_DATE); // Password date
+        fndUserColumnNames.add(LAST_LOGON_DATE); // Last logon date
         
         final Set<String> perPeopleColumnNames = CollectionUtil.newSet(fndUserColumnNames);
         final String filterId = getFilterId(whereFilter);
@@ -170,7 +170,7 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
                 bld.setUid(userName);
 
                 //get after user action
-                if (StringUtil.isNotBlank(getCfg().getUserAfterActionScript())) {
+                if (getCfg().getUserAfterActionScript() != null) {
                     bld = new AccountOperationGetUserAfterAction(getConn(), getCfg()).runScriptOnConnector(userName, bld);
                 }
 
@@ -178,6 +178,11 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
                     break;
                 }
             }
+        } catch (ConnectorException e) {
+            final String msg = getCfg().getMessage(MSG_ACCOUNT_NOT_READ, filterId == null ? "" : filterId );
+            log.error(e, msg);
+            SQLUtil.rollbackQuietly(getConn());
+            throw e;
         } catch (Exception e) {
             final String msg = getCfg().getMessage(MSG_ACCOUNT_NOT_READ, filterId == null ? "" : filterId );
             log.error(e, msg);
@@ -188,7 +193,7 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
             SQLUtil.closeQuietly(statement);
         }
         getConn().commit();
-        log.info(method + " ok");
+        log.ok(method + " ok");
     }
 
     /**
@@ -230,42 +235,31 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
         if (end_date != null && start_date != null) {
             boolean enable = dateNow.compareTo(end_date) <= 0 && dateNow.compareTo(start_date) > 0;
             amb.setAttribute(AttributeBuilder.buildEnabled(enable));
-        } else if (end_date != null) {
-            boolean enable = dateNow.compareTo(end_date) <= 0;
-            amb.setAttribute(AttributeBuilder.buildEnabled(enable));
-        } else if (start_date != null) {
+        } else if (start_date != null && end_date == null) {
             boolean enable = dateNow.compareTo(start_date) > 0;
             amb.setAttribute(AttributeBuilder.buildEnabled(enable));
-        } else {
-            //bld.addAttribute(AttributeBuilder.buildEnabled(false));
+        } else if (start_date == null) {
+            amb.addAttribute(AttributeBuilder.buildEnabled(false));
         }
 
+        //Last login date
         final Date lastLogonDate = OracleERPUtil.extractDate(LAST_LOGON_DATE, columnValues);
         if ( lastLogonDate != null ) {
             amb.setAttribute(AttributeBuilder.buildLastLoginDate(lastLogonDate));
         }
 
-        // password expired
+        // password change date
         final Date pwdDate = OracleERPUtil.extractDate(PWD_DATE, columnValues);
         if( pwdDate != null ) {
             amb.setAttribute(AttributeBuilder.buildLastPasswordChangeDate(pwdDate));
         }
-
-        final Long access_left = OracleERPUtil.extractLong(PWD_ACCESSES_LEFT, columnValues);
-
-        final Long lifespan_days = OracleERPUtil.extractLong(PWD_LIFESPAN_DAYS, columnValues);
-
-        if (access_left != null && access_left.intValue() <= 0) {
-            amb.setAttribute(AttributeBuilder.buildPasswordExpired(true));
-        } else if (lifespan_days != null && pwdDate != null) {
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(pwdDate);
-            cal.add(Calendar.DAY_OF_MONTH, lifespan_days.intValue());
-            boolean expired = cal.after(dateNow);
-            amb.setAttribute(AttributeBuilder.buildPasswordExpired(expired));
-        } else if ( pwdDate == null){
+        
+        // password expired when both are null
+        if (lastLogonDate == null && pwdDate == null) {
+            amb.setAttribute(AttributeBuilder.build(EXP_PWD, Boolean.TRUE));
             amb.setAttribute(AttributeBuilder.buildPasswordExpired(true));
         } else {
+            amb.setAttribute(AttributeBuilder.build(EXP_PWD, Boolean.FALSE));
             amb.setAttribute(AttributeBuilder.buildPasswordExpired(false));
         }
     }
@@ -302,13 +296,13 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
 
         if (personColumns.isEmpty()) {
             // No persons column required
-            log.info("No persons AttributesToGet, skip");
+            log.ok("No persons AttributesToGet, skip");
             return;
         }
 
         final Long personId = extractLong(EMP_ID, columnValues);
         if (personId == null) {
-            log.info("buildPersonDetails: Null personId(employId)");
+            log.ok("buildPersonDetails: Null personId(employId)");
             return;
         }
         log.ok("buildPersonDetails for personId: {0}", personId);
@@ -339,6 +333,11 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
                 }
             }
 
+        } catch (ConnectorException e) {
+            final String msg = getCfg().getMessage(MSG_ACCOUNT_NOT_READ, personId);
+            log.error(e, msg);
+            SQLUtil.rollbackQuietly(getConn());
+            throw e;
         } catch (Exception e) {
             final String msg = getCfg().getMessage(MSG_ACCOUNT_NOT_READ, personId);
             log.error(e, msg);
@@ -388,11 +387,19 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
             Object value = null;
             if (origValue instanceof BigInteger) {
                 value =  origValue.toString();
+            } else if (origValue instanceof BigDecimal) {
+                value =  origValue.toString();
+            } else if (origValue instanceof Integer) {
+                value =  origValue.toString();
             } else if (origValue instanceof Long) {
                 value =  origValue.toString();
             } else {
                 value = SQLUtil.jdbc2AttributeValue(origValue);
-            }
+            } 
+            
+            /*if (value != null && columnName.toLowerCase().endsWith("date")) {
+                value = value.toString().substring(0,10);
+            }*/
             amb.setAttribute(attributeName, value);
         }
     }
@@ -404,7 +411,7 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
     private void buildResponsibilities(AttributeMergeBuilder amb, final String userName) {
 
         if (!getCfg().isNewResponsibilityViews() && amb.isInAttributesToGet(RESPS)) {
-            log.info("buildResponsibilities from "+RESPS_TABLE);
+            log.ok("buildResponsibilities from "+RESPS_TABLE);
             //add responsibilities
             final List<String> responsibilities = respOps.getResponsibilities(userName, RESPS_TABLE, false);
             amb.setAttribute(RESPS, responsibilities);
@@ -413,7 +420,7 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
             final List<String> resps = respOps.getResps(responsibilities, RESP_FMT_KEYS);
             amb.setAttribute(RESPKEYS, resps);
         } else if (amb.isInAttributesToGet(DIRECT_RESPS)) {
-            log.info("buildResponsibilities from "+RESPS_DIRECT_VIEW);
+            log.ok("buildResponsibilities from "+RESPS_DIRECT_VIEW);
             final List<String> responsibilities = respOps.getResponsibilities(userName, RESPS_DIRECT_VIEW, false);
             amb.setAttribute(DIRECT_RESPS, responsibilities);
 
@@ -423,7 +430,7 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
         }
 
         if (amb.isInAttributesToGet(INDIRECT_RESPS)) {
-            log.info("buildResponsibilities from "+RESPS_INDIRECT_VIEW);
+            log.ok("buildResponsibilities from "+RESPS_INDIRECT_VIEW);
             //add responsibilities
             final List<String> responsibilities = respOps.getResponsibilities(userName, RESPS_INDIRECT_VIEW, false);
             amb.setAttribute(INDIRECT_RESPS, responsibilities);
@@ -461,7 +468,7 @@ final class AccountOperationSearch extends Operation implements SearchOp<FilterW
         }
         final boolean auditorDataRequired = isAuditorDataRequired(amb);
         if (auditorDataRequired) {
-            log.info("buildAuditorDataObject  for uid: {0}", auditorDataRequired);
+            log.ok("buildAuditorDataObject  for uid: {0}", auditorDataRequired);
             List<String> activeRespList = respOps.getResponsibilities(userName, respOps.getRespLocation(), false);
             for (String activeRespName : activeRespList) {
                 auditOps.updateAuditorData(amb, activeRespName);
