@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+	<groupId>org.identityconnectors</groupId>
+	<artifactId>framework-parent</artifactId>
+	<version>1.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>connector-framework-package</artifactId>
+  <name>Connector Framework Package</name>
+  <description>Copies the dependencies to dist. This should be just temporary solution to make connector ant build script to work</description>
+  <packaging>pom</packaging>
+
+
+  <dependencies>
+
+	<dependency>
+		<groupId>${framework.groupId}</groupId>
+		<artifactId>connector-framework-internal</artifactId>
+		<version>${framework.version}</version>
+	</dependency>
+
+	<dependency>
+		<groupId>${framework.groupId}</groupId>
+		<artifactId>connector-test-common</artifactId>
+		<version>${project.version}</version>
+	</dependency>
+	
+	<dependency>
+		<groupId>${framework.groupId}</groupId>
+		<artifactId>connector-framework-contract</artifactId>
+		<version>${project.version}</version>
+	</dependency>
+	
+
+	<dependency>
+	    <groupId>org.codehaus.groovy</groupId>
+	    <artifactId>groovy-all</artifactId>
+	</dependency>
+
+   </dependencies>
+   
+   <build>
+        <directory>${basedir}/../dist</directory>
+        <plugins>
+                <plugin>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                                <execution>
+                                        <phase>package</phase>
+                                        <goals><goal>copy-dependencies</goal></goals>
+                                        <configuration>
+                                                <outputDirectory>${basedir}/../dist</outputDirectory>
+                                        </configuration>
+                                </execution>
+                        </executions>        
+                </plugin>
+        </plugins>
+   </build>
+
+</project>

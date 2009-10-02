@@ -210,6 +210,14 @@
             </includes>
           </configuration>
         </plugin>
+        
+        <plugin>
+                <artifactId>maven-eclipse-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                        <projectNameTemplate>${project.name}</projectNameTemplate>
+                </configuration>
+        </plugin>
 
       </plugins>
     </pluginManagement>

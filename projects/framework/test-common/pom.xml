@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>connector-test-common</artifactId>
-  <name>Framework Test common</name>
+  <name>Connector Common Test Library</name>
   <packaging>jar</packaging>
 
   <dependencies>

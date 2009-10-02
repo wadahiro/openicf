@@ -8,6 +8,20 @@
   </parent>
 
   <artifactId>${framework.artifactId}</artifactId>
-  <name>Framework</name>
+  <name>Connector Framework</name>
   <packaging>jar</packaging>
+  <build>
+        <plugins>
+                <!-- We need to bundle commited manifest file -->
+                <plugin>
+                  <artifactId>maven-jar-plugin</artifactId>
+                  <configuration>
+                    <useDefaultManifestFile>true</useDefaultManifestFile>
+                  </configuration>
+                </plugin>
+         </plugins>
+  </build>
 </project>
+
+
+

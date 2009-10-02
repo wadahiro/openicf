@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>connector-framework-internal</artifactId>
-  <name>Framework Internal</name>
+  <name>Connector Framework - Internal</name>
   <packaging>jar</packaging>
 
 
@@ -30,6 +30,15 @@
 	    <groupId>org.codehaus.groovy</groupId>
 	    <artifactId>groovy-all</artifactId>
 	</dependency>
+	
+	<dependency>
+		<groupId>${framework.groupId}</groupId>
+		<artifactId>${framework.artifactId}</artifactId>
+		<version>${framework.version}</version>
+		<type>test-jar</type>
+		<scope>test</scope>
+	</dependency>
+	
 
 	<dependency>
 		<groupId>${framework.groupId}</groupId>

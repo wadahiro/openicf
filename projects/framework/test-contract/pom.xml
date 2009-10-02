@@ -7,7 +7,7 @@
 	<version>1.1.0-SNAPSHOT</version>
   </parent>
   <artifactId>connector-framework-contract</artifactId>
-  <name>Contract tests</name>
+  <name>Connector Contract Tests</name>
 
 
   <dependencies>

@@ -35,6 +35,23 @@
   </dependencies>
   
   <build>
+  
+    <pluginManagement>
+        <plugins>
+                <plugin>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <executions>
+                                        <execution>
+                                                <goals>
+                                                        <goal>jar</goal>
+                                                        <goal>test-jar</goal>
+                                                </goals>
+                                        </execution>
+                        </executions>
+                </plugin>
+        </plugins>
+    </pluginManagement>
+  
     <plugins>
              <!-- Copy license to jars -->   
 	     <plugin>
@@ -70,7 +87,6 @@
 				</execution>
 			</executions>
 	       </plugin>
-
     </plugins>	
   </build>
 
@@ -102,5 +118,6 @@
 	<module>testbundles/testbundlev2</module>
 	<module>framework-internal</module>
 	<module>test-contract</module>
+	<module>framework-package</module>
   </modules>		
 </project>
