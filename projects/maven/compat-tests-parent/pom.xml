@@ -15,6 +15,10 @@
 
   <properties>
     <contract.suiteName>org.identityconnectors.contract.test.ContractTestSuite</contract.suiteName>
+    <connectorTestsVersion>${connectorVersion}</connectorTestsVersion>
+    <connectorConfigurationVersion>${connectorVersion}</connectorConfigurationVersion>
+    <junits.skip>${skipTests}</junits.skip>
+    <contracts.skip>${skipTests}</contracts.skip>
   </properties>
 
   <profiles>
@@ -64,21 +68,21 @@
         <dependency>
           <groupId>${connectorGroupId}</groupId>
           <artifactId>${connectorArtifactId}</artifactId>
-          <version>${connectorVersion}</version>
+          <version>${connectorTestsVersion}</version>
           <classifier>tests</classifier>
           <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>${connectorGroupId}</groupId>
           <artifactId>${connectorArtifactId}</artifactId>
-          <version>${connectorVersion}</version>
+          <version>${connectorConfigurationVersion}</version>
           <classifier>privatetestconfig</classifier>
           <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>${connectorGroupId}</groupId>
           <artifactId>${connectorArtifactId}</artifactId>
-          <version>${connectorVersion}</version>
+          <version>${connectorConfigurationVersion}</version>
           <classifier>publictestconfig</classifier>
           <scope>test</scope>
         </dependency>

@@ -27,6 +27,8 @@
     <ConnectorBundle-Name>${project.artifactId}</ConnectorBundle-Name>
     <ConnectorBundle-Version>${project.version}</ConnectorBundle-Version>
     <contract.suiteName>org.identityconnectors.contract.test.ContractTestSuite</contract.suiteName>
+    <junits.skip>${skipTests}</junits.skip>
+    <contracts.skip>${skipTests}</contracts.skip>
   </properties>
 
   <profiles>
@@ -186,7 +188,6 @@
               <execution>
                 <id>package-test</id>
                 <configuration>
-                  <skip>false</skip>
                   <excludes>
                     <exclude>${connectorName}/**</exclude>
                   </excludes>
@@ -208,10 +209,10 @@
                   <classesDirectory>${project.build.testOutputDirectory}</classesDirectory>
                   <classifier>publictestconfig</classifier>
                   <includes>
-                    <include>${connectorName}**</include>
+                    <include>${connectorName}/**</include>
                   </includes>
                   <excludes>
-                    <exclude>**/config-private</exclude>
+                    <exclude>**/config-private/**</exclude>
                   </excludes>
                 </configuration>
               </execution>
