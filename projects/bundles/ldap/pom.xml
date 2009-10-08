@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.identityconnectors</groupId>
+    <artifactId>bundles-parent</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <relativePath>../../maven/bundles-parent/pom.xml</relativePath>
+  </parent>
+  <version>1.0.0-SNAPSHOT</version>
+  <name>LDAP connector</name>
+  <artifactId>org.identityconnectors.ldap</artifactId>
+
+  <properties>
+    <framework.version>1.1.0-SNAPSHOT</framework.version>
+    <connectorName>org.identityconnectors.ldap.LdapConnector</connectorName>
+    <privateConfigPath>${user.home}/.connectors/connector-ldap/config</privateConfigPath>
+    <junitsConfigurations>localhost</junitsConfigurations>
+    <contractsConfigurations>localhost</contractsConfigurations>
+    <embedded.dependencies>ldapbp</embedded.dependencies>
+  </properties>
+  
+  <build>
+        <plugins>
+                <!-- Run the setup for tests -->
+                <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.3</version>
+                        <dependencies>
+                                <dependency>
+                                        <groupId>org.apache.ant</groupId>
+                                        <artifactId>ant-apache-regexp</artifactId>
+                                        <version>1.7.1</version>
+                                </dependency>
+                        </dependencies>
+                        <executions>
+                                <execution>
+                                        <id>setup-opends</id>
+                                        <phase>generate-test-resources</phase>
+                                        <goals><goal>run</goal></goals>
+                                        <configuration>
+                                                <tasks unless="skipTests">
+                                                        <ant antfile="build.xml" target="-pre-compile-test-extra">
+                                                                <property name="dependencies.private" value="${user.home}/.connectors/connector-ldap"/>
+                                                                <property name="lib" value="lib"/>
+                                                                <property name="src.test.java" value="src/main/java"/>
+                                                                <property name="framework.dir" value="unexist.dir"/>
+                                                        </ant>
+                                                </tasks>
+                                        </configuration>
+                                </execution>
+                        </executions>
+                </plugin>
+                
+                <!-- Attach build.xml to be able to reference it from compatibility tests -->
+                <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>1.3</version>
+                        <executions>
+                          <execution>
+                            <id>attach-artifacts</id>
+                            <phase>package</phase>
+                            <goals>
+                              <goal>attach-artifact</goal>
+                            </goals>
+                            <configuration>
+                              <artifacts>
+                                <artifact>
+                                  <file>${basedir}/build.xml</file>
+                                  <type>xml</type>
+                                  <classifier>antbuild</classifier>
+                                </artifact>
+                              </artifacts>
+                            </configuration>
+                          </execution>
+                        </executions>
+              </plugin>
+                
+        </plugins>
+  </build>
+  
+  <dependencies>
+        <dependency>
+            <groupId>com.sun</groupId>
+            <artifactId>ldapbp</artifactId>
+            <version>1.0</version>
+        </dependency>
+         <dependency>
+            <groupId>org.opends</groupId>
+            <artifactId>OpenDS</artifactId>
+            <version>1.0.0</version>
+            <scope>test</scope>
+        </dependency> 
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>1.5.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.sleepycat</groupId>
+            <artifactId>je</artifactId>
+            <version>1.0.0</version>
+            <scope>test</scope>
+        </dependency>
+  </dependencies> 
+</project>
+

@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+	<groupId>org.identityconnectors</groupId>
+	<artifactId>compat-tests-parent</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<relativePath>../../../maven/compat-tests-parent/pom.xml</relativePath>
+  </parent>
+  <packaging>pom</packaging>
+  <artifactId>org.identityconnectors.databasetable-compat</artifactId>
+  <name>Database table Connector - Compatibility tests</name>
+  <version>1.0-SNAPSHOT</version>
+  
+  <properties>
+	<framework.version>1.1.0-SNAPSHOT</framework.version>
+	<connectorName>org.identityconnectors.databasetable.DatabaseTableConnector</connectorName>
+	<connectorGroupId>${project.groupId}</connectorGroupId>
+        <connectorArtifactId>org.identityconnectors.databasetable</connectorArtifactId>
+       	<connectorConfigurationVersion>1.0.0-SNAPSHOT</connectorConfigurationVersion>
+	<connectorVersion>1.0.4727</connectorVersion>
+	<connectorTestsVersion>1.0.4727</connectorTestsVersion>
+        <junitsConfigurations>default</junitsConfigurations>
+        <contractsConfigurations>mysql,mssql,db2,oracle</contractsConfigurations>
+        <embedded.dependencies>${project.groupId}.dbcommon</embedded.dependencies>
+  </properties>
+  
+  
+  <dependencies>
+    <dependency>
+      <groupId>${identityconnectors.groupId}</groupId>
+      <artifactId>org.identityconnectors.dbcommon</artifactId>
+      <version>1.0.4729</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.oracle</groupId>
+      <artifactId>ojdbc14</artifactId>
+      <version>10.2.04</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>5.0.8</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.microsoft.mssql</groupId>
+      <artifactId>sqljdbc</artifactId>
+      <version>1.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.ibm.db2</groupId>
+      <artifactId>db2jcc</artifactId>
+      <version>9.5</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.derby</groupId>
+      <artifactId>derby</artifactId>
+      <version>10.4.2.0</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+  
+  
+</project>	
+

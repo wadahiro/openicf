@@ -20,8 +20,8 @@
        	<connectorConfigurationVersion>1.0.0-SNAPSHOT</connectorConfigurationVersion>
 	<connectorVersion>1.0.4529</connectorVersion>
 	<connectorTestsVersion>1.0.4529</connectorTestsVersion>
-    <junitsConfigurations>default</junitsConfigurations>
-    <contractsConfigurations>default</contractsConfigurations>
+        <junitsConfigurations>default</junitsConfigurations>
+        <contractsConfigurations>default</contractsConfigurations>
   </properties>
   
   <dependencies>

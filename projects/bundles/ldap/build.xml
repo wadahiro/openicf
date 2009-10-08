@@ -22,7 +22,7 @@
 -->
 <project name="connector-ldap" default="all"> 
     <property name="framework.dir" value="../../framework"/>
-    <import file="${framework.dir}/connector_build.xml"/>
+    <import file="${framework.dir}/connector_build.xml" optional="true"/>
 
     <target name="-pre-clean-extra" depends="opends-clean">
         <delete dir="${lib}/test"/>
