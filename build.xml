@@ -22,24 +22,20 @@
 -->
 <project name="connector-ldap" default="all"> 
     <property name="framework.dir" value="../../framework"/>
-    <import file="${framework.dir}/connector_build.xml"/>
-
-    <target name="-pre-compile-extra">
-        <copy file="${user.home}/.connectors/connector-ldap/lib/ldapbp.jar" todir="${lib}"/>
-        <copy file="${user.home}/.connectors/connector-ldap/lib/OpenDS.jar" todir="${lib}/build"/>
-    </target>
+    <import file="connector_build.xml"/>
 
     <target name="-pre-clean-extra" depends="opends-clean">
-        <delete file="${lib}/ldapbp.jar"/>
-        <delete dir="${lib}/build"/>
+        <delete dir="${lib}/test"/>
     </target>
 
-    <target name="-pre-test-extra" depends="opends-setup"/>
+    <target name="-pre-compile-test-extra" depends="opends-setup">
+        <copy file="${dependencies.private}/lib/OpenDS.jar" todir="${lib}/test"/>
+    </target>
 
     <target name="opends-setup" depends="opends-do-setup,opends-setup-clean"/>
 
     <target name="opends-init">
-        <property name="opends.zip.default.dir" value="${user.home}/.connectors/connector-ldap"/>
+        <property name="opends.zip.default.dir" value="${dependencies.private}"/>
         <property name="opends.zip.default" value="${opends.zip.default.dir}/OpenDS-1.0.0.zip"/>
         <property name="opends.ldif" location="opends"/>
         <property name="opends.dest.dir" location="${src.test.java}/org/identityconnectors/ldap/opends"/>
