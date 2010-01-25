@@ -26,6 +26,8 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.List;
 
 import org.identityconnectors.common.IOUtil;
