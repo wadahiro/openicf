@@ -22,6 +22,8 @@
  */
 package org.identityconnectors.ldap;
 
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -243,5 +245,25 @@ public abstract class LdapConnectorTestBase {
 
     protected static void stopServer() {
         EmbeddedUtils.stopServer("org.test.opends.EmbeddedOpenDS", null);
+        // It seems that EmbeddedUtils.stopServer() returns before the server has stopped listening on its port,
+        // causing the next test to fail when starting the server.
+        final int WAIT = 200; // ms
+        final int ITERATIONS = 25;
+        for (int i = 1; ; i++) {
+            try {
+                new Socket(InetAddress.getLocalHost(), PORT).close();
+            } catch (IOException e) {
+                // Okay, server has stopped.
+                return;
+            }
+            if (i < ITERATIONS) {
+                try {
+                    Thread.sleep(WAIT);
+                } catch (InterruptedException e) {}
+            } else {
+                break;
+            }
+        }
+        fail("OpenDS failed to stop");
     }
 }
