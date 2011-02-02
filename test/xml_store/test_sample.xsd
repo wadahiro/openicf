@@ -3,175 +3,194 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://xml.netbeans.org/schema/test"
     xmlns:tns="http://xml.netbeans.org/schema/test" xmlns:icf="http://openidm.forgerock.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" >
+    <xsd:annotation>
+        <xsd:documentation>firstname - String.class
+lastname - String.class REQUIRED
+email - String.class MULTIVALUED
+address - String.class MULTIVALUED
+employee-number - String.class
+employee-type - String.class
+accont-name - String.class REQUIRED
+password - GuardedString.class * xsd:string
+password_secret_answer - GuardedByteArray.class * xsd:base64Binary
+is-deleted - boolean.class NOT_CREATABLE NOT_UPDATABLE
+jpegPhoto - byte[].class * base64binary
+last-logoff - BigInteger.class * xsd:Integer NOT_CREATABLE NOT_UPDATABLE
+account-created-timestamp - long.class NOT_UPDATABLE
+ms-employed - Long.class *
+lastname-first-letter - char.class * xsd:string
+gender - Character.class * xsd:string
+hourly-wage - double.class
+overtime-commission - Double.class *
+avg-wage - float.class NOT_CREATABLE
+office-square-feet - Float.class *
+age - int.class
+years-employed - Integer.class * xsd:int
+account-diabled - boolean.class
+permanent-employee - Boolean.class *
+yearly-wage - BigInteger.class * xsd:Integer NOT_READABLE
+sick-days - BigDecimal.class * xsd:decimal
+max-storage - BigDecimal.class * xsd:decimal
+certificate - byte[].class * base64binary NOT_RETURN_BY_DEFAULT
+
+
+        </xsd:documentation>
+    </xsd:annotation>
     <xsd:import namespace="http://openidm.forgerock.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" schemaLocation="predefined.xsd"/>
     <xsd:complexType name="__ACCOUNT__">
         <xsd:annotation>
             <xsd:appinfo>
                 <xsd:sequence>
-                    <xsd:element ref="icf:operation" /> <!-- TODO: minoccurs, maxoccurs?? -->
+                    <icf:operation>CREATE</icf:operation>
                 </xsd:sequence>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="icf:__UID__"/>
             <xsd:element ref="icf:__NAME__"/>
-            <xsd:element name="firstname" type="xsd:string"> <!-- String.class -->
+            <xsd:element name="firstname" type="xsd:string">
+            </xsd:element>
+            <xsd:element name="lastname" type="xsd:string" minOccurs="0" >
+            </xsd:element>
+            <xsd:element name="email" type="xsd:string" maxOccurs="unbounded" minOccurs="0">
+            </xsd:element>
+            <xsd:element name="address" type="xsd:string" maxOccurs="unbounded" minOccurs="0">
+            </xsd:element>
+            <xsd:element name="employee-number" type="xsd:string">
+            </xsd:element>
+            <xsd:element name="employee-type" type="xsd:string">
+            </xsd:element>
+            <xsd:element name="account-name" type="xsd:string" minOccurs="1" >
+            </xsd:element>
+            <xsd:element name="password" type="xsd:string">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <icf:javaclass>org.identityconnectors.common.security.GuardedString</icf:javaclass>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="lastname" type="xsd:string"> <!-- String.class -->
+            <xsd:element name="password-secret-answer" type="xsd:base64Binary">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <icf:javaclass>org.identityconnectors.common.security.GuardedByteArray</icf:javaclass>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="lastname_first_letter" type="xsd:string"> <!-- char.class -->
+            <xsd:element name="is-deleted" type="xsd:boolean">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <icf:flag>NOT_CREATABLE</icf:flag>
+                        <icf:flag>NOT_UPDATABLE</icf:flag>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="email" type="xsd:string"> <!-- String.class -->
+            <xsd:element name="jpegPhoto" type="xsd:base64Binary">
+            </xsd:element>
+            <xsd:element name="last-logoff" type="xsd:integer">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <icf:javaclass>java.math.BigInteger</icf:javaclass>
+                        <icf:flag>NOT_CREATABLE</icf:flag>
+                        <icf:flag>NOT_UPDATABLE</icf:flag>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="password" type="xsd:string"> <!-- GuardedString.class -->
+            <xsd:element name="account-created-timestamp" type="xsd:long">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <icf:flag>NOT_UPDATABLE</icf:flag>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="password_secret_answer" type="xsd:string"> <!-- GuardedByteArray.class -->
+            <xsd:element name="ms-employed" type="xsd:long">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <icf:javaclass>java.lang.Long</icf:javaclass>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="gender" type="xsd:string"> <!-- Character.class, 'M' or 'F' -->
+            <xsd:element name="lastname-first-letter" type="xsd:string">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <icf:javaclass>char</icf:javaclass>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="age" type="xsd:int"> <!-- int.class -->
+            <xsd:element name="gender" type="xsd:string">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <icf:javaclass>java.lang.Character</icf:javaclass>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="years_employed" type="xsd:int"> <!-- Integer.class -->
+            <xsd:element name="hourly-wage" type="xsd:double">
+            </xsd:element>
+            <xsd:element name="overtime-commission" type="xsd:double">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <icf:javaclass>java.lang.Double</icf:javaclass>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="ms_employed" type="xsd:int"> <!-- Long.class -->
+            <xsd:element name="avg-wage" type="xsd:float">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <icf:flag>NOT_CREATABLE</icf:flag>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="account_created_timestamp" type="xsd:long"> <!-- long.class -->
+            <xsd:element name="office-square-feet" type="xsd:float">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <icf:javaclass>java.lang.Float</icf:javaclass>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="hourly_wage" type="xsd:double"> <!-- double.class -->
+            <xsd:element name="age" type="xsd:int">
+            </xsd:element>
+            <xsd:element name="years-employed" type="xsd:int">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <icf:javaclass>java.lang.Integer</icf:javaclass>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="overtime_commission" type="xsd:double"> <!-- Double.class -->
+            <xsd:element name="account-disabled" type="xsd:boolean">
+            </xsd:element>
+            <xsd:element name="permanent-employee" type="xsd:boolean">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <icf:javaclass>java.lang.Boolean</icf:javaclass>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="yearly_wage" type="xsd:int"> <!-- BigInteger.class -->
+            <xsd:element name="yearly-wage" type="xsd:integer">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <icf:javaclass>java.math.BigInteger</icf:javaclass>
+                        <icf:flag>NOT_READABLE</icf:flag>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="avg_hourly_wage" type="xsd:float"> <!-- float.class -->
+            <xsd:element name="sick-days" type="xsd:decimal">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <javaclass>java.math.BigDecimal</javaclass>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="office_square_feet" type="xsd:float"> <!-- Float.class -->
+            <xsd:element name="max-storage" type="xsd:decimal">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <icf:javaclass>java.math.BigDecimal</icf:javaclass>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="account_disabled" type="xsd:boolean"> <!-- boolean.class -->
+            <xsd:element name="certificate" type="xsd:base64Binary">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="permanent_employee" type="xsd:boolean"> <!-- Boolean.class -->
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="yearly_wage" type="xsd:int"> <!-- BigInteger.class -->
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="marial_status" type="xsd:string"> <!-- byte[].class -->
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <xsd:element ref="icf:javaclass" />
-                        <xsd:element ref="icf:flag" />
+                        <icf:javaclass>byte[]</icf:javaclass>
+                        <icf:flag>NOT_RETURN_BY_DEFAULT</icf:flag>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -190,6 +209,7 @@
         </xsd:sequence>
     </xsd:complexType>
 </xsd:schema>
+
 
 
 
