@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://xml.netbeans.org/schema/test"
+    xmlns:tns="http://xml.netbeans.org/schema/test" xmlns:icf="http://openidm.forgerock.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" >
+    <xsd:import namespace="http://openidm.forgerock.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" schemaLocation="predefined.xsd"/>
+    <xsd:complexType name="__ACCOUNT__">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <xsd:sequence>
+                    <xsd:element ref="icf:operation" /> <!-- TODO: minoccurs, maxoccurs?? -->
+                </xsd:sequence>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="icf:__UID__"/>
+            <xsd:element ref="icf:__NAME__"/>
+            <xsd:element name="firstname" type="xsd:string"> <!-- String.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lastname" type="xsd:string"> <!-- String.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lastname_first_letter" type="xsd:string"> <!-- char.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="email" type="xsd:string"> <!-- String.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="password" type="xsd:string"> <!-- GuardedString.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="password_secret_answer" type="xsd:string"> <!-- GuardedByteArray.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="gender" type="xsd:string"> <!-- Character.class, 'M' or 'F' -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="age" type="xsd:int"> <!-- int.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="years_employed" type="xsd:int"> <!-- Integer.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ms_employed" type="xsd:int"> <!-- Long.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="account_created_timestamp" type="xsd:long"> <!-- long.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="hourly_wage" type="xsd:double"> <!-- double.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="overtime_commission" type="xsd:double"> <!-- Double.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="yearly_wage" type="xsd:int"> <!-- BigInteger.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="avg_hourly_wage" type="xsd:float"> <!-- float.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="office_square_feet" type="xsd:float"> <!-- Float.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="account_disabled" type="xsd:boolean"> <!-- boolean.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="permanent_employee" type="xsd:boolean"> <!-- Boolean.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="yearly_wage" type="xsd:int"> <!-- BigInteger.class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="marial_status" type="xsd:string"> <!-- byte[].class -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:element ref="icf:javaclass" />
+                        <xsd:element ref="icf:flag" />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="__GROUP__">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <xsd:element ref="icf:operation" />
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="icf:__UID__"/>
+            <xsd:element ref="icf:__NAME__"/>
+            <xsd:any/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>
+
+
+
+
+
