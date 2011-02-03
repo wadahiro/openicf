@@ -11,8 +11,11 @@ import com.sun.xml.xsom.parser.AnnotationContext;
 import com.sun.xml.xsom.parser.AnnotationParser;
 
 public class XSDAnnotationParser extends AnnotationParser{
+	
 	private boolean parse = false;
-	StringBuilder s = new StringBuilder();
+	private String addValue = "";
+	
+	StringBuilder stringBuilder = new StringBuilder();
 	@Override
 	public ContentHandler getContentHandler(AnnotationContext arg0, String arg1, ErrorHandler arg2, EntityResolver arg3) {
 		return new ContentHandler() {
@@ -25,10 +28,14 @@ public class XSDAnnotationParser extends AnnotationParser{
 			}
 			
 			@Override
-			public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-				if(localName.equals("appinfo"))
+			public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {	
+				if(localName.equals("appinfo") || localName.equals("sequence")){
 					parse = true;
+				}
 				
+				if(!qName.equals("xsd:appinfo") && !qName.equals("xsd:element")){
+					addValue = qName;
+				}	
 			}
 			
 			@Override
@@ -71,8 +78,9 @@ public class XSDAnnotationParser extends AnnotationParser{
 			
 			@Override
 			public void endElement(String uri, String localName, String qName) throws SAXException {
-				if(localName.equals("appinfo"))
+				if(localName.equals("appinfo")){
 					parse = false;
+				}
 				
 			}
 			
@@ -83,10 +91,15 @@ public class XSDAnnotationParser extends AnnotationParser{
 			}
 			
 			@Override
-			public void characters(char[] arg0, int arg1, int arg2) throws SAXException {
+			public void characters(char[] chars, int start, int length) throws SAXException {
 				if(parse){
-					
-					s.append(arg0, arg1, arg2);
+					StringBuilder sb = new StringBuilder();
+					sb.append(chars, start, length);
+					if(!sb.toString().replace(" ", "").trim().equals("")){
+						String stringToAppend = addValue + " " + sb.toString().trim();
+						stringBuilder.append(stringToAppend);
+						stringBuilder.append("\n");
+					}
 				}
 			}
 		};
@@ -94,9 +107,7 @@ public class XSDAnnotationParser extends AnnotationParser{
 
 	@Override
 	public Object getResult(Object arg0) {
-
-		System.out.println(s.toString().trim());
-		return s.toString().trim();
+		return stringBuilder.toString().trim();
 	}
 
 }
