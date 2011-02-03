@@ -31,6 +31,7 @@ import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.objects.filter.Filter;
 
 /**
  * Main implementation of the XML Connector
@@ -181,15 +182,27 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
     /**
      * {@inheritDoc}
      */
+    /*
+     * oclass - The object class for the search. Will never be null.
+        query - The native query to run. A value of null means "return every instance of the given object class".
+        handler - Results should be returned to this handler
+        options - Additional options that impact the way this operation is run. If the caller passes null,
+     the framework will convert this into an empty set of options, so SPI need not guard against options being null.
+     */
     public void executeQuery(ObjectClass objClass, String query, ResultsHandler handler, OperationOptions options) {
 
-        Set<String> attributesToGet = null;
-        // search for account
-        if (objClass.is(ObjectClass.ACCOUNT_NAME)) {
-            if (options != null && options.getAttributesToGet() != null) {
-                attributesToGet = CollectionUtil.newReadOnlySet(options.getAttributesToGet());
-            }
-        }
+
+        xmlHandler.search("");
+
+
+        ConnectorObjectBuilder bld = new ConnectorObjectBuilder();
+
+        // add attributes to bld
+
+
+        // return to handler
+        handler.handle(bld.build());
+
    }
 
     
