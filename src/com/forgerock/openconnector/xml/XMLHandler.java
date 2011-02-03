@@ -5,16 +5,19 @@
 
 package com.forgerock.openconnector.xml;
 
+import java.util.Set;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.Uid;
 
 
 public interface XMLHandler {
 
-    public void create(Object obj) throws AlreadyExistsException;
+    public Uid create(final ObjectClass objClass, final Set<Attribute> attributes) throws AlreadyExistsException;
 
-    public void update(Object obj) throws UnknownUidException;
+    public Uid update(Object obj) throws UnknownUidException;
 
     public void delete(Uid uid) throws UnknownUidException;
 
