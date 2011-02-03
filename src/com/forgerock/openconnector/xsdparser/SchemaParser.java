@@ -1,5 +1,6 @@
 package com.forgerock.openconnector.xsdparser;
 
+import com.forgerock.openconnector.xml.XMLConnector;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -10,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.identityconnectors.framework.api.operations.APIOperation;
-import org.identityconnectors.framework.api.operations.ValidateApiOp;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
@@ -19,7 +18,6 @@ import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.SchemaBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
-import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.operations.*;
 import org.xml.sax.SAXException;
@@ -38,7 +36,7 @@ import com.sun.xml.xsom.parser.XSOMParser;
 public class SchemaParser {
 	
 	
-	private void parseSchema(Class<? extends Connector> connectorClass, File file){
+	private Schema parseSchema(Class<? extends Connector> connectorClass, File file){
 		
 		XSOMParser p = new XSOMParser();
 		XSSchemaSet set = null;
@@ -150,16 +148,24 @@ public class SchemaParser {
 				schemaBuilder.defineObjectClass(objectClassInfo);
 				
 				
-				try{
+				if(supportedOp.size() >= 1){
+					for(Class<? extends SPIOperation> removeOp : getOpClasses()){
+						if(!supportedOp.contains(removeOp)){
+							try{
+								schemaBuilder.removeSupportedObjectClass(removeOp, objectClassInfo);
+							}catch (IllegalArgumentException e) {
+								
+							}
+						}
+					}
 					
-					
-				}catch (Exception e) {
-					e.printStackTrace();
 				}
+				
 				
 			}
 			System.out.println(schemaBuilder.build());
 		}
+		return schemaBuilder.build();
 	}
 	
 	private List<Class<? extends SPIOperation>> getSupportedOpClasses(List<String> supportedOpList) {	
@@ -203,6 +209,24 @@ public class SchemaParser {
 				list.add(UpdateOp.class);
 			}
 		}
+		return list;
+	}
+	private List<Class<? extends SPIOperation>> getOpClasses() {	
+		List<Class<? extends SPIOperation>> list = new LinkedList<Class<? extends SPIOperation>>();
+		
+				list.add(CreateOp.class);
+				list.add(AuthenticateOp.class);
+				list.add(DeleteOp.class);
+				list.add(ResolveUsernameOp.class);
+				list.add(SchemaOp.class);
+				list.add(ScriptOnConnectorOp.class);
+				list.add(ScriptOnResourceOp.class);
+				list.add(SearchOp.class);
+				list.add(SyncOp.class);
+				list.add(TestOp.class);
+				list.add(UpdateAttributeValuesOp.class);
+				list.add(UpdateOp.class);
+				
 		return list;
 	}
 
@@ -271,9 +295,5 @@ public class SchemaParser {
 			}
 		}
 		return flags;
-	}
-	
-	public static void main(String [] args){
-		new SchemaParser().parseSchema(Connector.class, new File("/media/Dokumenter/Dokumenter/Skole/PJ600/ForgeRock/test_sample.xsd"));
 	}
 }
