@@ -36,6 +36,7 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
+import org.jdom.xpath.XPath;
 import net.sf.saxon.xqj.SaxonXQDataSource;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -92,14 +93,6 @@ public class XMLHandlerImpl implements XMLHandler {
         if (!xmlFile.exists()) {
 
             createDocument();
-
-            /*try {
-                log.info("XML file was not found. Creating a new xml file on the path: {0}", filePath);
-                xmlFile.createNewFile();
-            } catch (IOException ex) {
-                log.error(ex, "Failed creating XML file: {0}", filePath);
-                throw new ConnectorIOException("Failed creating XML file: " + filePath, ex);
-            }*/
         }
         else {
             loadDocument(xmlFile);
@@ -107,30 +100,6 @@ public class XMLHandlerImpl implements XMLHandler {
 
         log.info("Exit {0}", method);
     }
-
-    /*private File loadXmlFile() {
-        final String method = "getXmlFile";
-        log.info("Entry {0}", method);
-
-        File xmlFile = new File(filePath);
-
-        // creates a new file if it doesnt already exist
-        if (!xmlFile.exists()) {
-            log.info("XML file was not found. Creating a new xml file on the path: {0}", filePath);
-
-            createNewXmlFile();
-        }
-
-        log.info("Exit {0}", method);
-
-        return xmlFile;
-    }*/
-
-    /*private void createNewXmlFile() {
-        Element root = new Element("objects");
-        this.document = new Document(root);
-        writeDocumentToXmlFile();
-    }*/
 
     private void checkNull(String filePath) {
         if (filePath == null) {
@@ -184,32 +153,66 @@ public class XMLHandlerImpl implements XMLHandler {
         return new Uid(name.getNameValue());
     }
 
-    public Uid update(Object obj) throws UnknownUidException {
+    public Uid update(ObjectClass objClass, Uid uid, Set<Attribute> replaceAttributes) throws UnknownUidException {
 
-        /*if (entryExists(objClass, name)) {
-            throw new AlreadyExistsException(); // TODO: Add exception message
-        }*/
+        // TODO: Check if field exists in the schema
+        ObjectClassInfo objInfo = schema.findObjectClassInfo(objClass.getObjectClassValue());
+        Set<AttributeInfo> objAttributes = objInfo.getAttributeInfo();
 
 
-        throw new UnsupportedOperationException("Not supported yet.");
+        Name name = new Name(uid.getUidValue());
+
+        if (entryExists(objClass, name)) {
+
+            Element entry = getEntry(objClass, name);
+
+            for (Attribute attribute : replaceAttributes) {
+
+                Element entryChild = entry.getChild(attribute.getName());
+
+                if (entryChild == null) {
+                    throw new IllegalArgumentException("Data field: " + attribute.getName() + " is not supported.");
+                }
+
+                entry.getChild(attribute.getName()).setText(AttributeUtil.getStringValue(attribute));
+            }
+
+            System.out.println(entry.getChild("firstname").getText());
+        }
+        else
+            throw new IllegalArgumentException("..."); // TODO: Add exception message if object does not exist
+
+
+        serialize();
+
+        return uid;
     }
 
-    public void delete(Uid uid) throws UnknownUidException {
-        throw new UnsupportedOperationException("Not supported yet.");
+
+    public Element getEntry(ObjectClass objClass, Name name) {
+        Element result = null;
+
+        try {
+            result = (Element)XPath.selectSingleNode(document, "/OpenICFContainer/" + objClass.getObjectClassValue() + "[__NAME__='" + name.getNameValue() + "']");
+        } catch (JDOMException ex) {
+            Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex); // TODO: Change to framework logger
+        }
+
+        return result;
     }
 
-//    public Collection<ConnectorObject> search(String query) {
-//        List<ConnectorObject> hits = null;
-//        if (!query.isEmpty()) {
-//            try {
-//                XPath xPath = XPath.newInstance(query);
-//                hits = xPath.selectNodes(document);
-//            } catch (JDOMException ex) {
-//                Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
-//            }
-//        }
-//        return hits;
-//    }
+    public void delete(final ObjectClass objClass, final Uid uid) throws UnknownUidException {
+        
+        Name name = new Name(uid.getUidValue());
+
+        if (entryExists(objClass, name)) {
+            document.getRootElement().removeContent(getEntry(objClass, name));
+        }
+        else
+            throw new IllegalArgumentException("..."); // TODO: Add message for exception
+
+        serialize();
+    }
 
     public Collection<ConnectorObject> search(String q) {
         List<ConnectorObject> hits = null;
@@ -239,6 +242,9 @@ public class XMLHandlerImpl implements XMLHandler {
     }
 
     private boolean entryExists(ObjectClass objClass, Name name) {
+        if (getEntry(objClass, name) != null)
+            return true;
+
         return false;
     }
 

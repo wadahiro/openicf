@@ -204,19 +204,47 @@ public class XMLConnectorTests {
 
     @Test
     public void exampleTest2() {
-        XMLHandler handler = new XMLHandlerImpl("test.xml", XmlHandlerUtil.createHardcodedSchema());
+        XMLHandlerImpl handler = new XMLHandlerImpl("test.xml", XmlHandlerUtil.createHardcodedSchema());
 
         Set<Attribute> attributes = new HashSet<Attribute>();
-        attributes.add(AttributeBuilder.build("__NAME__", "namedid"));
+        attributes.add(AttributeBuilder.build("__NAME__", "idfield3"));
         attributes.add(AttributeBuilder.build(ATTR_REGISTRY_NAME, "registry"));
         attributes.add(AttributeBuilder.build(ATTR_IMPORT_FROM_REGISTRY, String.valueOf(false)));
-        attributes.add(AttributeBuilder.build(ATTR_FIRST_NAME, "Jan Eirik"));
-        attributes.add(AttributeBuilder.build(ATTR_LAST_NAME, "Hallstensen"));
+        attributes.add(AttributeBuilder.build(ATTR_FIRST_NAME, "Ola S."));
+        attributes.add(AttributeBuilder.build(ATTR_LAST_NAME, "Christophersen"));
 
 
         ObjectClass objClass = new ObjectClass(ObjectClass.ACCOUNT_NAME);
 
-        Uid uid = handler.create(objClass, attributes);
+        //Uid uid = handler.create(objClass, attributes);
+    }
+
+
+    @Test
+    public void exampleTest3() {
+        XMLHandlerImpl handler = new XMLHandlerImpl("test.xml", XmlHandlerUtil.createHardcodedSchema());
+
+        Set<Attribute> attributes = new HashSet<Attribute>();
+        attributes.add(AttributeBuilder.build("__NAME__", "namedid"));
+        attributes.add(AttributeBuilder.build(ATTR_FIRST_NAME, "Jan Eirik Test"));
+        attributes.add(AttributeBuilder.build(ATTR_LAST_NAME, "Hallstensen Test 2"));
+
+
+        ObjectClass objClass = new ObjectClass(ObjectClass.ACCOUNT_NAME);
+
+
+        handler.update(objClass, new Uid("namedid"), attributes);
+
+        //Element element = handler.getEntry(objClass, AttributeUtil.getNameFromAttributes(attributes));
+
+
+        //System.out.println(element.getChild(ATTR_FIRST_NAME).getText());
+    }
+
+    @Test
+    public void exampleTest4() {
+        XMLHandlerImpl handler = new XMLHandlerImpl("test.xml", XmlHandlerUtil.createHardcodedSchema());
+        handler.delete(ObjectClass.ACCOUNT, new Uid("idfield3"));
     }
 
     @Test

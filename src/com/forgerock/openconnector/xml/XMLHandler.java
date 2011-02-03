@@ -19,9 +19,9 @@ public interface XMLHandler {
 
     public Uid create(final ObjectClass objClass, final Set<Attribute> attributes) throws AlreadyExistsException;
 
-    public Uid update(Object obj) throws UnknownUidException;
+    public Uid update(ObjectClass objClass, Uid uid, Set<Attribute> replaceAttributes) throws UnknownUidException;
 
-    public void delete(Uid uid) throws UnknownUidException;
+    public void delete(final ObjectClass objClass, final Uid uid) throws UnknownUidException;
 
     public Collection<ConnectorObject> search(String query);
 
