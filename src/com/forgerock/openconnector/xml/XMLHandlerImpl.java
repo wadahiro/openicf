@@ -38,10 +38,11 @@ public class XMLHandlerImpl implements XMLHandler {
     private Document document;
     private Schema schema;
 
-    public XMLHandlerImpl(String filePath) {
+    public XMLHandlerImpl(String filePath, Schema schema) {
         checkNull(filePath);
         checkEmpty(filePath);
         this.filePath = filePath;
+        this.schema = schema;
         buildDocument();
     }
 

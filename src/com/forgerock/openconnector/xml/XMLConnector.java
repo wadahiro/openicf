@@ -100,14 +100,40 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
     /**
      * {@inheritDoc}
      */
-    public Uid create(final ObjectClass objClass, final Set<Attribute> attrs, final OperationOptions options) {
+    public Uid create(final ObjectClass objClass, final Set<Attribute> attributes, final OperationOptions options) {
 
-        for (Attribute attribute : attrs) {
-            
+        final String method = "create";
+        log.info("Entry {0}", method);
+
+        if (objClass == null) {
+            throw new IllegalArgumentException("msg"); // TODO: Add exception message
+        }
+
+        if (attributes == null || attributes.size() == 0) {
+            throw new IllegalArgumentException("msg"); // TODO: Add exception message
         }
 
 
-        throw new UnsupportedOperationException();
+
+
+        Uid uid = null;
+        Map<String, Attribute> attrMap = new HashMap<String, Attribute>(AttributeUtil.toMap(attributes));
+        Name name = AttributeUtil.getNameFromAttributes(attributes);
+
+        log.info("create({0},{1})", objClass.getObjectClassValue(), name.getNameValue());
+
+        if (objClass.is(ObjectClass.ACCOUNT_NAME)) {
+            //connection.getXmlHandler().createEntry();
+        }
+        else if (objClass.is(ObjectClass.GROUP_NAME)) {
+            //connection.getXmlHandler().createGroup(null);
+        }
+        else
+            throw new IllegalArgumentException("Unsupported Object Class=" + objClass.getObjectClassValue());
+
+        log.info("Exit {0}", method);
+
+        return new Uid(name.getNameValue());
     } 
        
     
