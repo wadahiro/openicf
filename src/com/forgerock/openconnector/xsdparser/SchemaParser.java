@@ -35,7 +35,7 @@ import com.sun.xml.xsom.parser.XSOMParser;
 public class SchemaParser {
 	
 	
-	private Schema parseSchema(Class<? extends Connector> connectorClass, File file){
+	public Schema parseSchema(Class<? extends Connector> connectorClass, File file){
 		
 		XSOMParser p = new XSOMParser();
 		XSSchemaSet set = null;
@@ -156,13 +156,9 @@ public class SchemaParser {
 								
 							}
 						}
-					}
-					
+					}	
 				}
-				
-				
 			}
-			System.out.println(schemaBuilder.build());
 		}
 		return schemaBuilder.build();
 	}
