@@ -28,7 +28,7 @@ import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 
 
-public class XMLHandlerImpl implements XMLHandler {
+public class XMLHandlerImpl implements XMLHandler { 
 
     /** 
      * Setup logging for the {@link XMLHandlerImpl}.

@@ -66,7 +66,7 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
      */
     public void init(Configuration cfg) {
         this.config = (XMLConfiguration) cfg;
-        this.xmlHandler = new XMLHandlerImpl(config.getXmlFilePath());
+        this.xmlHandler = new XMLHandlerImpl(config.getXmlFilePath(), null);
     }
 
     /**
