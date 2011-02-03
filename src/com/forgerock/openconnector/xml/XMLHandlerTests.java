@@ -31,7 +31,7 @@ public class XMLHandlerTests {
     @Before
     public void setUp() {
         
-        xmlHandler = new XMLHandlerImpl(filePath);
+        xmlHandler = new XMLHandlerImpl(filePath, null);
         testFile = new File("testusers.xml");
 
         PrintWriter pw = null;
@@ -59,11 +59,11 @@ public class XMLHandlerTests {
 
     @Test(expected=IllegalArgumentException.class)
     public void blankStringInConstructorShouldThrowException() {
-        XMLHandlerImpl xmlHandlerBlankConstr = new XMLHandlerImpl("");
+        XMLHandlerImpl xmlHandlerBlankConstr = new XMLHandlerImpl("", null);
     }
 
     @Test(expected=IllegalArgumentException.class)
     public void nullInConstructorShouldThrowException() {
-        XMLHandlerImpl xmlHandlerNullConstr = new XMLHandlerImpl(null);
+        XMLHandlerImpl xmlHandlerNullConstr = new XMLHandlerImpl(null, null);
     }
 }

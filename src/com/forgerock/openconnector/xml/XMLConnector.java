@@ -24,6 +24,7 @@ package com.forgerock.openconnector.xml;
 
 import java.util.*;
 
+import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.security.*;
 import org.identityconnectors.framework.spi.*;
 import org.identityconnectors.framework.spi.operations.*;
@@ -41,7 +42,7 @@ import org.identityconnectors.common.logging.Log;
 @ConnectorClass(
     displayNameKey = "XML",
     configurationClass = XMLConfiguration.class)
-public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp, DeleteOp, SchemaOp, ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<String>, SyncOp, TestOp, UpdateOp
+public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp, DeleteOp, SearchOp<String>, SchemaOp, ScriptOnConnectorOp, ScriptOnResourceOp, SyncOp, TestOp, UpdateOp
 {
     /**
      * Setup logging for the {@link XMLConnector}.
@@ -171,18 +172,26 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
     
     /**
      * {@inheritDoc}
-     */     
+     */
+    @Override
     public FilterTranslator<String> createFilterTranslator(ObjectClass objClass, OperationOptions options) { 
-        throw new UnsupportedOperationException();
+            return new XMLFilterTranslator();
     }
     
     /**
      * {@inheritDoc}
      */
     public void executeQuery(ObjectClass objClass, String query, ResultsHandler handler, OperationOptions options) {
-        throw new UnsupportedOperationException();
-    } 
-    
+
+        Set<String> attributesToGet = null;
+        // search for account
+        if (objClass.is(ObjectClass.ACCOUNT_NAME)) {
+            if (options != null && options.getAttributesToGet() != null) {
+                attributesToGet = CollectionUtil.newReadOnlySet(options.getAttributesToGet());
+            }
+        }
+   }
+
     
     /**
      * {@inheritDoc}
@@ -215,7 +224,6 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
             Set<Attribute> replaceAttributes,
             OperationOptions options) {
         throw new UnsupportedOperationException();
-    }  
-    
+    }
     
 }
