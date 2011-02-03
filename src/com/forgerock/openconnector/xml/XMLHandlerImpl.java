@@ -20,7 +20,7 @@ import org.jdom.output.XMLOutputter;
 
 public class XMLHandlerImpl implements XMLHandler {
 
-    /**
+    /** 
      * Setup logging for the {@link XMLHandlerImpl}.
      */
     private static final Log log = Log.getLog(XMLHandlerImpl.class);
