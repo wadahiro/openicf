@@ -218,4 +218,10 @@ public class XMLConnectorTests {
 
         Uid uid = handler.create(objClass, attributes);
     }
+
+    @Test
+    public void testSchema() {
+        XmlHandlerUtil util = new XmlHandlerUtil();
+        util.createHardcodedSchema();
+    }
 }

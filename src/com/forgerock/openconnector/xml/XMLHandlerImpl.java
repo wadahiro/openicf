@@ -3,7 +3,9 @@ package com.forgerock.openconnector.xml;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -15,6 +17,7 @@ import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
+import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
@@ -26,6 +29,7 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
+import net.sf.saxon.query.*;
 
 
 public class XMLHandlerImpl implements XMLHandler { 
@@ -185,8 +189,25 @@ public class XMLHandlerImpl implements XMLHandler {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public Object search(String query) {
-        throw new UnsupportedOperationException("Not supported yet.");
+//    public Collection<ConnectorObject> search(String query) {
+//        List<ConnectorObject> hits = null;
+//        if (!query.isEmpty()) {
+//            try {
+//                XPath xPath = XPath.newInstance(query);
+//                hits = xPath.selectNodes(document);
+//            } catch (JDOMException ex) {
+//                Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+//        }
+//        return hits;
+//    }
+
+    public Collection<ConnectorObject> search(String query) {
+        List<ConnectorObject> hits = null;
+
+        
+
+        return hits;
     }
 
     private boolean entryExists(ObjectClass objClass, Name name) {

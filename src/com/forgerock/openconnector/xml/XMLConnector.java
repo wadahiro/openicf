@@ -191,18 +191,22 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
      */
     public void executeQuery(ObjectClass objClass, String query, ResultsHandler handler, OperationOptions options) {
 
+        // wich attributes to include in the query
+        Set<String> attributesToGet = null;
 
-        xmlHandler.search("");
+        // SEARCH FOR __ACCOUNT__
+        if (objClass.is(ObjectClass.ACCOUNT_NAME)) {
+            
+        }
+        
 
-
+        Collection<ConnectorObject> hits = xmlHandler.search("");
         ConnectorObjectBuilder bld = new ConnectorObjectBuilder();
-
-        // add attributes to bld
-
-
+        for (ConnectorObject hit : hits) {
+            bld.add(hit);
+        }
         // return to handler
         handler.handle(bld.build());
-
    }
 
     
