@@ -45,7 +45,7 @@ public class XMLConfiguration extends AbstractConfiguration {
 
     }
 
-    /**
+    /** 
      * Accessor for the xml filepath property. Uses ConfigurationProperty annotation
      * to provide property metadata to the application.
      */
