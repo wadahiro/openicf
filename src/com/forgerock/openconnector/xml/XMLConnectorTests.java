@@ -204,7 +204,7 @@ public class XMLConnectorTests {
 
     @Test
     public void exampleTest2() {
-        XMLHandler handler = new XMLHandlerImpl("test.xml", getSchema());
+        XMLHandler handler = new XMLHandlerImpl("test.xml", XmlHandlerUtil.createHardcodedSchema());
 
         Set<Attribute> attributes = new HashSet<Attribute>();
         attributes.add(AttributeBuilder.build("__NAME__", "namedid"));

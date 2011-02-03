@@ -172,6 +172,12 @@ public class XMLHandlerImpl implements XMLHandler {
     }
 
     public Uid update(Object obj) throws UnknownUidException {
+
+        /*if (entryExists(objClass, name)) {
+            throw new AlreadyExistsException(); // TODO: Add exception message
+        }*/
+
+
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
