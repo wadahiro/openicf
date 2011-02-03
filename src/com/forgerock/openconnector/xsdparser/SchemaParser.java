@@ -34,7 +34,8 @@ import com.sun.xml.xsom.parser.XSOMParser;
 
 public class SchemaParser {
 	
-	
+	public SchemaParser(){}
+        
 	public Schema parseSchema(Class<? extends Connector> connectorClass, File file){
 		
 		XSOMParser p = new XSOMParser();
