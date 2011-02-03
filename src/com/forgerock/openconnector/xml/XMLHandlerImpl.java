@@ -11,6 +11,13 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.xml.xquery.XQConnection;
+import javax.xml.xquery.XQDataSource;
+import javax.xml.xquery.XQException;
+import javax.xml.xquery.XQItem;
+import javax.xml.xquery.XQItemType;
+import javax.xml.xquery.XQPreparedExpression;
+import javax.xml.xquery.XQResultSequence;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
@@ -29,7 +36,9 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
-import net.sf.saxon.query.*;
+import net.sf.saxon.xqj.SaxonXQDataSource;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 
 public class XMLHandlerImpl implements XMLHandler { 
@@ -202,11 +211,30 @@ public class XMLHandlerImpl implements XMLHandler {
 //        return hits;
 //    }
 
-    public Collection<ConnectorObject> search(String query) {
+    public Collection<ConnectorObject> search(String q) {
         List<ConnectorObject> hits = null;
+        try {
+            String query = "for $x in doc(\"test-sample2.xml\")/OpenICFContainer/__ACCOUNT__ where $x/firstname='Jan Eirik' return $x";
+            XQDataSource datasource = new SaxonXQDataSource();
+            XQConnection connection = datasource.getConnection();
+            XQPreparedExpression expression = connection.prepareExpression(query);
+            XQResultSequence result = expression.executeQuery();
+            while (result.next()) {
+                XQItem item = result.getItem();
+                Node node = item.getNode();
+                NodeList nl = node.getChildNodes();
+                for (int i = 0; i < nl.getLength(); i++) {
+                    Node tmp = nl.item(i);
+                    System.out.println(tmp.getNodeName() + " containts " + tmp.getTextContent());
+                }
+            }
+//            System.out.println("RESULTS: " + results);
 
-        
 
+            
+        } catch (XQException ex) {
+            Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
         return hits;
     }
 

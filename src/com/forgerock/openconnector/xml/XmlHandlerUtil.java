@@ -115,7 +115,7 @@ public class XmlHandlerUtil {
         schemaBuilder.removeSupportedObjectClass(DeleteOp.class, objectClassInfo);
         
         schema = schemaBuilder.build();
-        System.out.println(schema.toString());
+//        System.out.println(schema.toString());
         return schema;
     }
 }
