@@ -15,9 +15,13 @@ import javax.xml.xquery.XQConnection;
 import javax.xml.xquery.XQDataSource;
 import javax.xml.xquery.XQException;
 import javax.xml.xquery.XQItem;
-import javax.xml.xquery.XQItemType;
 import javax.xml.xquery.XQPreparedExpression;
 import javax.xml.xquery.XQResultSequence;
+import net.sf.saxon.tree.linked.DocumentImpl;
+import net.sf.saxon.tree.tiny.TinyBuilder;
+import net.sf.saxon.tree.tiny.TinyDocumentImpl;
+import net.sf.saxon.tree.tiny.TinyTree;
+import net.sf.saxon.tree.util.Navigator;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
@@ -41,8 +45,7 @@ import net.sf.saxon.xqj.SaxonXQDataSource;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-
-public class XMLHandlerImpl implements XMLHandler { 
+public class XMLHandlerImpl implements XMLHandler {
 
     /** 
      * Setup logging for the {@link XMLHandlerImpl}.
@@ -72,18 +75,21 @@ public class XMLHandlerImpl implements XMLHandler {
     }
 
     private void loadDocument(File xmlFile) {
+        final String method = "loadDocument";
+        log.info("Entry {0}", method);
+
         SAXBuilder builder = new SAXBuilder();
         try {
             document = builder.build(xmlFile);
         } catch (JDOMException ex) {
-            Logger.getLogger(XMLHandler.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(XMLHandler.class.getName()).log(Level.SEVERE, null, ex); // TODO: Change to framework logger
+        } catch (IOException ex) {
+            Logger.getLogger(XMLHandler.class.getName()).log(Level.SEVERE, null, ex); // TODO: Change to framework logger
         }
-        catch (IOException ex) {
-                Logger.getLogger(XMLHandler.class.getName()).log(Level.SEVERE, null, ex);
-            }
+
+        log.info("Exit {0}", method);
     }
 
-    // creating the Document-object
     private void buildDocument() {
         final String method = "buildDocument";
         log.info("Entry {0}", method);
@@ -93,8 +99,7 @@ public class XMLHandlerImpl implements XMLHandler {
         if (!xmlFile.exists()) {
 
             createDocument();
-        }
-        else {
+        } else {
             loadDocument(xmlFile);
         }
 
@@ -176,24 +181,20 @@ public class XMLHandlerImpl implements XMLHandler {
 
                 entry.getChild(attribute.getName()).setText(AttributeUtil.getStringValue(attribute));
             }
-
-            System.out.println(entry.getChild("firstname").getText());
-        }
-        else
+        } else {
             throw new IllegalArgumentException("..."); // TODO: Add exception message if object does not exist
-
+        }
 
         serialize();
 
         return uid;
     }
 
-
     public Element getEntry(ObjectClass objClass, Name name) {
         Element result = null;
 
         try {
-            result = (Element)XPath.selectSingleNode(document, "/OpenICFContainer/" + objClass.getObjectClassValue() + "[__NAME__='" + name.getNameValue() + "']");
+            result = (Element) XPath.selectSingleNode(document, "/OpenICFContainer/" + objClass.getObjectClassValue() + "[__NAME__='" + name.getNameValue() + "']");
         } catch (JDOMException ex) {
             Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex); // TODO: Change to framework logger
         }
@@ -202,16 +203,24 @@ public class XMLHandlerImpl implements XMLHandler {
     }
 
     public void delete(final ObjectClass objClass, final Uid uid) throws UnknownUidException {
-        
+
         Name name = new Name(uid.getUidValue());
 
         if (entryExists(objClass, name)) {
             document.getRootElement().removeContent(getEntry(objClass, name));
-        }
-        else
+        } else {
             throw new IllegalArgumentException("..."); // TODO: Add message for exception
-
+        }
         serialize();
+
+        /*TinyDocumentImpl testDocument;
+        DocumentImpl asd;
+
+        asd.
+
+        Navigator n;
+        TinyBuilder bilder;*/
+
     }
 
     public Collection<ConnectorObject> search(String q) {
@@ -234,7 +243,7 @@ public class XMLHandlerImpl implements XMLHandler {
 //            System.out.println("RESULTS: " + results);
 
 
-            
+
         } catch (XQException ex) {
             Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -242,8 +251,9 @@ public class XMLHandlerImpl implements XMLHandler {
     }
 
     private boolean entryExists(ObjectClass objClass, Name name) {
-        if (getEntry(objClass, name) != null)
+        if (getEntry(objClass, name) != null) {
             return true;
+        }
 
         return false;
     }
