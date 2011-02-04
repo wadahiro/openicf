@@ -74,14 +74,21 @@ public class XMLHandlerTests {
     @Test
     public void emptySearchQueryShouldReturnNull() {
         String query = "";
-        Collection<ConnectorObject> hits = xmlHandler.search(query);
+        Collection<ConnectorObject> hits = xmlHandler.search(query, null);
         assertNull(hits);
     }
 
-//    @Test
-//    public void searchForExistingAccountsFirstnameShouldNotReturnZeroHits() {
-//        String query = "doc(\"test-sample2.xml\")/OpenICFContainer/__ACCOUNT__/firstname";
-//        hits = xmlHandler.search(query);
-////        assertTrue(hits.size() > 0);
-//    }
+    @Test
+    public void searchForExistingAccountsFirstnameShouldNotReturnZeroHits() {
+        String query = "for $x in doc(\"test-sample2.xml\")/OpenICFContainer/__ACCOUNT__ where $x/firstname='Jan Eirik' return $x";
+        hits = xmlHandler.search(query, null);
+        assertTrue(hits.size() > 0);
+    }
+
+    @Test
+    public void searchForTwoExistingAccountsFirstnameShouldReturnSizeOfTwo() {
+        String query = "for $x in doc(\"test-sample2.xml\")/OpenICFContainer/__ACCOUNT__ where $x/substring(firstname, 1, 2) = 'J' return $x";
+        hits = xmlHandler.search(query, null);
+        assertEquals(2, hits.size());
+    }
 }

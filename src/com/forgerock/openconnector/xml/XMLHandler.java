@@ -23,7 +23,7 @@ public interface XMLHandler {
 
     public void delete(final ObjectClass objClass, final Uid uid) throws UnknownUidException;
 
-    public Collection<ConnectorObject> search(String query);
+    public Collection<ConnectorObject> search(String query, ObjectClass objectClass);
 
     public void serialize();
 }

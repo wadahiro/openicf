@@ -3,8 +3,10 @@ package com.forgerock.openconnector.xml;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,11 +19,6 @@ import javax.xml.xquery.XQException;
 import javax.xml.xquery.XQItem;
 import javax.xml.xquery.XQPreparedExpression;
 import javax.xml.xquery.XQResultSequence;
-import net.sf.saxon.tree.linked.DocumentImpl;
-import net.sf.saxon.tree.tiny.TinyBuilder;
-import net.sf.saxon.tree.tiny.TinyDocumentImpl;
-import net.sf.saxon.tree.tiny.TinyTree;
-import net.sf.saxon.tree.util.Navigator;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
@@ -42,12 +39,15 @@ import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 import org.jdom.xpath.XPath;
 import net.sf.saxon.xqj.SaxonXQDataSource;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
+import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+
 public class XMLHandlerImpl implements XMLHandler {
 
-    /** 
+    /**
      * Setup logging for the {@link XMLHandlerImpl}.
      */
     private static final Log log = Log.getLog(XMLHandlerImpl.class);
@@ -75,21 +75,18 @@ public class XMLHandlerImpl implements XMLHandler {
     }
 
     private void loadDocument(File xmlFile) {
-        final String method = "loadDocument";
-        log.info("Entry {0}", method);
-
         SAXBuilder builder = new SAXBuilder();
         try {
             document = builder.build(xmlFile);
         } catch (JDOMException ex) {
-            Logger.getLogger(XMLHandler.class.getName()).log(Level.SEVERE, null, ex); // TODO: Change to framework logger
-        } catch (IOException ex) {
-            Logger.getLogger(XMLHandler.class.getName()).log(Level.SEVERE, null, ex); // TODO: Change to framework logger
+            Logger.getLogger(XMLHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        log.info("Exit {0}", method);
+        catch (IOException ex) {
+                Logger.getLogger(XMLHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
     }
 
+    // creating the Document-object
     private void buildDocument() {
         final String method = "buildDocument";
         log.info("Entry {0}", method);
@@ -99,7 +96,8 @@ public class XMLHandlerImpl implements XMLHandler {
         if (!xmlFile.exists()) {
 
             createDocument();
-        } else {
+        }
+        else {
             loadDocument(xmlFile);
         }
 
@@ -181,20 +179,24 @@ public class XMLHandlerImpl implements XMLHandler {
 
                 entry.getChild(attribute.getName()).setText(AttributeUtil.getStringValue(attribute));
             }
-        } else {
-            throw new IllegalArgumentException("..."); // TODO: Add exception message if object does not exist
+
+            System.out.println(entry.getChild("firstname").getText());
         }
+        else
+            throw new IllegalArgumentException("..."); // TODO: Add exception message if object does not exist
+
 
         serialize();
 
         return uid;
     }
 
+
     public Element getEntry(ObjectClass objClass, Name name) {
         Element result = null;
 
         try {
-            result = (Element) XPath.selectSingleNode(document, "/OpenICFContainer/" + objClass.getObjectClassValue() + "[__NAME__='" + name.getNameValue() + "']");
+            result = (Element)XPath.selectSingleNode(document, "/OpenICFContainer/" + objClass.getObjectClassValue() + "[__NAME__='" + name.getNameValue() + "']");
         } catch (JDOMException ex) {
             Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex); // TODO: Change to framework logger
         }
@@ -212,40 +214,35 @@ public class XMLHandlerImpl implements XMLHandler {
             throw new IllegalArgumentException("..."); // TODO: Add message for exception
         }
         serialize();
-
-        /*TinyDocumentImpl testDocument;
-        DocumentImpl asd;
-
-        asd.
-
-        Navigator n;
-        TinyBuilder bilder;*/
-
     }
 
-    public Collection<ConnectorObject> search(String q) {
+    //TODO:
+    /*
+     * se litt mer på hvordan man bygger objectinfo-objektet
+     * refaktorer koden
+     * sett uid riktig
+     * close connections
+     *
+     * */
+    public Collection<ConnectorObject> search(String query, ObjectClass objClass) {
         List<ConnectorObject> hits = null;
-        try {
-            String query = "for $x in doc(\"test-sample2.xml\")/OpenICFContainer/__ACCOUNT__ where $x/firstname='Jan Eirik' return $x";
-            XQDataSource datasource = new SaxonXQDataSource();
-            XQConnection connection = datasource.getConnection();
-            XQPreparedExpression expression = connection.prepareExpression(query);
-            XQResultSequence result = expression.executeQuery();
-            while (result.next()) {
-                XQItem item = result.getItem();
-                Node node = item.getNode();
-                NodeList nl = node.getChildNodes();
-                for (int i = 0; i < nl.getLength(); i++) {
-                    Node tmp = nl.item(i);
-                    System.out.println(tmp.getNodeName() + " containts " + tmp.getTextContent());
+        if (query != null && !query.isEmpty()) {
+            try {
+                XQDataSource datasource = new SaxonXQDataSource();
+                XQConnection connection = datasource.getConnection();
+                XQPreparedExpression expression = connection.prepareExpression(query);
+                XQResultSequence result = expression.executeQuery();
+
+                hits = new ArrayList<ConnectorObject>();
+
+                ConnectorObject connectorObject = null;
+                while (result.next()) {
+                    connectorObject = createConnectorObject(result.getItem());
+                    hits.add(connectorObject);
                 }
+            } catch (XQException ex) {
+                Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
             }
-//            System.out.println("RESULTS: " + results);
-
-
-
-        } catch (XQException ex) {
-            Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
         return hits;
     }
@@ -254,7 +251,6 @@ public class XMLHandlerImpl implements XMLHandler {
         if (getEntry(objClass, name) != null) {
             return true;
         }
-
         return false;
     }
 
@@ -274,5 +270,48 @@ public class XMLHandlerImpl implements XMLHandler {
                 Logger.getLogger(XMLHandler.class.getName()).log(Level.SEVERE, null, ex); // TODO: Change to framework logger
             }
         }
+    }
+
+    private ConnectorObject createConnectorObject(XQItem xqItem) throws XQException {
+        Node node = xqItem.getNode();
+        NodeList nodeList = node.getChildNodes();
+        ConnectorObjectBuilder conObjBuilder = new ConnectorObjectBuilder();
+        conObjBuilder.setObjectClass(ObjectClass.ACCOUNT); // TODO: Add from objectclass parameter
+        Set<Attribute> attrs = createAttributeList(nodeList);
+        conObjBuilder.addAttributes(attrs);
+        conObjBuilder.setUid("???"); // TODO: What to add for UID ?
+        return conObjBuilder.build();
+    }
+
+    private Set<Attribute> createAttributeList(NodeList nodeList) {
+        Set<Attribute> attrs = new HashSet<Attribute>();
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node attributeElement = nodeList.item(i);
+            if (isElementWithTextContent(attributeElement)) {
+                Node textNode = attributeElement.getFirstChild();
+                Attribute attribute = createAttribute(attributeElement, textNode);
+                attrs.add(attribute);
+//                System.out.println("name: " + attributeElement.getNodeName() + ", value: " + textNode.getNodeValue());
+                System.out.println(attribute);
+            }
+        }
+        return attrs;
+    }
+
+    private Attribute createAttribute(Node attributeElement, Node textNode) {
+        AttributeBuilder builder = new AttributeBuilder();
+        builder.setName(attributeElement.getNodeName());
+        builder.addValue(textNode.getNodeValue());
+        return builder.build();
+    }
+
+    private boolean isElementWithTextContent(Node node) {
+        Node child = node.getFirstChild();
+        if (child != null) {
+            if (child.getNodeType() == Node.TEXT_NODE) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -200,7 +200,7 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         }
         
 
-        Collection<ConnectorObject> hits = xmlHandler.search("");
+        Collection<ConnectorObject> hits = xmlHandler.search("", null);
         ConnectorObjectBuilder bld = new ConnectorObjectBuilder();
         for (ConnectorObject hit : hits) {
             bld.add(hit);
