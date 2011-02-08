@@ -14,11 +14,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.xquery.XQConnection;
-import javax.xml.xquery.XQDataSource;
+import javax.xml.xquery.XQDataSource; 
 import javax.xml.xquery.XQException;
 import javax.xml.xquery.XQItem;
 import javax.xml.xquery.XQPreparedExpression;
-import javax.xml.xquery.XQResultSequence;
+import javax.xml.xquery.XQResultSequence; 
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
@@ -38,7 +38,7 @@ import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 import org.jdom.xpath.XPath;
-import net.sf.saxon.xqj.SaxonXQDataSource;
+import net.sf.saxon.xqj.SaxonXQDataSource; 
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.w3c.dom.Node;
@@ -233,11 +233,11 @@ public class XMLHandlerImpl implements XMLHandler {
                 XQPreparedExpression expression = connection.prepareExpression(query);
                 XQResultSequence result = expression.executeQuery();
 
-                hits = new ArrayList<ConnectorObject>();
 
-                ConnectorObject connectorObject = null;
+                hits = new ArrayList<ConnectorObject>();
+                
                 while (result.next()) {
-                    connectorObject = createConnectorObject(result.getItem());
+                    ConnectorObject connectorObject = createConnectorObject(result.getItem(), objClass);
                     hits.add(connectorObject);
                 }
             } catch (XQException ex) {
@@ -272,11 +272,11 @@ public class XMLHandlerImpl implements XMLHandler {
         }
     }
 
-    private ConnectorObject createConnectorObject(XQItem xqItem) throws XQException {
+    private ConnectorObject createConnectorObject(XQItem xqItem, ObjectClass objClass) throws XQException {
         Node node = xqItem.getNode();
         NodeList nodeList = node.getChildNodes();
         ConnectorObjectBuilder conObjBuilder = new ConnectorObjectBuilder();
-        conObjBuilder.setObjectClass(ObjectClass.ACCOUNT); // TODO: Add from objectclass parameter
+        conObjBuilder.setObjectClass(objClass); // TODO: Add from objectclass parameter
         Set<Attribute> attrs = createAttributeList(nodeList);
         conObjBuilder.addAttributes(attrs);
         conObjBuilder.setUid("???"); // TODO: What to add for UID ?
@@ -287,7 +287,7 @@ public class XMLHandlerImpl implements XMLHandler {
         Set<Attribute> attrs = new HashSet<Attribute>();
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node attributeElement = nodeList.item(i);
-            if (isElementWithTextContent(attributeElement)) {
+            if (elementHasTextContent(attributeElement)) {
                 Node textNode = attributeElement.getFirstChild();
                 Attribute attribute = createAttribute(attributeElement, textNode);
                 attrs.add(attribute);
@@ -305,7 +305,7 @@ public class XMLHandlerImpl implements XMLHandler {
         return builder.build();
     }
 
-    private boolean isElementWithTextContent(Node node) {
+    private boolean elementHasTextContent(Node node) {
         Node child = node.getFirstChild();
         if (child != null) {
             if (child.getNodeType() == Node.TEXT_NODE) {
