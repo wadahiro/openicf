@@ -133,7 +133,7 @@ public class SchemaParser {
                                         attributes.add(attributeInfo);
                                     }
                                 } catch (Exception e) {
-                                    log.error(e, "Failed to build Attribute{0}", elementTerm.getName());
+                                    log.error(e, "Failed to build Attribute {0}", elementTerm.getName());
                                 }
                             }
                         }
