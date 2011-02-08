@@ -32,6 +32,7 @@ import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.FrameworkUtil;
 
 public class SchemaParser {
 
@@ -152,7 +153,7 @@ public class SchemaParser {
                 schemaBuilder.defineObjectClass(objectClassInfo);
 
                 if (supportedOp.size() >= 1) {
-                    for (Class<? extends SPIOperation> removeOp : getOpClasses()) {
+                    for (Class<? extends SPIOperation> removeOp : FrameworkUtil.allSPIOperations()) {
                         if (!supportedOp.contains(removeOp)) {
                             try {
                                 schemaBuilder.removeSupportedObjectClass(removeOp, objectClassInfo);
@@ -212,25 +213,6 @@ public class SchemaParser {
         return list;
     }
 
-    private List<Class<? extends SPIOperation>> getOpClasses() {
-        List<Class<? extends SPIOperation>> list = new LinkedList<Class<? extends SPIOperation>>();
-
-        list.add(CreateOp.class);
-        list.add(AuthenticateOp.class);
-        list.add(DeleteOp.class);
-        list.add(ResolveUsernameOp.class);
-        list.add(SchemaOp.class);
-        list.add(ScriptOnConnectorOp.class);
-        list.add(ScriptOnResourceOp.class);
-        list.add(SearchOp.class);
-        list.add(SyncOp.class);
-        list.add(TestOp.class);
-        list.add(UpdateAttributeValuesOp.class);
-        list.add(UpdateOp.class);
-
-        return list;
-    }
-
     private Class<?> findJavaClassType(String name) {
         if (name != null) {
 
@@ -255,14 +237,17 @@ public class SchemaParser {
                 className = "java.lang.Double";
 
             } else if (name.equals("base64Binary")) {
-                //TODO:
+                className = "java.lang.Byte";
+            }
+             else if (name.equals("decimal")) {
+                className = "java.math.BigDecimal";
             }
             try {
                 if (className != null) {
                     return Class.forName(className);
                 }
             } catch (ClassNotFoundException e) {
-                e.printStackTrace();
+               log.error(e, "Class {0} not found.", className);
             }
         }
         return null;
