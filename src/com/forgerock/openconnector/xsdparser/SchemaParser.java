@@ -168,7 +168,7 @@ public class SchemaParser {
     private void pareseXSDSchema(){
         XSOMParser parser = new XSOMParser();
         XSSchemaSet schemaSet = null;
-       
+
         try {
             File file = new File(filePath);
             parser.setAnnotationParser(new XSDAnnotationFactory());
@@ -179,7 +179,7 @@ public class SchemaParser {
         } catch (IOException e) {
              log.error(e, "Failed to read from file: {0}" , filePath);
         }
-        XSSchema schema = schemaSet.getSchema(1);
+        this.schema = schemaSet.getSchema(1);
     }
 
     private List<Class<? extends SPIOperation>> getSupportedOpClasses(List<String> supportedOpList) {
@@ -296,5 +296,8 @@ public class SchemaParser {
             }
         }
         return flags;
+    }
+    public static void main(String [] args){
+        System.out.println(new SchemaParser(XMLConnector.class, "test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd").parseSchema());
     }
 }
