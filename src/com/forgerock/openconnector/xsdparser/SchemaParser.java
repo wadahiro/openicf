@@ -241,6 +241,7 @@ public class SchemaParser {
                 
             } else if (name.equals("decimal")) {
                 className = "java.math.BigDecimal";
+                
             }
             try {
                 if (className != null) {
