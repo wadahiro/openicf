@@ -256,14 +256,12 @@ public class SchemaParser {
 
     private Class<?> getJavaClassType(List<String> list) {
         for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).equals("icf:javaclass") || list.get(i).equals("tns:javaclass")) {
-                String fileString = list.get(i + 1);
-                
-                try {
-                    return Class.forName(fileString);
-                } catch (ClassNotFoundException e) {
-                   log.error(e, "ClassNotFound for {0}", fileString );
-                }
+            String fileString = list.get(i);
+
+            try {
+                return Class.forName(fileString);
+            } catch (ClassNotFoundException e) {
+               log.error(e, "ClassNotFound for {0}", fileString );
             }
         }
         return null;
