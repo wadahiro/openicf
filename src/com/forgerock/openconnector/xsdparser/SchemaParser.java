@@ -238,8 +238,8 @@ public class SchemaParser {
 
             } else if (name.equals("base64Binary")) {
                 className = "java.lang.Byte";
-            }
-             else if (name.equals("decimal")) {
+                
+            } else if (name.equals("decimal")) {
                 className = "java.math.BigDecimal";
             }
             try {
