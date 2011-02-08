@@ -47,6 +47,10 @@ public class SchemaParser {
         parseXSDSchema();
     }
 
+    /*
+     * Takes the xsd-schema and parse it to icf-schema
+     */
+
     public Schema parseSchema() {
         final String METHOD = "persaSchema";
         log.info("Entry {0}", METHOD);
@@ -275,6 +279,7 @@ public class SchemaParser {
             if (fileString.contains("javaclass")){
                 try {
                     return Class.forName(list.get(i + 1));
+                    
                 } catch (ClassNotFoundException e) {
                    log.error(e, "Class {0} not found", fileString);
                 }
@@ -288,13 +293,17 @@ public class SchemaParser {
         for (String s : list) {
             if (s.equals("NOT_CREATABLE")) {
                 flags.add(Flags.NOT_CREATABLE);
+
             } else if (s.equals("NOT_UPDATABLE")) {
                 flags.add(Flags.NOT_UPDATEABLE);
+
             } else if (s.equals("NOT_READABLE")) {
                 flags.add(Flags.NOT_READABLE);
                 flags.add(Flags.NOT_RETURNED_BY_DEFAULT);
+
             } else if (s.equals("NOT_RETURNED_BY_DEFAULT")) {
                 flags.add(Flags.NOT_RETURNED_BY_DEFAULT);
+                
             }
         }
         return flags;
