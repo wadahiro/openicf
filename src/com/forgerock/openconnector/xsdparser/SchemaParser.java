@@ -39,12 +39,12 @@ public class SchemaParser {
 
     private static final Log log = Log.getLog(SchemaParser.class);
     private Class< ? extends Connector> connectorClass;
-    private File file;
+    private String filePath;
     private XSSchema schema;
     
-    public SchemaParser(Class< ? extends Connector> connectorclass, File file){
+    public SchemaParser(Class< ? extends Connector> connectorclass, String filePath){
         this.connectorClass = connectorclass;
-        this.file = file;
+        this.filePath = filePath;
         pareseXSDSchema();
     }
 
@@ -161,18 +161,23 @@ public class SchemaParser {
         return schemaBuilder.build();
     }
 
+    public XSSchema getXsdSchema(){
+        return schema;
+    }
+
     private void pareseXSDSchema(){
         XSOMParser parser = new XSOMParser();
         XSSchemaSet schemaSet = null;
-
+       
         try {
+            File file = new File(filePath);
             parser.setAnnotationParser(new XSDAnnotationFactory());
             parser.parse(file);
             schemaSet = parser.getResult();
         } catch (SAXException e) {
-            log.error(e, "Failed to parser XSD-schema from file: {0}" , file.toString());
+            log.error(e, "Failed to parser XSD-schema from file: {0}" , filePath);
         } catch (IOException e) {
-             log.error(e, "Failed to read from file: {0}" , file.toString());
+             log.error(e, "Failed to read from file: {0}" , filePath);
         }
         XSSchema schema = schemaSet.getSchema(1);
     }

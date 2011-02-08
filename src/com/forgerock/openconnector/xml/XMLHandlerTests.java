@@ -35,7 +35,7 @@ public class XMLHandlerTests {
     @Before
     public void setUp() {
         
-        xmlHandler = new XMLHandlerImpl(filePath, null);
+        xmlHandler = new XMLHandlerImpl(filePath, null, null);
         testFile = new File("testusers.xml");
         System.out.println(testFile.getAbsolutePath());
 
@@ -64,12 +64,12 @@ public class XMLHandlerTests {
 
     @Test(expected=IllegalArgumentException.class)
     public void blankStringInConstructorShouldThrowException() {
-        XMLHandlerImpl xmlHandlerBlankConstr = new XMLHandlerImpl("", null);
+        XMLHandlerImpl xmlHandlerBlankConstr = new XMLHandlerImpl("", null, null);
     }
 
     @Test(expected=IllegalArgumentException.class)
     public void nullInConstructorShouldThrowException() {
-        XMLHandlerImpl xmlHandlerNullConstr = new XMLHandlerImpl(null, null);
+        XMLHandlerImpl xmlHandlerNullConstr = new XMLHandlerImpl(null, null, null);
     }
 
     @Test

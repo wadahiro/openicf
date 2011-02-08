@@ -58,9 +58,9 @@ public class XMLHandlerImpl implements XMLHandler {
     private String filePath;
     private Document document;
     private Schema connSchema; // TODO: Move to config class
-    private XSSchemaSet xsdSchema;
+    private XSSchema xsdSchema;
 
-    public XMLHandlerImpl(String filePath, Schema connSchema, XSSchemaSet xsdSchema) {
+    public XMLHandlerImpl(String filePath, Schema connSchema, XSSchema xsdSchema) {
         checkNull(filePath);
         checkEmpty(filePath);
         this.filePath = filePath;
