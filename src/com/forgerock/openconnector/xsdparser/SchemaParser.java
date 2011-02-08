@@ -281,7 +281,7 @@ public class SchemaParser {
                     return Class.forName(list.get(i + 1));
                     
                 } catch (ClassNotFoundException e) {
-                   log.error(e, "Class {0} not found", fileString);
+                   log.error(e, "Class {0} not found.", fileString);
                 }
             }
         }
