@@ -168,7 +168,6 @@ public class SchemaParser {
 
     private void parseXSDSchema(){
         XSOMParser parser = new XSOMParser();
-        XSSchemaSet schemaSet = null;
 
         try {
             File file = new File(filePath);
@@ -176,13 +175,12 @@ public class SchemaParser {
             parser.setAnnotationParser(new XSDAnnotationFactory());
             parser.parse(file);
 
-            schemaSet = parser.getResult();
+            this.schemaSet = parser.getResult();
         } catch (SAXException e) {
             log.error(e, "Failed to parser XSD-schema from file: {0}" , filePath);
         } catch (IOException e) {
             log.error(e, "Failed to read from file: {0}" , filePath);
         }
-        this.schemaSet = schemaSet;
     }
 
     private List<Class<? extends SPIOperation>> getSupportedOpClasses(List<String> supportedOpList) {
