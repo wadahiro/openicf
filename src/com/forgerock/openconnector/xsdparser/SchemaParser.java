@@ -45,7 +45,7 @@ public class SchemaParser {
     public SchemaParser(Class< ? extends Connector> connectorclass, String filePath){
         this.connectorClass = connectorclass;
         this.filePath = filePath;
-        pareseXSDSchema();
+        parseXSDSchema();
     }
 
     public Schema parseSchema() {
@@ -165,19 +165,21 @@ public class SchemaParser {
         return schema;
     }
 
-    private void pareseXSDSchema(){
+    private void parseXSDSchema(){
         XSOMParser parser = new XSOMParser();
         XSSchemaSet schemaSet = null;
 
         try {
             File file = new File(filePath);
+            
             parser.setAnnotationParser(new XSDAnnotationFactory());
             parser.parse(file);
+
             schemaSet = parser.getResult();
         } catch (SAXException e) {
             log.error(e, "Failed to parser XSD-schema from file: {0}" , filePath);
         } catch (IOException e) {
-             log.error(e, "Failed to read from file: {0}" , filePath);
+            log.error(e, "Failed to read from file: {0}" , filePath);
         }
         this.schema = schemaSet.getSchema(1);
     }
@@ -270,6 +272,7 @@ public class SchemaParser {
     private Class<?> getJavaClassType(List<String> list) {
         for (int i = 0; i < list.size(); i++) {
             String fileString = list.get(i);
+                    
             if (fileString.contains("javaclass")){
                 try {
                     return Class.forName(list.get(i + 1));
