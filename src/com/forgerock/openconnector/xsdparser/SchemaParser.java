@@ -297,7 +297,4 @@ public class SchemaParser {
         }
         return flags;
     }
-    public static void main(String [] args){
-        System.out.println(new SchemaParser(XMLConnector.class, "test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd").parseSchema());
-    }
 }
