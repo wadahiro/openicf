@@ -22,6 +22,12 @@
  */
 package com.forgerock.openconnector.xml;
 
+import com.forgerock.openconnector.xsdparser.SchemaParser;
+import com.forgerock.openconnector.xsdparser.XSDAnnotationFactory;
+import com.sun.xml.xsom.XSSchemaSet;
+import com.sun.xml.xsom.parser.XSOMParser;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import org.identityconnectors.common.CollectionUtil;
@@ -32,6 +38,7 @@ import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.filter.Filter;
+import org.xml.sax.SAXException;
 
 /**
  * Main implementation of the XML Connector
@@ -54,6 +61,8 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
     
     private XMLConfiguration config;
 
+    private SchemaParser schemaParser;
+
     /**
      * Gets the Configuration context for this connector.
      */
@@ -68,7 +77,8 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
      */
     public void init(Configuration cfg) {
         this.config = (XMLConfiguration) cfg;
-        this.xmlHandler = new XMLHandlerImpl(config.getXmlFilePath(), null);
+        this.schemaParser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
+        this.xmlHandler = new XMLHandlerImpl(config.getXmlFilePath(), schema(), schemaParser.getXsdSchema());
     }
 
     /**
@@ -116,7 +126,7 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         }
 
 
-
+        
 
         Uid uid = null;
         Map<String, Attribute> attrMap = new HashMap<String, Attribute>(AttributeUtil.toMap(attributes));

@@ -6,6 +6,7 @@
 package com.forgerock.openconnector.xml;
 
 
+import java.io.IOException;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -135,6 +136,8 @@ public class XMLConnectorTests {
         } catch (IOException ex) {
             ex.printStackTrace();
         }*/
+
+        System.out.println(schema.toString());
     }
 
     public Schema getSchema() {
@@ -204,7 +207,7 @@ public class XMLConnectorTests {
 
     @Test
     public void exampleTest2() {
-        XMLHandlerImpl handler = new XMLHandlerImpl("test.xml", XmlHandlerUtil.createHardcodedSchema());
+        XMLHandlerImpl handler = new XMLHandlerImpl("test.xml", XmlHandlerUtil.createHardcodedSchema(), null);
 
         Set<Attribute> attributes = new HashSet<Attribute>();
         attributes.add(AttributeBuilder.build("__NAME__", "idfield3"));
@@ -216,13 +219,13 @@ public class XMLConnectorTests {
 
         ObjectClass objClass = new ObjectClass(ObjectClass.ACCOUNT_NAME);
 
-        //Uid uid = handler.create(objClass, attributes);
+        Uid uid = handler.create(objClass, attributes);
     }
 
 
     @Test
     public void exampleTest3() {
-        XMLHandlerImpl handler = new XMLHandlerImpl("test.xml", XmlHandlerUtil.createHardcodedSchema());
+        XMLHandlerImpl handler = new XMLHandlerImpl("test.xml", XmlHandlerUtil.createHardcodedSchema(), null);
 
         Set<Attribute> attributes = new HashSet<Attribute>();
         attributes.add(AttributeBuilder.build("__NAME__", "namedid"));
@@ -233,7 +236,7 @@ public class XMLConnectorTests {
         ObjectClass objClass = new ObjectClass(ObjectClass.ACCOUNT_NAME);
 
 
-        handler.update(objClass, new Uid("namedid"), attributes);
+        //handler.update(objClass, new Uid("namedid"), attributes);
 
         //Element element = handler.getEntry(objClass, AttributeUtil.getNameFromAttributes(attributes));
 
@@ -243,8 +246,8 @@ public class XMLConnectorTests {
 
     @Test
     public void exampleTest4() {
-        XMLHandlerImpl handler = new XMLHandlerImpl("test.xml", XmlHandlerUtil.createHardcodedSchema());
-        handler.delete(ObjectClass.ACCOUNT, new Uid("idfield3"));
+        XMLHandlerImpl handler = new XMLHandlerImpl("test.xml", XmlHandlerUtil.createHardcodedSchema(), null);
+        //handler.delete(ObjectClass.ACCOUNT, new Uid("idfield3"));
     }
 
     @Test
