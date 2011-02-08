@@ -258,7 +258,7 @@ public class SchemaParser {
         for (int i = 0; i < list.size(); i++) {
             String fileString = list.get(i);
 
-            try {
+            try {  
                 return Class.forName(fileString);
             } catch (ClassNotFoundException e) {
                log.error(e, "ClassNotFound for {0}", fileString );
