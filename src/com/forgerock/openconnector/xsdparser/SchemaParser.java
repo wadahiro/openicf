@@ -1,6 +1,5 @@
 package com.forgerock.openconnector.xsdparser;
 
-import com.forgerock.openconnector.xml.XMLConnector;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -40,7 +39,7 @@ public class SchemaParser {
     private static final Log log = Log.getLog(SchemaParser.class);
     private Class< ? extends Connector> connectorClass;
     private String filePath;
-    private XSSchema schema;
+    private XSSchemaSet schemaSet;
     
     public SchemaParser(Class< ? extends Connector> connectorclass, String filePath){
         this.connectorClass = connectorclass;
@@ -53,6 +52,8 @@ public class SchemaParser {
         log.info("Entry {0}", METHOD);
 
         SchemaBuilder schemaBuilder = new SchemaBuilder(connectorClass);
+
+        XSSchema schema = schemaSet.getSchema(1);
 
         Map<String, XSElementDecl> types = schema.getElementDecls();
         Set<String> typesKeys = types.keySet();
@@ -161,8 +162,8 @@ public class SchemaParser {
         return schemaBuilder.build();
     }
 
-    public XSSchema getXsdSchema(){
-        return schema;
+    public XSSchemaSet getXsdSchema(){
+        return schemaSet;
     }
 
     private void parseXSDSchema(){
@@ -181,7 +182,7 @@ public class SchemaParser {
         } catch (IOException e) {
             log.error(e, "Failed to read from file: {0}" , filePath);
         }
-        this.schema = schemaSet.getSchema(1);
+        this.schemaSet = schemaSet;
     }
 
     private List<Class<? extends SPIOperation>> getSupportedOpClasses(List<String> supportedOpList) {
