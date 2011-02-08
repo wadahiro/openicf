@@ -1,5 +1,6 @@
 package com.forgerock.openconnector.xsdparser;
 
+import com.forgerock.openconnector.xml.XMLConnector;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -37,136 +38,143 @@ import org.identityconnectors.framework.common.FrameworkUtil;
 public class SchemaParser {
 
     private static final Log log = Log.getLog(SchemaParser.class);
-
-    public SchemaParser() {
+    private Class< ? extends Connector> connectorClass;
+    private File file;
+    private XSSchema schema;
+    
+    public SchemaParser(Class< ? extends Connector> connectorclass, File file){
+        this.connectorClass = connectorclass;
+        this.file = file;
+        pareseXSDSchema();
     }
 
-    public Schema parseSchema(Class<? extends Connector> connectorClass, File file) {
+    public Schema parseSchema() {
         final String METHOD = "persaSchema";
         log.info("Entry {0}", METHOD);
 
+        SchemaBuilder schemaBuilder = new SchemaBuilder(connectorClass);
+
+        Map<String, XSElementDecl> types = schema.getElementDecls();
+        Set<String> typesKeys = types.keySet();
+        Iterator<String> typesIterator = typesKeys.iterator();
+
+        while (typesIterator.hasNext()) {
+            XSElementDecl type = schema.getElementDecl(typesIterator.next());
+
+            Set<AttributeInfo> attributes = new HashSet<AttributeInfo>();
+            List<Class<? extends SPIOperation>> supportedOp = new LinkedList<Class<? extends SPIOperation>>();
+
+            ObjectClassInfoBuilder objectClassBuilder = new ObjectClassInfoBuilder();
+            objectClassBuilder.setType(type.getName());
+
+            if (type != null) {
+                XSComplexType xsCompType = type.getType().asComplexType();
+
+                if (xsCompType.getAnnotation() != null) {
+                    String supportedOpString = xsCompType.getAnnotation().getAnnotation().toString();
+                    String[] supportedOpStringSplit = supportedOpString.split(" |\n");
+                    List<String> supportedOpListString = Arrays.asList(supportedOpStringSplit);
+
+                    supportedOp = getSupportedOpClasses(supportedOpListString);
+                }
+
+                XSContentType xsContType = xsCompType.getContentType();
+                XSParticle particle = xsContType.asParticle();
+
+                if (particle != null) {
+                    XSTerm term = particle.getTerm();
+
+                    if (term.isModelGroup()) {
+                        XSModelGroup grp = term.asModelGroup();
+                        XSParticle[] particles = grp.getChildren();
+
+                        for (XSParticle childParticle : particles) {
+                            XSTerm childParticleTerm = childParticle.getTerm();
+
+                            if (childParticleTerm.isElementDecl()) {
+                                XSElementDecl elementTerm = childParticleTerm.asElementDecl();
+                                Set<Flags> flags = new HashSet<Flags>();
+                                Class<?> attrType = null;
+
+                                if (childParticle.getMinOccurs() == 1) {
+                                    flags.add(Flags.REQUIRED);
+                                }
+                                if (childParticle.getMaxOccurs() > 1 || childParticle.getMaxOccurs() == -1) {
+                                    flags.add(Flags.MULTIVALUED);
+                                }
+                                if (elementTerm.getAnnotation() != null) {
+                                    String annotations = elementTerm.getAnnotation().getAnnotation().toString();
+
+                                    String[] annotationsSplit = annotations.split(" |\n");
+                                    List<String> annotationList = Arrays.asList(annotationsSplit);
+
+                                    if (getFlags(annotationList) != null) {
+                                        flags.addAll(getFlags(annotationList));
+                                    }
+                                    attrType = getJavaClassType(annotationList);
+
+                                }
+                                if (attrType == null) {
+                                    XSType typeNotFlagedJavaclass = elementTerm.getType();
+                                    attrType = findJavaClassType(typeNotFlagedJavaclass.getName());
+                                }
+
+                                try {
+                                    AttributeInfo attributeInfo = null;
+
+                                    if (attrType != null) {
+                                        attributeInfo = AttributeInfoBuilder.build(elementTerm.getName(), attrType, flags);
+                                    } else {
+                                        attributeInfo = AttributeInfoBuilder.build(elementTerm.getName());
+                                    }
+
+                                    if(attributeInfo != null){
+                                        attributes.add(attributeInfo);
+                                    }
+                                } catch (Exception e) {
+                                    log.error(e, "Failed to build Attribute{0}", elementTerm.getName());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            objectClassBuilder.addAllAttributeInfo(attributes);
+            ObjectClassInfo objectClassInfo = objectClassBuilder.build();
+
+            schemaBuilder.defineObjectClass(objectClassInfo);
+
+            if (supportedOp.size() >= 1) {
+                for (Class<? extends SPIOperation> removeOp : FrameworkUtil.allSPIOperations()) {
+                    if (!supportedOp.contains(removeOp)) {
+                        try {
+                            schemaBuilder.removeSupportedObjectClass(removeOp, objectClassInfo);
+                        } catch (IllegalArgumentException e) {
+                            log.error(e, "SupportedObjectClass {0} not supported", removeOp.toString());
+                        }
+                    }
+                }
+            }
+        }
+        
+        log.info("Exit{0}", METHOD);
+        return schemaBuilder.build();
+    }
+
+    private void pareseXSDSchema(){
         XSOMParser parser = new XSOMParser();
         XSSchemaSet schemaSet = null;
-
-        SchemaBuilder schemaBuilder = new SchemaBuilder(connectorClass);
 
         try {
             parser.setAnnotationParser(new XSDAnnotationFactory());
             parser.parse(file);
             schemaSet = parser.getResult();
         } catch (SAXException e) {
-            log.error(e, "Failed to parse file{0}", file.getName());
+            log.error(e, "Failed to parser XSD-schema from file: {0}" , file.toString());
         } catch (IOException e) {
-            log.error(e, "File {0} failed", file.getName());
+             log.error(e, "Failed to read from file: {0}" , file.toString());
         }
-        if (schemaSet != null) {
-            XSSchema schema = schemaSet.getSchema(1);
-
-            Map<String, XSElementDecl> types = schema.getElementDecls();
-            Set<String> typesKeys = types.keySet();
-            Iterator<String> typesIterator = typesKeys.iterator();
-
-            while (typesIterator.hasNext()) {
-                XSElementDecl type = schema.getElementDecl(typesIterator.next());
-
-                Set<AttributeInfo> attributes = new HashSet<AttributeInfo>();
-                List<Class<? extends SPIOperation>> supportedOp = new LinkedList<Class<? extends SPIOperation>>();
-
-                ObjectClassInfoBuilder objectClassBuilder = new ObjectClassInfoBuilder();
-                objectClassBuilder.setType(type.getName());
-
-                if (type != null) {
-                    XSComplexType xsCompType = type.getType().asComplexType();
-
-                    if (xsCompType.getAnnotation() != null) {
-                        String supportedOpString = xsCompType.getAnnotation().getAnnotation().toString();
-                        String[] supportedOpStringSplit = supportedOpString.split(" |\n");
-                        List<String> supportedOpListString = Arrays.asList(supportedOpStringSplit);
-
-                        supportedOp = getSupportedOpClasses(supportedOpListString);
-                    }
-
-                    XSContentType xsContType = xsCompType.getContentType();
-                    XSParticle particle = xsContType.asParticle();
-
-                    if (particle != null) {
-                        XSTerm term = particle.getTerm();
-
-                        if (term.isModelGroup()) {
-                            XSModelGroup grp = term.asModelGroup();
-                            XSParticle[] particles = grp.getChildren();
-
-                            for (XSParticle childParticle : particles) {
-                                XSTerm childParticleTerm = childParticle.getTerm();
-
-                                if (childParticleTerm.isElementDecl()) {
-                                    XSElementDecl elementTerm = childParticleTerm.asElementDecl();
-                                    Set<Flags> flags = new HashSet<Flags>();
-                                    Class<?> attrType = null;
-
-                                    if (childParticle.getMinOccurs() == 1) {
-                                        flags.add(Flags.REQUIRED);
-                                    }
-                                    if (childParticle.getMaxOccurs() > 1 || childParticle.getMaxOccurs() == -1) {
-                                        flags.add(Flags.MULTIVALUED);
-                                    }
-                                    if (elementTerm.getAnnotation() != null) {
-                                        String annotations = elementTerm.getAnnotation().getAnnotation().toString();
-
-                                        String[] annotationsSplit = annotations.split(" |\n");
-                                        List<String> annotationList = Arrays.asList(annotationsSplit);
-
-                                        if (getFlags(annotationList) != null) {
-                                            flags.addAll(getFlags(annotationList));
-                                        }
-                                        attrType = getJavaClassType(annotationList);
-
-                                    }
-                                    if (attrType == null) {
-                                        XSType typeNotFlagedJavaclass = elementTerm.getType();
-                                        attrType = findJavaClassType(typeNotFlagedJavaclass.getName());
-                                    }
-                                   
-                                    try {
-                                        AttributeInfo attributeInfo = null;
-                                        
-                                        if (attrType != null) {
-                                            attributeInfo = AttributeInfoBuilder.build(elementTerm.getName(), attrType, flags);
-                                        } else {
-                                            attributeInfo = AttributeInfoBuilder.build(elementTerm.getName());
-                                        }
-
-                                        if(attributeInfo != null){
-                                            attributes.add(attributeInfo);
-                                        }
-                                    } catch (Exception e) {
-                                        log.error(e, "Failed to build Attribute{0}", elementTerm.getName());
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                objectClassBuilder.addAllAttributeInfo(attributes);
-                ObjectClassInfo objectClassInfo = objectClassBuilder.build();
-
-                schemaBuilder.defineObjectClass(objectClassInfo);
-
-                if (supportedOp.size() >= 1) {
-                    for (Class<? extends SPIOperation> removeOp : FrameworkUtil.allSPIOperations()) {
-                        if (!supportedOp.contains(removeOp)) {
-                            try {
-                                schemaBuilder.removeSupportedObjectClass(removeOp, objectClassInfo);
-                            } catch (IllegalArgumentException e) {
-                                log.error(e, "SupportedObjectClass {0} not supported", removeOp.toString());
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        log.info("Exit{0}", METHOD);
-        return schemaBuilder.build();
+        XSSchema schema = schemaSet.getSchema(1);
     }
 
     private List<Class<? extends SPIOperation>> getSupportedOpClasses(List<String> supportedOpList) {
@@ -237,7 +245,7 @@ public class SchemaParser {
                 className = "java.lang.Double";
 
             } else if (name.equals("base64Binary")) {
-                className = "java.lang.Byte";
+                className = "org.identityconnectors.common.security.GuardedByteArray";
                 
             } else if (name.equals("decimal")) {
                 className = "java.math.BigDecimal";
@@ -257,11 +265,12 @@ public class SchemaParser {
     private Class<?> getJavaClassType(List<String> list) {
         for (int i = 0; i < list.size(); i++) {
             String fileString = list.get(i);
-
-            try {  
-                return Class.forName(fileString);
-            } catch (ClassNotFoundException e) {
-               log.error(e, "ClassNotFound for {0}", fileString );
+            if (fileString.contains("javaclass")){
+                try {
+                    return Class.forName(list.get(i + 1));
+                } catch (ClassNotFoundException e) {
+                   log.error(e, "ClassNotFound for {0}", fileString);
+                }
             }
         }
         return null;
