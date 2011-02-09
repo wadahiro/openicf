@@ -251,11 +251,11 @@ public class SchemaParser {
                 className = "java.lang.String";
 
             } else if (name.equals("boolean")) {
-                className = "java.lang.Boolean";
+                className = "java.lang.boolean";
 
             } else if (name.equals("long")) {
                 className = "java.lang.Long";
-
+                
             } else if (name.equals("int")) {
                 className = "java.lang.Integer";
 
