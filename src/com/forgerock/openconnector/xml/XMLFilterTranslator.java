@@ -22,9 +22,11 @@
  */
 package com.forgerock.openconnector.xml;
 
-import org.identityconnectors.framework.common.objects.AttributeUtil;
+import com.forgerock.openconnector.xml.query.IQuery;
+import com.forgerock.openconnector.xml.query.QueryImpl;
+import com.forgerock.openconnector.xml.query.QueryPartImpl;
+import java.util.List;
 import org.identityconnectors.framework.common.objects.filter.*;
-import org.identityconnectors.common.StringUtil;
 
 /**
  * This is an implementation of AbstractFilterTranslator that gives a concrete representation
@@ -39,100 +41,136 @@ import org.identityconnectors.common.StringUtil;
  * @version 1.0
  * @since 1.0
  */
-public class XMLFilterTranslator extends AbstractFilterTranslator<String> {
+public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected String createContainsExpression(ContainsFilter filter, boolean not) {
-        /* 
-         * Example implementation:
-         * You may define the format of the queries for your connector, but
-         * you must make sure that the executeQuery() (if you implemented Search) 
-         * method handles it appropriately.
-         */   
-        String name = filter.getAttribute().getName();
-        String value = AttributeUtil.getAsStringValue(filter.getAttribute());        
-        if (StringUtil.isBlank(value)) {
-            return null;
-        }else if(not) { 
-            //create an expression that means "not contains" or "doesn't contain" if possible
-            return name + "!=*" + value + "*"; 
-        }else {
-            return name + "=*" + value + "*";
+    protected IQuery createContainsExpression(ContainsFilter filter, boolean not) {
+        return null;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected IQuery createEndsWithExpression(EndsWithFilter filter, boolean not) {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected IQuery createStartsWithExpression(StartsWithFilter filter, boolean not) {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected IQuery createEqualsExpression(EqualsFilter filter, boolean not) {
+        String attrName = filter.getAttribute().getName();
+        Object obj = filter.getAttribute().getValue();
+        String value = "'" + removeBrackets(obj.toString()) + "'";
+        return createQuery(attrName, not ? "!=" : "=", value);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    // TODO: Typechecking??
+    @Override
+    protected IQuery createGreaterThanExpression(GreaterThanFilter filter, boolean not) {
+        String attrName = filter.getAttribute().getName();
+        Object obj = filter.getAttribute().getValue();
+        String value = "'" + removeBrackets(obj.toString()) + "'";
+        return createQuery(attrName, not ? "<" : ">", value);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected IQuery createAndExpression(IQuery leftExpression, IQuery rightExpression) {
+        leftExpression.and(rightExpression);
+        return leftExpression;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected IQuery createOrExpression(IQuery leftExpression, IQuery rightExpression) {
+        leftExpression.or(rightExpression);
+        return leftExpression;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected IQuery createGreaterThanOrEqualExpression(GreaterThanOrEqualFilter filter, boolean not) {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected IQuery createLessThanExpression(LessThanFilter filter, boolean not) {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected IQuery createLessThanOrEqualExpression(LessThanOrEqualFilter filter, boolean not) {
+        return null;
+    }
+
+    private String formatValue(Object obj, boolean asList) {
+        if (obj instanceof List<?>) { // if list
+            List<Object> list = (List<Object>) obj;
+
+            if (list.size() == 1 && !asList) {
+                return formatValue(list.get(0));
+            }
+
+            String result = "(";
+            for (int i = 0; i < list.size(); i++) {
+                if (i > 0)
+                    result += ", ";
+                result += formatValue(list.get(i));
+            }
+            return result + ")";
+        }
+        else if (obj instanceof String) { // if string
+            return "'" + (String) obj + "'";
+        }
+        else {
+            return obj.toString();
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected String createEndsWithExpression(EndsWithFilter filter, boolean not) {
-        return null;
+    private String formatValue(Object obj) {
+        return formatValue(obj, false);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected String createStartsWithExpression(StartsWithFilter filter, boolean not) {
-        return null;
+
+    // TODO: Implement
+    private IQuery createQuery(String attribute, String operator, String value) {
+        IQuery query = new QueryImpl();
+        query.set(new QueryPartImpl(attribute, operator, value));
+        return query;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected String createEqualsExpression(EqualsFilter filter, boolean not) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected String createAndExpression(String leftExpression, String rightExpression) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected String createOrExpression(String leftExpression, String rightExpression) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected String createGreaterThanExpression(GreaterThanFilter filter, boolean not) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected String createGreaterThanOrEqualExpression(GreaterThanOrEqualFilter filter, boolean not) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected String createLessThanExpression(LessThanFilter filter, boolean not) {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected String createLessThanOrEqualExpression(LessThanOrEqualFilter filter, boolean not) {
-        return null;
+    private String removeBrackets(String name) {
+        return name.substring(1, name.length()-1);
     }
 }

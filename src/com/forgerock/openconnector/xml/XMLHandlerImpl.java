@@ -1,8 +1,6 @@
 package com.forgerock.openconnector.xml;
 
 import com.sun.xml.xsom.XSSchema;
-import com.sun.xml.xsom.XSSchemaSet;
-import com.sun.xml.xsom.parser.XSOMParser;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,11 +14,13 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
 import javax.xml.xquery.XQConnection;
+import javax.xml.xquery.XQConstants;
 import javax.xml.xquery.XQDataSource; 
 import javax.xml.xquery.XQException;
+import javax.xml.xquery.XQExpression;
 import javax.xml.xquery.XQItem;
-import javax.xml.xquery.XQPreparedExpression;
 import javax.xml.xquery.XQResultSequence; 
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
@@ -45,6 +45,7 @@ import net.sf.saxon.xqj.SaxonXQDataSource;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.jdom.Namespace;
+import org.jdom.output.DOMOutputter;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -67,6 +68,7 @@ public class XMLHandlerImpl implements XMLHandler {
 
         this.connSchema = connSchema;
         this.xsdSchema = xsdSchema;
+
 
         buildDocument();
     }
@@ -254,9 +256,11 @@ public class XMLHandlerImpl implements XMLHandler {
             try {
                 XQDataSource datasource = new SaxonXQDataSource();
                 XQConnection connection = datasource.getConnection();
-                XQPreparedExpression expression = connection.prepareExpression(query);
-                XQResultSequence result = expression.executeQuery();
-
+                XQExpression xqexpression = connection.createExpression();
+                DOMOutputter dOMOutputter = new DOMOutputter();
+                org.w3c.dom.Document w3cDoc = dOMOutputter.output(document);
+                xqexpression.bindNode(XQConstants.CONTEXT_ITEM, w3cDoc, null);
+                XQResultSequence result = xqexpression.executeQuery(query);
 
                 hits = new ArrayList<ConnectorObject>();
                 
@@ -264,6 +268,8 @@ public class XMLHandlerImpl implements XMLHandler {
                     ConnectorObject connectorObject = createConnectorObject(result.getItem(), objClass);
                     hits.add(connectorObject);
                 }
+            } catch (JDOMException ex) {
+                Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
             } catch (XQException ex) {
                 Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -316,7 +322,6 @@ public class XMLHandlerImpl implements XMLHandler {
                 Node textNode = attributeElement.getFirstChild();
                 Attribute attribute = createAttribute(attributeElement, textNode);
                 attrs.add(attribute);
-//                System.out.println("name: " + attributeElement.getNodeName() + ", value: " + textNode.getNodeValue());
                 System.out.println(attribute);
             }
         }
@@ -326,6 +331,7 @@ public class XMLHandlerImpl implements XMLHandler {
     private Attribute createAttribute(Node attributeElement, Node textNode) {
         AttributeBuilder builder = new AttributeBuilder();
         builder.setName(attributeElement.getNodeName());
+
         builder.addValue(textNode.getNodeValue());
         return builder.build();
     }

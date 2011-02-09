@@ -1,5 +1,4 @@
 /*
- * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.     
@@ -18,27 +17,19 @@
  * If applicable, add the following below this CDDL Header, with the fields 
  * enclosed by brackets [] replaced by your own identifying information: 
  * "Portions Copyrighted [year] [name of copyright owner]"
- * ====================
  */
 package com.forgerock.openconnector.xml;
 
+import com.forgerock.openconnector.xml.query.IQuery;
 import com.forgerock.openconnector.xsdparser.SchemaParser;
-import com.forgerock.openconnector.xsdparser.XSDAnnotationFactory;
-import com.sun.xml.xsom.XSSchemaSet;
-import com.sun.xml.xsom.parser.XSOMParser;
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
-import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.security.*;
 import org.identityconnectors.framework.spi.*;
 import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.framework.common.objects.filter.Filter;
-import org.xml.sax.SAXException;
 
 /**
  * Main implementation of the XML Connector
@@ -50,7 +41,7 @@ import org.xml.sax.SAXException;
 @ConnectorClass(
     displayNameKey = "XML",
     configurationClass = XMLConfiguration.class)
-public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp, DeleteOp, SearchOp<String>, SchemaOp, ScriptOnConnectorOp, ScriptOnResourceOp, SyncOp, TestOp, UpdateOp
+public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp, DeleteOp, SearchOp<IQuery>, SchemaOp, ScriptOnConnectorOp, ScriptOnResourceOp, SyncOp, TestOp, UpdateOp
 {
     /**
      * Setup logging for the {@link XMLConnector}.
@@ -186,7 +177,7 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
      * {@inheritDoc}
      */
     @Override
-    public FilterTranslator<String> createFilterTranslator(ObjectClass objClass, OperationOptions options) { 
+    public FilterTranslator<IQuery> createFilterTranslator(ObjectClass objClass, OperationOptions options) {
             return new XMLFilterTranslator();
     }
     
@@ -199,9 +190,13 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         handler - Results should be returned to this handler
         options - Additional options that impact the way this operation is run. If the caller passes null,
      the framework will convert this into an empty set of options, so SPI need not guard against options being null.
+     *
+     *
+     * The framework conta
      */
-    public void executeQuery(ObjectClass objClass, String query, ResultsHandler handler, OperationOptions options) {
+    public void executeQuery(ObjectClass objClass, IQuery query, ResultsHandler handler, OperationOptions options) {
 
+        
         // wich attributes to include in the query
         Set<String> attributesToGet = null;
 
@@ -211,7 +206,7 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         }
         
 
-        Collection<ConnectorObject> hits = xmlHandler.search("", null);
+        Collection<ConnectorObject> hits = xmlHandler.search("", objClass);
         ConnectorObjectBuilder bld = new ConnectorObjectBuilder();
         for (ConnectorObject hit : hits) {
             bld.add(hit);
