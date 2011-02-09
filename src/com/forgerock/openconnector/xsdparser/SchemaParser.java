@@ -264,7 +264,7 @@ public class SchemaParser {
                 return double.class;
 
             } else if (name.equals("base64Binary")) {
-                return byte.class;  
+                return byte[].class;
             }
         }
         return null;
