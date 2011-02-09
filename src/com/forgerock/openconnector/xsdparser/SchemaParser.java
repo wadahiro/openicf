@@ -248,28 +248,25 @@ public class SchemaParser {
             String className = null;
 
             if (name.equals("string")) {
-                className = "java.lang.String";
+                return String.class;
 
             } else if (name.equals("boolean")) {
-                className = "java.lang.boolean";
+                return boolean.class;
 
             } else if (name.equals("long")) {
-                className = "java.lang.Long";
+                return long.class;
                 
             } else if (name.equals("int")) {
-                className = "java.lang.Integer";
+                return int.class;
 
             } else if (name.equals("float")) {
-                className = "java.lang.Float";
+                return float.class;
 
             } else if (name.equals("double")) {
-                className = "java.lang.Double";
+                return double.class;
 
             } else if (name.equals("base64Binary")) {
-                className = "org.identityconnectors.common.security.GuardedByteArray";
-                
-            } else if (name.equals("decimal")) {
-                className = "java.math.BigDecimal";
+                return byte.class;
                 
             }
             try {
