@@ -54,7 +54,7 @@ public class SchemaParser {
     }
 
     /*
-     * Takes the xsd-schema and parse it to icf-schema
+     * Takes the xsd-schema and parses it to icf-schema
      */
 
     public Schema parseSchema() {
