@@ -42,12 +42,12 @@ public class SchemaParser {
     private String filePath;
     private XSSchemaSet schemaSet;
     
-    public SchemaParser(Class< ? extends Connector> connectorclass, String filePath){
+    public SchemaParser(Class< ? extends Connector> connectorClass, String filePath){
 
         Assertions.nullCheck(connectorClass, "connectorClass");
         Assertions.blankCheck(filePath, "filePath");
         
-        this.connectorClass = connectorclass;
+        this.connectorClass = connectorClass;
         this.filePath = filePath;
         
         parseXSDSchema();

@@ -70,7 +70,7 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         this.config = (XMLConfiguration) cfg;
         this.schemaParser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
         //TODO:fix schemaParser.getXsdSchema().getSchema(1)
-        this.xmlHandler = new XMLHandlerImpl(config.getXmlFilePath(), schema(), schemaParser.getXsdSchema().getSchema(1));
+        this.xmlHandler = new XMLHandlerImpl(config.getXmlFilePath(), schema(), schemaParser.getXsdSchema());
     }
 
     /**
@@ -153,7 +153,7 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
      * {@inheritDoc}
      */
     public Schema schema() {
-        throw new UnsupportedOperationException();
+        return schemaParser.parseSchema();
     } 
     
     

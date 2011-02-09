@@ -1,6 +1,8 @@
 package com.forgerock.openconnector.xml;
 
+import com.forgerock.openconnector.xsdparser.NamespaceType;
 import com.sun.xml.xsom.XSSchema;
+import com.sun.xml.xsom.XSSchemaSet;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -59,15 +61,27 @@ public class XMLHandlerImpl implements XMLHandler {
     private String filePath;
     private Document document;
     private Schema connSchema; // TODO: Move to config class
-    private XSSchema xsdSchema;
 
-    public XMLHandlerImpl(String filePath, Schema connSchema, XSSchema xsdSchema) {
+    private XSSchema icfSchema;
+    private XSSchema riSchema;
+
+    public static final String XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance";
+
+    public static final String ICF_NAMESPACE_PREFIX = "icf";
+    public static final String RI_NAMESPACE_PREFIX = "ri";
+    public static final String XSI_NAMESPACE_PREFIX = "xsi";
+
+    public static final String ICF_CONTAINER_TAG = "OpenICFContainer";
+
+    // TODO: Use Assertions class for null and blank check
+    public XMLHandlerImpl(String filePath, Schema connSchema, XSSchemaSet xsdSchemas) {
         checkNull(filePath);
         checkEmpty(filePath);
         this.filePath = filePath;
 
         this.connSchema = connSchema;
-        this.xsdSchema = xsdSchema;
+        this.riSchema = xsdSchemas.getSchema(1);
+        this.icfSchema = xsdSchemas.getSchema(2);
 
 
         buildDocument();
@@ -77,29 +91,35 @@ public class XMLHandlerImpl implements XMLHandler {
         return this.filePath;
     }
 
+    // TODO: Add schemalocation
     private void createDocument() {
+        Element root = new Element(ICF_CONTAINER_TAG);
 
-        // TODO: add final static field
-        Namespace schemaNamespace =
-                Namespace.getNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance");
+        root.addNamespaceDeclaration(getNameSpace(NamespaceType.XSI_NAMESPACE));
+        root.addNamespaceDeclaration(getNameSpace(NamespaceType.ICF_NAMESPACE));
+        root.addNamespaceDeclaration(getNameSpace(NamespaceType.RI_NAMESPACE));
 
-        // TODO: add final static field
-        Namespace icfNamespace =
-                Namespace.getNamespace("icf", "http://openidm.forgerock.com/xml/ns/public/resource/openicf/resource-schema-1.xsd");
-
-        // TODO: Get custom schema from XMLConfig
-
-
-        // TODO: add final static field
-        Element root = new Element("OpenICFContainer");
-
-
-        root.addNamespaceDeclaration(schemaNamespace);
-        root.addNamespaceDeclaration(icfNamespace);
-
-        root.setNamespace(icfNamespace);
+        root.setNamespace(getNameSpace(NamespaceType.ICF_NAMESPACE));
 
         document = new Document(root);
+    }
+
+    private Namespace getNameSpace(NamespaceType namespaceType) {
+        Namespace namespace = null;
+
+        switch (namespaceType) {
+            case XSI_NAMESPACE :
+                namespace = Namespace.getNamespace(XSI_NAMESPACE_PREFIX, XSI_NAMESPACE);
+                break;
+            case ICF_NAMESPACE :
+                namespace = Namespace.getNamespace(ICF_NAMESPACE_PREFIX, icfSchema.getTargetNamespace());
+                break;
+            case RI_NAMESPACE :
+                namespace = Namespace.getNamespace(RI_NAMESPACE_PREFIX, riSchema.getTargetNamespace());
+                break;
+        }
+
+        return namespace;
     }
 
     private void loadDocument(File xmlFile) {
@@ -122,7 +142,6 @@ public class XMLHandlerImpl implements XMLHandler {
         File xmlFile = new File(filePath);
 
         if (!xmlFile.exists()) {
-
             createDocument();
         } else {
             loadDocument(xmlFile);
@@ -143,19 +162,30 @@ public class XMLHandlerImpl implements XMLHandler {
         }
     }
 
+    // TODO: Uid
+    // TODO: Check if all fields exists
     public Uid create(final ObjectClass objClass, final Set<Attribute> attributes) throws AlreadyExistsException {
-        // TODO: How to check if this object is supported?
+        
         ObjectClassInfo objInfo = connSchema.findObjectClassInfo(objClass.getObjectClassValue());
         Set<AttributeInfo> objAttributes = objInfo.getAttributeInfo();
         Map<String, Attribute> attributesMap = new HashMap<String, Attribute>(AttributeUtil.toMap(attributes));
         Name name = AttributeUtil.getNameFromAttributes(attributes);
 
-        if (entryExists(objClass, name)) {
-            throw new AlreadyExistsException(); // TODO: Add exception message
+        if (!riSchema.getElementDecls().containsKey(objClass.getObjectClassValue())) {
+            throw new IllegalArgumentException();
         }
 
-        // Create "root" element
+        if (entryExists(objClass, name)) {
+            log.info("Already exists");
+            throw new AlreadyExistsException(); // TODO: Add exception message
+        }
+        else
+            log.info("Not existing");
+
+        // Create object type element
         Element root = new Element(objClass.getObjectClassValue());
+        root.setNamespace(getNameSpace(NamespaceType.RI_NAMESPACE));
+        
 
         // Add child elements
         for (AttributeInfo attrInfo : objAttributes) {
@@ -173,6 +203,11 @@ public class XMLHandlerImpl implements XMLHandler {
                 child.setText(AttributeUtil.getStringValue(attributesMap.get(attrInfo.getName())));
             }
 
+            if (icfSchema.getElementDecls().containsKey(attrInfo.getName()))
+                child.setNamespace(getNameSpace(NamespaceType.ICF_NAMESPACE));
+            else
+                child.setNamespace(getNameSpace(NamespaceType.RI_NAMESPACE));
+            
             root.addContent(child);
         }
 
@@ -183,6 +218,7 @@ public class XMLHandlerImpl implements XMLHandler {
         return new Uid(name.getNameValue());
     }
 
+    // TODO: Uid
     public Uid update(ObjectClass objClass, Uid uid, Set<Attribute> replaceAttributes) throws UnknownUidException {
 
         // TODO: Check if field exists in the schema
@@ -217,11 +253,12 @@ public class XMLHandlerImpl implements XMLHandler {
         return uid;
     }
 
+    // TODO: Change to use search method
     public Element getEntry(ObjectClass objClass, Name name) {
         Element result = null;
-
+        
         try {
-            result = (Element) XPath.selectSingleNode(document, "/OpenICFContainer/" + objClass.getObjectClassValue() + "[__NAME__='" + name.getNameValue() + "']");
+            result = (Element) XPath.selectSingleNode(document, "OpenICFContainer/" + objClass.getObjectClassValue() + "[__NAME__='" + name.getNameValue() + "']");
         } catch (JDOMException ex) {
             Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex); // TODO: Change to framework logger
         }
@@ -345,4 +382,5 @@ public class XMLHandlerImpl implements XMLHandler {
         }
         return false;
     }
+    
 }
