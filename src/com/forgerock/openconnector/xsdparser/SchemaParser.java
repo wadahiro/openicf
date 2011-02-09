@@ -245,8 +245,6 @@ public class SchemaParser {
     private Class<?> findJavaClassType(String name) {
         if (name != null) {
 
-            String className = null;
-
             if (name.equals("string")) {
                 return String.class;
 
@@ -266,15 +264,7 @@ public class SchemaParser {
                 return double.class;
 
             } else if (name.equals("base64Binary")) {
-                return byte.class;
-                
-            }
-            try {
-                if (className != null) {
-                    return Class.forName(className);
-                }
-            } catch (ClassNotFoundException e) {
-               log.error(e, "Class {0} not found.", className);
+                return byte.class;  
             }
         }
         return null;
