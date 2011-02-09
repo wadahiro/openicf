@@ -58,7 +58,7 @@ public class SchemaParser {
      */
 
     public Schema parseSchema() {
-        final String METHOD = "persaSchema";
+        final String METHOD = "parseSchema";
         log.info("Entry {0}", METHOD);
 
         SchemaBuilder schemaBuilder = new SchemaBuilder(connectorClass);
