@@ -49,6 +49,7 @@ public class SchemaParser {
         
         this.connectorClass = connectorclass;
         this.filePath = filePath;
+        
         parseXSDSchema();
     }
 
