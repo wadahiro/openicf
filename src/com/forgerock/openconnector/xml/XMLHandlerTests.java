@@ -5,6 +5,7 @@
 
 package com.forgerock.openconnector.xml;
 
+import com.forgerock.openconnector.xsdparser.SchemaParser;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -14,11 +15,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.identityconnectors.framework.common.objects.ConnectorObject;
-import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -35,7 +34,12 @@ public class XMLHandlerTests {
     @Before
     public void setUp() {
         
-        xmlHandler = new XMLHandlerImpl(filePath, null, null);
+        XMLConfiguration config = new XMLConfiguration();
+        config.setXmlFilePath("test.xml");
+        config.setXsdFilePath("test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
+        SchemaParser parser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
+
+        xmlHandler = new XMLHandlerImpl(config.getXmlFilePath(), parser.parseSchema(), parser.getXsdSchema());
         testFile = new File("testusers.xml");
         System.out.println(testFile.getAbsolutePath());
 

@@ -8,6 +8,7 @@ package com.forgerock.openconnector.xml;
 import com.forgerock.openconnector.xml.query.FunctionQuery;
 import com.forgerock.openconnector.xml.query.IQuery;
 import com.forgerock.openconnector.xml.query.QueryBuilder;
+import com.forgerock.openconnector.xsdparser.SchemaParser;
 import java.util.Collection;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -49,7 +50,14 @@ public class XMLFilterTranslatorTest {
 
     @Before
     public void setUp() {
-        xmlHandler = new XMLHandlerImpl("test-sample1.xml", null, null);
+        XMLConfiguration config = new XMLConfiguration();
+        config.setXmlFilePath("test-sample1.xml");
+        config.setXsdFilePath("test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
+        SchemaParser parser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
+
+        xmlHandler = new XMLHandlerImpl(config.getXmlFilePath(), parser.parseSchema(), parser.getXsdSchema());
+
+
         ft = new XMLFilterTranslator();
 
         AttributeBuilder attrBld = new AttributeBuilder();
@@ -177,10 +185,10 @@ public class XMLFilterTranslatorTest {
     
 
 
-//    @Test
-//    public void searchForAllShouldReturnSizeLargerThanZero() {
-//        QueryBuilder qb = new QueryBuilder(null, ObjectClass.ACCOUNT);
-//        assertTrue(xmlHandler.search(qb.toString(), ObjectClass.ACCOUNT).size() > 0);
-//    }
+    @Test
+    public void searchForAllShouldReturnSizeLargerThanZero() {
+        QueryBuilder qb = new QueryBuilder(null, ObjectClass.ACCOUNT);
+        assertTrue(xmlHandler.search(qb.toString(), ObjectClass.ACCOUNT).size() > 0);
+    }
 
 }
