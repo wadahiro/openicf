@@ -290,6 +290,7 @@ public class SchemaParser {
 
     private Set<Flags> getFlags(List<String> list) {
         Set<Flags> flags = new HashSet<Flags>();
+        
         for (String s : list) {
             if (s.equals("NOT_CREATABLE")) {
                 flags.add(Flags.NOT_CREATABLE);
