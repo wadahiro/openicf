@@ -31,6 +31,7 @@ import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
+import org.identityconnectors.common.Assertions;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.FrameworkUtil;
 
@@ -42,6 +43,10 @@ public class SchemaParser {
     private XSSchemaSet schemaSet;
     
     public SchemaParser(Class< ? extends Connector> connectorclass, String filePath){
+
+        Assertions.nullCheck(connectorClass, "connectorClass");
+        Assertions.blankCheck(filePath, "filePath");
+        
         this.connectorClass = connectorclass;
         this.filePath = filePath;
         parseXSDSchema();
@@ -167,7 +172,12 @@ public class SchemaParser {
     }
 
     public XSSchemaSet getXsdSchema(){
-        return schemaSet;
+        if(schemaSet != null){
+            return schemaSet;
+        }else {
+            parseXSDSchema();
+            return schemaSet;
+        }
     }
 
     private void parseXSDSchema(){
