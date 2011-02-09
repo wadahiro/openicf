@@ -39,16 +39,8 @@ public class QueryBuilder {
         Iterator<IPart> it = query.iterator();
         while (it.hasNext()) {
             IPart part = it.next();
-            if (part instanceof IQueryPart) {
-                processQueryPart((IQueryPart) part);
-            } else {
-                wherePart += part.getOperator();
-            }
+            wherePart += part.getExpression();
         }
-    }
-
-    private void processQueryPart(IQueryPart part) {
-        wherePart += String.format("$x/%s %s %s", part.getName(), part.getOperator(), part.getValue());
     }
 
     // String query = "for $x in /OpenICFContainer/__ACCOUNT__ where $x/firstname='Jan Eirik' return $x";

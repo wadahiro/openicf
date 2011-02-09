@@ -5,13 +5,11 @@
 
 package com.forgerock.openconnector.xml.query;
 
-import java.util.Collection;
-
 /**
  *
  * @author slogum
  */
 public interface IPart {
 
-    public abstract String getOperator();
+    public String getExpression();
 }

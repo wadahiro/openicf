@@ -23,7 +23,7 @@ public class QueryImpl implements IQuery {
         this.parts = new LinkedList<IPart>();
     }
 
-    public void set(IQueryPart part) {
+    public void set(IPart part) {
         if (mainPart != null && parts.contains(mainPart)) {
             int index = parts.indexOf(mainPart);
             parts.remove(mainPart);
@@ -66,12 +66,8 @@ public class QueryImpl implements IQuery {
             this.value = value;
         }
 
-        public String getOperator() {
+        public String getExpression() {
             return this.value;
-        }
-
-        public String toString() {
-            return getOperator();
         }
     }
 }

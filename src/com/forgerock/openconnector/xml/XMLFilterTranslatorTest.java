@@ -5,14 +5,18 @@
 
 package com.forgerock.openconnector.xml;
 
+import com.forgerock.openconnector.xml.query.FunctionQuery;
 import com.forgerock.openconnector.xml.query.IQuery;
 import com.forgerock.openconnector.xml.query.QueryBuilder;
 import java.util.Collection;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
+import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
-import org.identityconnectors.framework.common.objects.filter.GreaterThanFilter;
+import org.identityconnectors.framework.common.objects.filter.GreaterThanOrEqualFilter;
+import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -103,9 +107,11 @@ public class XMLFilterTranslatorTest {
         // make ms-employed-filter
         attrBld = new AttributeBuilder();
         attrBld.setName("ms-employed");
-        attrBld.addValue("99999");
-        GreaterThanFilter gtFilter = new GreaterThanFilter(attrBld.build());
-        IQuery msEmployed = ft.createGreaterThanExpression(gtFilter, false);
+        attrBld.addValue("999999");
+//        GreaterThanFilter gtFilter = new GreaterThanFilter(attrBld.build());
+//        IQuery msEmployed = ft.createGreaterThanExpression(gtFilter, false);
+        GreaterThanOrEqualFilter gtoreqFilter = new GreaterThanOrEqualFilter(attrBld.build());
+        IQuery msEmployed = ft.createGreaterThanOrEqualExpression(gtoreqFilter, false);
 
         // chaining
         rightHand = ft.createAndExpression(rightHand, isEnabled);
@@ -120,6 +126,56 @@ public class XMLFilterTranslatorTest {
 
         assertEquals(2, hits.size());
     }
+
+    @Test
+    public void testFunctionQuery() {
+        String fn = "fn:matches";
+        String [] args = {"$x/firstname", "'123'"};
+        String expected = "fn:matches($x/firstname, '123')";
+        FunctionQuery fq = new FunctionQuery(args, fn);
+        assertEquals(expected, fq.getExpression());
+    }
+
+    @Test
+    public void testSearchWithContainsFunctionQuery() {
+        AttributeBuilder attrBld = new AttributeBuilder();
+        attrBld.setName("firstname");
+        attrBld.addValue("rgen");
+        ContainsFilter filter = new ContainsFilter(attrBld.build());
+        IQuery query = ft.createContainsExpression(filter, true);
+        QueryBuilder builder = new QueryBuilder(query, ObjectClass.ACCOUNT);
+        int hits = xmlHandler.search(builder.toString(), ObjectClass.ACCOUNT).size();
+        assertEquals(1, hits);
+    }
+
+    @Test
+    public void testSearchWithStartswithFunction() {
+        AttributeBuilder attrBld = new AttributeBuilder();
+        attrBld.setName("firstname");
+        attrBld.addValue("J");
+        StartsWithFilter filter = new StartsWithFilter(attrBld.build());
+        IQuery query = ft.createStartsWithExpression(filter, true);
+        QueryBuilder builder = new QueryBuilder(query, ObjectClass.ACCOUNT);
+        int hits = xmlHandler.search(builder.toString(), ObjectClass.ACCOUNT).size();
+        System.out.println(builder.toString());
+        assertEquals(2, hits);
+    }
+
+    @Test
+    public void testSearchWithEndswithFunction() {
+        AttributeBuilder attrBld = new AttributeBuilder();
+        attrBld.setName("firstname");
+        attrBld.addValue("n");
+        EndsWithFilter filter = new EndsWithFilter(attrBld.build());
+        IQuery query = ft.createEndsWithExpression(filter, true);
+        QueryBuilder builder = new QueryBuilder(query, ObjectClass.ACCOUNT);
+        int hits = xmlHandler.search(builder.toString(), ObjectClass.ACCOUNT).size();
+        System.out.println(builder.toString());
+        assertEquals(1, hits);
+    }
+    
+    
+
 
 //    @Test
 //    public void searchForAllShouldReturnSizeLargerThanZero() {

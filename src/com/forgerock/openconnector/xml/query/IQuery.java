@@ -11,8 +11,7 @@ import java.util.Iterator;
 
 public interface IQuery {
 
-    
-    public void set(IQueryPart part);
+    public void set(IPart part);
     public Iterator<IPart> iterator();
     public Collection<IPart> getParts();
     public void and(IQuery part);

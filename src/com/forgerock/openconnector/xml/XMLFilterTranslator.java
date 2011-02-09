@@ -24,7 +24,8 @@ package com.forgerock.openconnector.xml;
 
 import com.forgerock.openconnector.xml.query.IQuery;
 import com.forgerock.openconnector.xml.query.QueryImpl;
-import com.forgerock.openconnector.xml.query.QueryPartImpl;
+import com.forgerock.openconnector.xml.query.ComparisonQuery;
+import com.forgerock.openconnector.xml.query.FunctionQuery;
 import java.util.List;
 import org.identityconnectors.framework.common.objects.filter.*;
 
@@ -43,13 +44,7 @@ import org.identityconnectors.framework.common.objects.filter.*;
  */
 public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected IQuery createContainsExpression(ContainsFilter filter, boolean not) {
-        return null;
-    }
+    
 
 
     /**
@@ -57,7 +52,10 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      */
     @Override
     protected IQuery createEndsWithExpression(EndsWithFilter filter, boolean not) {
-        return null;
+        String attrName = filter.getAttribute().getName();
+        Object obj = filter.getAttribute().getValue();
+        String [] args = createFunctionArgs(attrName, obj);
+        return createFunctionQuery(args, "fn:ends-with");
     }
 
     /**
@@ -65,7 +63,21 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      */
     @Override
     protected IQuery createStartsWithExpression(StartsWithFilter filter, boolean not) {
-        return null;
+        String attrName = filter.getAttribute().getName();
+        Object obj = filter.getAttribute().getValue();
+        String [] args = createFunctionArgs(attrName, obj);
+        return createFunctionQuery(args, "fn:starts-with");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected IQuery createContainsExpression(ContainsFilter filter, boolean not) {
+        String attrName = filter.getAttribute().getName();
+        Object obj = filter.getAttribute().getValue();
+        String [] args = createFunctionArgs(attrName, obj);
+        return createFunctionQuery(args, "fn:matches");
     }
 
     /**
@@ -75,8 +87,8 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
     protected IQuery createEqualsExpression(EqualsFilter filter, boolean not) {
         String attrName = filter.getAttribute().getName();
         Object obj = filter.getAttribute().getValue();
-        String value = "'" + removeBrackets(obj.toString()) + "'";
-        return createQuery(attrName, not ? "!=" : "=", value);
+        String value = removeBrackets(obj.toString());
+        return createComparisonQuery(attrName, not ? "!=" : "=", value);
     }
 
     /**
@@ -87,8 +99,19 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
     protected IQuery createGreaterThanExpression(GreaterThanFilter filter, boolean not) {
         String attrName = filter.getAttribute().getName();
         Object obj = filter.getAttribute().getValue();
-        String value = "'" + removeBrackets(obj.toString()) + "'";
-        return createQuery(attrName, not ? "<" : ">", value);
+        String value = removeBrackets(obj.toString());
+        return createComparisonQuery(attrName, not ? "<" : ">", value);
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected IQuery createGreaterThanOrEqualExpression(GreaterThanOrEqualFilter filter, boolean not) {
+        String attrName = filter.getAttribute().getName();
+        Object obj = filter.getAttribute().getValue();
+        String value = removeBrackets(obj.toString());
+        return createComparisonQuery(attrName, not ? "<=" : ">=", value);
     }
 
     /**
@@ -109,21 +132,15 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
         return leftExpression;
     }
 
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected IQuery createGreaterThanOrEqualExpression(GreaterThanOrEqualFilter filter, boolean not) {
-        return null;
-    }
-
     /**
      * {@inheritDoc}
      */
     @Override
     protected IQuery createLessThanExpression(LessThanFilter filter, boolean not) {
-        return null;
+        String attrName = filter.getAttribute().getName();
+        Object obj = filter.getAttribute().getValue();
+        String value = removeBrackets(obj.toString());
+        return createComparisonQuery(attrName, not ? ">" : "<", value);
     }
 
     /**
@@ -131,7 +148,10 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      */
     @Override
     protected IQuery createLessThanOrEqualExpression(LessThanOrEqualFilter filter, boolean not) {
-        return null;
+        String attrName = filter.getAttribute().getName();
+        Object obj = filter.getAttribute().getValue();
+        String value = removeBrackets(obj.toString());
+        return createComparisonQuery(attrName, not ? ">=" : "<=", value);
     }
 
     private String formatValue(Object obj, boolean asList) {
@@ -163,14 +183,24 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
     }
 
 
-    // TODO: Implement
-    private IQuery createQuery(String attribute, String operator, String value) {
+    private IQuery createComparisonQuery(String attribute, String operator, String value) {
         IQuery query = new QueryImpl();
-        query.set(new QueryPartImpl(attribute, operator, value));
+        query.set(new ComparisonQuery("$x/" + attribute, operator, "'" + value + "'"));
+        return query;
+    }
+
+    private IQuery createFunctionQuery(String [] args, String function) {
+        IQuery query = new QueryImpl();
+        query.set(new FunctionQuery(args, function));
         return query;
     }
 
     private String removeBrackets(String name) {
         return name.substring(1, name.length()-1);
+    }
+
+    private String[] createFunctionArgs(String attrName, Object obj) {
+        String[] args = {"$x/" + attrName, "'" + removeBrackets(obj.toString()) + "'"};
+        return args;
     }
 }

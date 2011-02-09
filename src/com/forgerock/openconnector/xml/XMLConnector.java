@@ -21,6 +21,7 @@
 package com.forgerock.openconnector.xml;
 
 import com.forgerock.openconnector.xml.query.IQuery;
+import com.forgerock.openconnector.xml.query.QueryBuilder;
 import com.forgerock.openconnector.xsdparser.SchemaParser;
 import java.util.*;
 
@@ -195,24 +196,13 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
      * The framework conta
      */
     public void executeQuery(ObjectClass objClass, IQuery query, ResultsHandler handler, OperationOptions options) {
-
-        
-        // wich attributes to include in the query
-        Set<String> attributesToGet = null;
-
-        // SEARCH FOR __ACCOUNT__
-        if (objClass.is(ObjectClass.ACCOUNT_NAME)) {
-            
-        }
-        
-
-        Collection<ConnectorObject> hits = xmlHandler.search("", objClass);
-        ConnectorObjectBuilder bld = new ConnectorObjectBuilder();
+        QueryBuilder queryBuilder = new QueryBuilder(query, objClass);
+        Collection<ConnectorObject> hits = xmlHandler.search(queryBuilder.toString(), objClass);
+        ConnectorObjectBuilder conObjBuilder = new ConnectorObjectBuilder();
         for (ConnectorObject hit : hits) {
-            bld.add(hit);
+            conObjBuilder.add(hit);
         }
-        // return to handler
-        handler.handle(bld.build());
+        handler.handle(conObjBuilder.build());
    }
 
     
