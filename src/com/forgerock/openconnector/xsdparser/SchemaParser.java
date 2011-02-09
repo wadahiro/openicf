@@ -1,5 +1,6 @@
 package com.forgerock.openconnector.xsdparser;
 
+import com.forgerock.openconnector.xml.XMLConnector;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -161,7 +162,7 @@ public class SchemaParser {
                         try {
                             schemaBuilder.removeSupportedObjectClass(removeOp, objectClassInfo);
                         } catch (IllegalArgumentException e) {
-                            log.error(e, "SupportedObjectClass {0} not supported", removeOp.toString());
+                            log.info("SupportedObjectClass {0} not supported", removeOp.toString());
                         }
                     }
                 }
