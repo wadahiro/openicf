@@ -22,6 +22,7 @@
  */
 package com.forgerock.openconnector.xml;
 
+import org.identityconnectors.common.Assertions;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
 import org.identityconnectors.framework.spi.ConfigurationProperty;
 import org.identityconnectors.common.StringUtil;
@@ -81,9 +82,7 @@ public class XMLConfiguration extends AbstractConfiguration {
      * {@inheritDoc}
      */
     public void validate() {
-        if(StringUtil.isBlank(xmlFilePath)) {
-            throw new IllegalArgumentException("XML filepath cannot be null or empty.");
-        }
+        Assertions.blankCheck(xmlFilePath, "xmlFilePath");
+        Assertions.blankCheck(xsdFilePath, "xsdFilePath");
     }
-
 }
