@@ -192,6 +192,7 @@ public class SchemaParser {
             parser.parse(file);
 
             this.schemaSet = parser.getResult();
+            
         } catch (SAXException e) {
             String eMessage =  "Failed to parser XSD-schema from file: " + filePath;
             log.error(e, eMessage);
