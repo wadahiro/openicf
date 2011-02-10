@@ -286,7 +286,6 @@ public class SchemaParser {
             if (fileString.contains("javaclass")){
                 String clasString = list.get(i + 1);
                 try {
-                    
                     return Class.forName(clasString);
                     
                 } catch (ClassNotFoundException e) {
