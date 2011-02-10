@@ -350,26 +350,20 @@ public class XMLHandlerImpl implements XMLHandler {
             try {
                 XQResultSequence result = executeXqueryExpression(query);
 
-                
-
                 hits = new ArrayList<ConnectorObject>();
-                
-                while (result.next()) {
 
-                    System.out.println("RESULTAT!!!!!!!!!!!!!!!!!!!!!!!!");
+                while (result.next()) {
                     ConnectorObject connectorObject = createConnectorObject(result.getItem(), objClass, attrInfo);
                     hits.add(connectorObject);
                 }
-                
                 
             } catch (JDOMException ex) {
                 Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
             } catch (XQException ex) {
                 Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
             } catch (Exception ex) {
-                ex.printStackTrace();;
+                ex.printStackTrace();
             }
-            System.out.println("returning hits... size: " + hits.size());
         }
         return hits;
     }
@@ -415,7 +409,6 @@ public class XMLHandlerImpl implements XMLHandler {
     private void addAllAttributesToBuilder(NodeList nodeList, Map<String, String> attrInfo, ConnectorObjectBuilder conObjBuilder) {
         boolean hasUid = false;
         String nameTmp = "";
-        System.out.println("NODELISTLENGTH: " + nodeList.getLength());
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node attributeNode = nodeList.item(i);
             if (elementHasTextContent(attributeNode)) {
@@ -447,8 +440,6 @@ public class XMLHandlerImpl implements XMLHandler {
         AttributeBuilder attrBuilder = new AttributeBuilder();
         
         attrBuilder.setName(attrName);
-
-        System.out.println("attrName: " + attrName + ", attrval: " + attrValue);
 
         // valid attribute
         if (attrInfo.containsKey(attrName)) {
@@ -529,9 +520,7 @@ public class XMLHandlerImpl implements XMLHandler {
             }
             return attrBuilder.build();
         }
-
-        String s = new String(attrValue);
-        return attrBuilder.build();
+        return null;
     }
 
     // see if an attribute-node has text-content
