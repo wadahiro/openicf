@@ -47,13 +47,14 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      /**
      * {@inheritDoc}
      */
+    //return createComparisonQuery(attrName, not ? "!=" : "=", value);
     @Override
     protected IQuery createEndsWithExpression(EndsWithFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
         String [] args = createFunctionArgs(attrName, obj);
-        return createFunctionQuery(args, "fn:ends-with");
+        return createFunctionQuery(args, "ends-with", not);
     }
 
 
@@ -72,7 +73,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
         String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
         String [] args = createFunctionArgs(attrName, obj);
-        return createFunctionQuery(args, "fn:starts-with");
+        return createFunctionQuery(args, "starts-with", not);
     }
 
     /**
@@ -84,7 +85,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
         String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
         String [] args = createFunctionArgs(attrName, obj);
-        return createFunctionQuery(args, "fn:matches");
+        return createFunctionQuery(args, "matches", not);
     }
 
     /**
@@ -200,9 +201,9 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
         return query;
     }
 
-    private IQuery createFunctionQuery(String [] args, String function) {
+    private IQuery createFunctionQuery(String [] args, String function, boolean not) {
         IQuery query = new QueryImpl();
-        query.set(new FunctionQuery(args, function));
+        query.set(new FunctionQuery(args, function, not));
         return query;
     }
 

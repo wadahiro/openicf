@@ -534,14 +534,14 @@ public class XMLHandlerImpl implements XMLHandler {
                 attrBuilder.addValue(bd);
             }
             else if (javaclass.equals("GuardedString")) {
-                GuardedString gs = new GuardedString(attrValue.toCharArray());
+                GuardedString gs = new GuardedString(attrValue.toCharArray()); // ???
                 attrBuilder.addValue(gs);
             }
             else if (javaclass.equals("GuardedByteArray")) { // ???
                 GuardedByteArray gb = new GuardedByteArray(attrValue.getBytes());
                 attrBuilder.addValue(gb);
             }
-            else if (javaclass.equals("byte[]")) {
+            else if (javaclass.equals("byte[]")) { 
                 byte[] b = attrValue.getBytes();
                 attrBuilder.addValue(b);
             }

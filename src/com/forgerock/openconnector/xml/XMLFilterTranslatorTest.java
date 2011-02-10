@@ -133,11 +133,21 @@ public class XMLFilterTranslatorTest {
     }
 
     @Test
-    public void testFunctionQuery() {
-        String fn = "fn:matches";
+    public void createFunctionQueryWhereNotIsTrue() {
+        String fn = "matches";
+        String [] args = {"$x/firstname", "'123'"};
+        String expected = "fn:not(matches($x/firstname, '123'))";
+        FunctionQuery fq = new FunctionQuery(args, fn, true);
+        System.out.println("EXPR: " + fq.getExpression());
+        assertEquals(expected, fq.getExpression());
+    }
+
+    @Test
+    public void createFunctionQueryWhereNotIsFalse() {
+        String fn = "matches";
         String [] args = {"$x/firstname", "'123'"};
         String expected = "fn:matches($x/firstname, '123')";
-        FunctionQuery fq = new FunctionQuery(args, fn);
+        FunctionQuery fq = new FunctionQuery(args, fn, false);
         assertEquals(expected, fq.getExpression());
     }
 
@@ -147,7 +157,7 @@ public class XMLFilterTranslatorTest {
         attrBld.setName("firstname");
         attrBld.addValue("rgen");
         ContainsFilter filter = new ContainsFilter(attrBld.build());
-        IQuery query = ft.createContainsExpression(filter, true);
+        IQuery query = ft.createContainsExpression(filter, false);
         QueryBuilder builder = new QueryBuilder(query, ObjectClass.ACCOUNT);
         int hits = xmlHandler.search(builder.toString(), ObjectClass.ACCOUNT).size();
         assertEquals(1, hits);
@@ -159,7 +169,7 @@ public class XMLFilterTranslatorTest {
         attrBld.setName("firstname");
         attrBld.addValue("J");
         StartsWithFilter filter = new StartsWithFilter(attrBld.build());
-        IQuery query = ft.createStartsWithExpression(filter, true);
+        IQuery query = ft.createStartsWithExpression(filter, false);
         QueryBuilder builder = new QueryBuilder(query, ObjectClass.ACCOUNT);
         System.out.println("SEARCHING FOR TWO EXISTING");
         int hits = xmlHandler.search(builder.toString(), ObjectClass.ACCOUNT).size();
@@ -172,10 +182,9 @@ public class XMLFilterTranslatorTest {
         attrBld.setName("firstname");
         attrBld.addValue("n");
         EndsWithFilter filter = new EndsWithFilter(attrBld.build());
-        IQuery query = ft.createEndsWithExpression(filter, true);
+        IQuery query = ft.createEndsWithExpression(filter, false);
         QueryBuilder builder = new QueryBuilder(query, ObjectClass.ACCOUNT);
         int hits = xmlHandler.search(builder.toString(), ObjectClass.ACCOUNT).size();
-        System.out.println(builder.toString());
         assertEquals(1, hits);
     }
     
@@ -183,6 +192,19 @@ public class XMLFilterTranslatorTest {
     public void searchForAllShouldReturnSizeLargerThanZero() {
         QueryBuilder qb = new QueryBuilder(null, ObjectClass.ACCOUNT);
         assertTrue(xmlHandler.search(qb.toString(), ObjectClass.ACCOUNT).size() > 0);
+    }
+
+    @Test
+    public void searchForOneNoneExistantAccountShouldReturnSizeOfOne() {
+        AttributeBuilder attrBld = new AttributeBuilder();
+        attrBld.setName("firstname");
+        attrBld.addValue("en");
+        EndsWithFilter filter = new EndsWithFilter(attrBld.build());
+        IQuery query = ft.createEndsWithExpression(filter, true);
+        QueryBuilder builder = new QueryBuilder(query, ObjectClass.ACCOUNT);
+        int hits = xmlHandler.search(builder.toString(), ObjectClass.ACCOUNT).size();
+        System.out.println(builder.toString());
+        assertEquals(1, hits);
     }
 
 }
