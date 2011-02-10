@@ -26,8 +26,7 @@ public class SchemaParserTests {
 
     @Test
     public void newSchemaParserShouldReturnNewSchemaParser(){
-        SchemaParser parserTest = new SchemaParser(XMLConnector.class, "test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
-        assertNotNull(parserTest);
+        assertNotNull(parser);
     }
 
     @Test(expected= ConnectorIOException.class)
