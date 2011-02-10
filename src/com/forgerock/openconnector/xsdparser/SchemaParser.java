@@ -195,11 +195,13 @@ public class SchemaParser {
             
         } catch (SAXException e) {
             String eMessage =  "Failed to parser XSD-schema from file: " + filePath;
+
             log.error(e, eMessage);
             throw new ConnectorIOException(filePath, e);
             
         } catch (IOException e) {
             String eMessage =  "Failed to read from file: " + filePath;
+            
             log.error(e, eMessage);
             throw new ConnectorIOException(filePath, e);
         }
