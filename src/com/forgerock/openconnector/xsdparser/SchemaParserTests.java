@@ -33,17 +33,16 @@ public class SchemaParserTests {
     @Test(expected= ConnectorIOException.class)
     public void newSchemaParserWithInvalidFilePathShouldReturnConnectorIOException(){
         SchemaParser parserTest = new SchemaParser(XMLConnector.class, "test/xml_store/404");
-        
     }
+
     @Test(expected= IllegalArgumentException.class)
     public void newSchemaParserWithEmptyFilePathShouldReturnIllegalArgumentException(){
         SchemaParser parserTest = new SchemaParser(XMLConnector.class, "");
-
     }
+    
     @Test(expected= NullPointerException.class)
     public void newSchemaParserWithNullClassShouldReturnNullPointerException(){
         SchemaParser parserTest = new SchemaParser(null, "sfsdf");
-
     }
 
     @Test
