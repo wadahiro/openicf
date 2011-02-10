@@ -5,19 +5,29 @@
 
 package com.forgerock.openconnector.xml;
 
+import com.forgerock.openconnector.xml.query.IQuery;
+import com.forgerock.openconnector.xml.query.QueryBuilder;
 import com.forgerock.openconnector.xsdparser.SchemaParser;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
+import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
  *
@@ -31,11 +41,13 @@ public class XMLHandlerTests {
     private File testFile;
     private Collection<ConnectorObject> hits;
 
+    private ConnectorObject existingUsrConObj;
+
     @Before
     public void setUp() {
         
         XMLConfiguration config = new XMLConfiguration();
-        config.setXmlFilePath("test.xml");
+        config.setXmlFilePath(filePath);
         config.setXsdFilePath("test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
         SchemaParser parser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
 
@@ -54,7 +66,20 @@ public class XMLHandlerTests {
         } finally {
             pw.close();
         }
+
+        // INITIALIZE QUERY FOR TESTING
+        XMLFilterTranslator ft = new XMLFilterTranslator();
+        AttributeBuilder attrBld = new AttributeBuilder();
+        attrBld.setName("firstname");
+        attrBld.addValue("Jørgen");
+        EqualsFilter filter = new EqualsFilter(attrBld.build());
+        IQuery query = ft.createEqualsExpression(filter, false);
+        QueryBuilder qBuilder = new QueryBuilder(query, ObjectClass.ACCOUNT);
+        ArrayList<ConnectorObject> hits = (ArrayList<ConnectorObject>) xmlHandler.search(qBuilder.toString(), ObjectClass.ACCOUNT);
+        existingUsrConObj = hits.get(0);
     }
+
+    
 
     @After
     public void tearDown() {
@@ -76,26 +101,43 @@ public class XMLHandlerTests {
         XMLHandlerImpl xmlHandlerNullConstr = new XMLHandlerImpl(null, null, null);
     }
 
-//    @Test
-//    public void emptySearchQueryShouldReturnNull() {
-//        String query = "";
-//        Collection<ConnectorObject> hits = xmlHandler.search(query, null);
-//        assertNull(hits);
-//    }
+    @Test
+    public void emptySearchQueryShouldReturnNull() {
+        String query = "";
+        Collection<ConnectorObject> hits = xmlHandler.search(query, null);
+        assertNull(hits);
+    }
 
-//    @Test
-//    public void searchForExistingAccountsFirstnameShouldNotReturnZeroHits() {
-////        String query = "for $x in doc(\"test-sample2.xml\")/OpenICFContainer/__ACCOUNT__ where $x/firstname='Jan Eirik' return $x";
-//        String query = "for $x in /OpenICFContainer/__ACCOUNT__ where $x/firstname='Jan Eirik' return $x";
-////        String query = "//__ACCOUNT__";
-//        hits = xmlHandler.search(query, ObjectClass.ACCOUNT);
-//        assertTrue(hits.size() > 0);
-//    }
+    @Test
+    public void searchForExistingAccountsFirstnameShouldNotReturnZeroHits() {
+        String query = "for $x in /OpenICFContainer/__ACCOUNT__ where $x/firstname='Jan Eirik' return $x";
+        System.out.println(query);
+        hits = xmlHandler.search(query, ObjectClass.ACCOUNT);
+        assertTrue(hits.size() > 0);
+    }
 
-//    @Test
-//    public void searchForTwoExistingAccountsFirstnameShouldReturnSizeOfTwo() {
-//        String query = "for $x in doc(\"test-sample2.xml\")/OpenICFContainer/__ACCOUNT__ where $x/substring(firstname, 1, 2) = 'J' return $x";
-//        hits = xmlHandler.search(query, null);
-//        assertEquals(2, hits.size());
-//    }
+    @Test
+    public void searchForTwoExistingAccountsFirstnameShouldReturnSizeOfTwo() {
+        String query = "for $x in doc(\"test-sample2.xml\")/OpenICFContainer/__ACCOUNT__ where $x/__NAME__ = 'namedid' return $x";
+        hits = xmlHandler.search(query, ObjectClass.ACCOUNT);
+        assertEquals(2, hits.size());
+    }
+
+    @Test
+    public void testReturntypeForFirstname() {
+        Attribute attribute = existingUsrConObj.getAttributeByName("firstname");
+        List<Object> values = attribute.getValue();
+        Object val = values.get(0);
+        assertTrue(val instanceof String);
+    }
+
+    @Test
+    public void testReturntypeForYearsEmployed() {
+        Attribute attribute = existingUsrConObj.getAttributeByName("years-employed");
+        List<Object> values = attribute.getValue();
+        Object val = values.get(0);
+        assertTrue(val instanceof Integer);
+    }
+
+    
 }

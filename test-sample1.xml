@@ -32,7 +32,7 @@
     <__UID__ />
     <employee-number />
     <gender />
-    <__NAME__>namedid</__NAME__>
+    <__NAME__>JANEIRIK</__NAME__>
     <office-square-feet />
     <__LAST_LOGIN_DATE__ />
     <lastname>Hallstensen</lastname>
@@ -68,10 +68,10 @@
     <yearly-wage />
     <avg-wage />
     <password-secret-answer />
-    <__UID__ />
+    <__UID__>jorgenUID</__UID__>
     <employee-number />
     <gender>M</gender>
-    <__NAME__>namedid</__NAME__>
+    <__NAME__>jorgenNAME</__NAME__>
     <office-square-feet />
     <__LAST_LOGIN_DATE__ />
     <lastname>Ringen</lastname>

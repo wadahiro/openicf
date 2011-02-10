@@ -11,7 +11,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,9 +47,7 @@ import org.jdom.xpath.XPath;
 import net.sf.saxon.xqj.SaxonXQDataSource; 
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.framework.common.FrameworkUtil;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
-import org.identityconnectors.framework.common.objects.AttributeInfoUtil;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.jdom.Namespace;
 import org.jdom.output.DOMOutputter;
@@ -108,6 +105,17 @@ public class XMLHandlerImpl implements XMLHandler {
         root.setNamespace(getNameSpace(NamespaceType.ICF_NAMESPACE));
 
         document = new Document(root);
+    }
+
+    private XQResultSequence executeXqueryExpression(String query) throws XQException, JDOMException {
+        XQDataSource datasource = new SaxonXQDataSource();
+        XQConnection connection = datasource.getConnection();
+        XQExpression xqexpression = connection.createExpression();
+        DOMOutputter dOMOutputter = new DOMOutputter();
+        org.w3c.dom.Document w3cDoc = dOMOutputter.output(document);
+        xqexpression.bindNode(XQConstants.CONTEXT_ITEM, w3cDoc, null);
+        XQResultSequence result = xqexpression.executeQuery(query);
+        return result;
     }
 
     private Namespace getNameSpace(NamespaceType namespaceType) {
@@ -307,18 +315,13 @@ public class XMLHandlerImpl implements XMLHandler {
 
         if (query != null && !query.isEmpty()) {
             try {
-                XQDataSource datasource = new SaxonXQDataSource();
-                XQConnection connection = datasource.getConnection();
-                XQExpression xqexpression = connection.createExpression();
-                DOMOutputter dOMOutputter = new DOMOutputter();
-                org.w3c.dom.Document w3cDoc = dOMOutputter.output(document);
-                xqexpression.bindNode(XQConstants.CONTEXT_ITEM, w3cDoc, null);
-                XQResultSequence result = xqexpression.executeQuery(query);
+                XQResultSequence result = executeXqueryExpression(query);
 
                 hits = new ArrayList<ConnectorObject>();
                 
                 while (result.next()) {
                     ConnectorObject connectorObject = createConnectorObject(result.getItem(), objClass, attrInfo);
+                    System.out.println("CONNECTOROBJECT UID:\n" + connectorObject.getUid());
                     hits.add(connectorObject);
                 }
                 
@@ -358,120 +361,135 @@ public class XMLHandlerImpl implements XMLHandler {
         }
     }
 
+    // Returnes a connectorobject with correct objectclass and attributes
     private ConnectorObject createConnectorObject(XQItem xqItem, ObjectClass objClass, Map<String, String> attrInfo) throws XQException {
         Node node = xqItem.getNode();
         NodeList nodeList = node.getChildNodes();
         ConnectorObjectBuilder conObjBuilder = new ConnectorObjectBuilder();
         conObjBuilder.setObjectClass(objClass);
-        Set<Attribute> attrs = createAttributeList(nodeList, attrInfo);
-        conObjBuilder.addAttributes(attrs);
-        conObjBuilder.setUid("???"); // TODO: What to add for UID ?
+        addAllAttributesToBuilder(nodeList, attrInfo, conObjBuilder);
         return conObjBuilder.build();
     }
 
-    private Set<Attribute> createAttributeList(NodeList nodeList, Map<String, String> attrInfo) {
-        Set<Attribute> attrs = new HashSet<Attribute>();
+    // Add all the attributes to the connectorbuilder-object
+    private void addAllAttributesToBuilder(NodeList nodeList, Map<String, String> attrInfo, ConnectorObjectBuilder conObjBuilder) {
+        boolean hasUid = false;
+        String nameTmp = "";
         for (int i = 0; i < nodeList.getLength(); i++) {
-            Node attributeElement = nodeList.item(i);
-            if (elementHasTextContent(attributeElement)) {
-                Node textNode = attributeElement.getFirstChild();
-                Attribute attribute = createAttribute(attributeElement, textNode, attrInfo);
-                System.out.println("Attribute: " + attribute);
-                attrs.add(attribute);
+            Node attributeNode = nodeList.item(i);
+            if (elementHasTextContent(attributeNode)) {
+                Node textNode = attributeNode.getFirstChild();
+
+                String attrName = attributeNode.getNodeName();
+                String attrValue = textNode.getNodeValue();
+
+                if (attrName.equals("__UID__")) {
+                    conObjBuilder.setUid(attrValue);
+                    hasUid = true;
+                }
+                if (!hasUid && attrName.equals("__NAME__")) {
+                    nameTmp = attrValue;
+                }
+                
+                Attribute attribute = createAttribute(attrName, attrValue, attrInfo);
+                conObjBuilder.addAttribute(attribute);
             }
         }
-        return attrs;
+        // set __NAME__ attribute as UID if no UID was wound
+        if (!hasUid) {
+            conObjBuilder.setUid(nameTmp);
+        }
     }
 
-    private Attribute createAttribute(Node attributeElement, Node textNode, Map<String, String> attrInfo) {
-        AttributeBuilder builder = new AttributeBuilder();
+    // returns an attributed created for the attribute-node
+    private Attribute createAttribute(String attrName, String attrValue, Map<String, String> attrInfo) {
+        AttributeBuilder attrBuilder = new AttributeBuilder();
         
-        String name = attributeElement.getNodeName();
-        String value = textNode.getNodeValue();
+        attrBuilder.setName(attrName);
 
-        builder.setName(name);
+        // valid attribute
+        if (attrInfo.containsKey(attrName)) {
 
-        if (attrInfo.containsKey(name)) {
-
-            String javaclass = attrInfo.get(name);
-
+            // add the correct object to the attributebuilder
+            String javaclass = attrInfo.get(attrName);
             if (javaclass.equals("String")) {
-                String s = new String(value);
-                builder.addValue(s);
+                String s = new String(attrValue);
+                attrBuilder.addValue(s);
             }
             else if (javaclass.equals("int")) {
-                int i = new Integer(value);
-                builder.addValue(i);
+                int i = new Integer(attrValue);
+                attrBuilder.addValue(i);
             }
             else if (javaclass.equals("Integer")) {
-                Integer i = new Integer(value);
-                builder.addValue(i);
+                Integer i = new Integer(attrValue);
+                attrBuilder.addValue(i);
             } 
             else if (javaclass.equals("Long")) {
-                Long l = new Long(value);
-                builder.addValue(l);
+                Long l = new Long(attrValue);
+                attrBuilder.addValue(l);
             }
             else if (javaclass.equals("long")) {
-                long l = new Long(value);
-                builder.addValue(l);
+                long l = new Long(attrValue);
+                attrBuilder.addValue(l);
             }
             else if (javaclass.equals("Boolean")) {
-                Boolean b = new Boolean(value);
-                builder.addValue(b);
+                Boolean b = new Boolean(attrValue);
+                attrBuilder.addValue(b);
             }
             else if (javaclass.equals("boolean")) {
-                boolean b = new Boolean(value);
-                builder.addValue(b);
+                boolean b = new Boolean(attrValue);
+                attrBuilder.addValue(b);
             }
             else if (javaclass.equals("Double")) {
-                Double d = new Double(value);
-                builder.addValue(d);
+                Double d = new Double(attrValue);
+                attrBuilder.addValue(d);
             }
             else if (javaclass.equals("double")) {
-                double d = new Double(value);
-                builder.addValue(d);
+                double d = new Double(attrValue);
+                attrBuilder.addValue(d);
             }
             else if (javaclass.equals("Float")) {
-                Float f = new Float(value);
-                builder.addValue(f);
+                Float f = new Float(attrValue);
+                attrBuilder.addValue(f);
             }
             else if (javaclass.equals("float")) {
-                float f = new Float(value);
-                builder.addValue(f);
+                float f = new Float(attrValue);
+                attrBuilder.addValue(f);
             }
             else if (javaclass.equals("Character")) {
-                Character c = value.charAt(0);
-                builder.addValue(c);
+                Character c = attrValue.charAt(0);
+                attrBuilder.addValue(c);
             }
             else if (javaclass.equals("char")) {
-                char c = value.charAt(0);
-                builder.addValue(c);
+                char c = attrValue.charAt(0);
+                attrBuilder.addValue(c);
             }
             else if (javaclass.equals("BigInteger")) {
-                BigInteger bi = new BigInteger(value);
-                builder.addValue(bi);
+                BigInteger bi = new BigInteger(attrValue);
+                attrBuilder.addValue(bi);
             }
             else if (javaclass.equals("BigDecimal")) {
-                BigDecimal bd = new BigDecimal(value);
-                builder.addValue(bd);
+                BigDecimal bd = new BigDecimal(attrValue);
+                attrBuilder.addValue(bd);
             }
             else if (javaclass.equals("GuardedString")) {
-                GuardedString gs = new GuardedString(value.toCharArray());
-                builder.addValue(gs);
+                GuardedString gs = new GuardedString(attrValue.toCharArray());
+                attrBuilder.addValue(gs);
             }
             else if (javaclass.equals("GuardedByteArray")) { // ???
-                GuardedByteArray gb = new GuardedByteArray(value.getBytes());
-                builder.addValue(gb);
+                GuardedByteArray gb = new GuardedByteArray(attrValue.getBytes());
+                attrBuilder.addValue(gb);
             }
             else if (javaclass.equals("byte[]")) {
-                byte[] b = value.getBytes();
-                builder.addValue(b);
+                byte[] b = attrValue.getBytes();
+                attrBuilder.addValue(b);
             }
+            return attrBuilder.build();
         }
-        
-        return builder.build();
+        return null;
     }
 
+    // see if an attribute-node has text-content
     private boolean elementHasTextContent(Node node) {
         Node child = node.getFirstChild();
         if (child != null) {
@@ -481,5 +499,4 @@ public class XMLHandlerImpl implements XMLHandler {
         }
         return false;
     }
-    
 }

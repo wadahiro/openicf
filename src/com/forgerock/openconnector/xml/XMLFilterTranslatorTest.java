@@ -57,7 +57,6 @@ public class XMLFilterTranslatorTest {
 
         xmlHandler = new XMLHandlerImpl(config.getXmlFilePath(), parser.parseSchema(), parser.getXsdSchema());
 
-
         ft = new XMLFilterTranslator();
 
         AttributeBuilder attrBld = new AttributeBuilder();
@@ -116,8 +115,6 @@ public class XMLFilterTranslatorTest {
         attrBld = new AttributeBuilder();
         attrBld.setName("ms-employed");
         attrBld.addValue("999999");
-//        GreaterThanFilter gtFilter = new GreaterThanFilter(attrBld.build());
-//        IQuery msEmployed = ft.createGreaterThanExpression(gtFilter, false);
         GreaterThanOrEqualFilter gtoreqFilter = new GreaterThanOrEqualFilter(attrBld.build());
         IQuery msEmployed = ft.createGreaterThanOrEqualExpression(gtoreqFilter, false);
 
@@ -152,9 +149,7 @@ public class XMLFilterTranslatorTest {
         ContainsFilter filter = new ContainsFilter(attrBld.build());
         IQuery query = ft.createContainsExpression(filter, true);
         QueryBuilder builder = new QueryBuilder(query, ObjectClass.ACCOUNT);
-        System.out.println("GETTING JØRGEN");
         int hits = xmlHandler.search(builder.toString(), ObjectClass.ACCOUNT).size();
-        System.out.println("/GETTING JØRGEN");
         assertEquals(1, hits);
     }
 
@@ -184,9 +179,6 @@ public class XMLFilterTranslatorTest {
         assertEquals(1, hits);
     }
     
-    
-
-
     @Test
     public void searchForAllShouldReturnSizeLargerThanZero() {
         QueryBuilder qb = new QueryBuilder(null, ObjectClass.ACCOUNT);
