@@ -4,8 +4,8 @@ package com.forgerock.openconnector.xsdparser;
 
 import com.forgerock.openconnector.xml.XMLConnector;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -14,12 +14,12 @@ public class SchemaParserTests {
     SchemaParser parser;
 
 
-    @BeforeClass
+    @Before
     public void setUp(){
         parser = new SchemaParser(XMLConnector.class, "test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
     }
 
-    @AfterClass
+    @After
     public void tearDown(){
         parser = null;
     }
