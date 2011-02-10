@@ -4,6 +4,7 @@
  */
 package com.forgerock.openconnector.xml.query;
 
+import com.forgerock.openconnector.xml.XMLHandlerImpl;
 import java.util.Iterator;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 
@@ -28,7 +29,16 @@ public class QueryBuilder {
     }
 
     private void createSelectPart(ObjectClass objClass) {
-        this.selectPart = "for $x in /OpenICFContainer/" + objClass.getObjectClassValue();
+        StringBuilder sb = new StringBuilder();
+        sb.append("declare namespace ");
+        sb.append(XMLHandlerImpl.ICF_NAMESPACE_PREFIX);
+        sb.append(" = \"http://openidm.forgerock.com/xml/ns/public/resource/openicf/resource-schema-1.xsd\"; ");
+        sb.append("declare namespace ");
+        sb.append(XMLHandlerImpl.RI_NAMESPACE_PREFIX);
+        sb.append(" = \"http://openidm.forgerock.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4\"; ");
+        sb.append("for $x in /icf:OpenICFContainer/" + XMLHandlerImpl.RI_NAMESPACE_PREFIX + ":" + objClass.getObjectClassValue());
+        this.selectPart = sb.toString();
+        System.out.println("SELECTPART: " + selectPart);
     }
 
     private void createReturnPart() {
@@ -47,8 +57,8 @@ public class QueryBuilder {
         if (query == null || query.getParts().isEmpty()) {
             return String.format("%s %s", selectPart, returnPart);
         } else {
+            System.out.println(String.format("%s %s %s", selectPart, wherePart, returnPart));
             return String.format("%s %s %s", selectPart, wherePart, returnPart);
         }
-
     }
 }

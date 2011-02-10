@@ -49,7 +49,8 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      */
     @Override
     protected IQuery createEndsWithExpression(EndsWithFilter filter, boolean not) {
-        String attrName = filter.getAttribute().getName();
+        String tmpName = filter.getAttribute().getName();
+        String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
         String [] args = createFunctionArgs(attrName, obj);
         return createFunctionQuery(args, "fn:ends-with");
@@ -59,7 +60,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
     // TODO
     @Override
     protected IQuery createContainsAllValuesExpression(ContainsAllValuesFilter filter, boolean not) {
-        return super.createContainsAllValuesExpression(filter, not);
+        return null;
     }
 
     /**
@@ -67,7 +68,8 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      */
     @Override
     protected IQuery createStartsWithExpression(StartsWithFilter filter, boolean not) {
-        String attrName = filter.getAttribute().getName();
+        String tmpName = filter.getAttribute().getName();
+        String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
         String [] args = createFunctionArgs(attrName, obj);
         return createFunctionQuery(args, "fn:starts-with");
@@ -78,7 +80,8 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      */
     @Override
     protected IQuery createContainsExpression(ContainsFilter filter, boolean not) {
-        String attrName = filter.getAttribute().getName();
+        String tmpName = filter.getAttribute().getName();
+        String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
         String [] args = createFunctionArgs(attrName, obj);
         return createFunctionQuery(args, "fn:matches");
@@ -89,7 +92,8 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      */
     @Override
     protected IQuery createEqualsExpression(EqualsFilter filter, boolean not) {
-        String attrName = filter.getAttribute().getName();
+        String tmpName = filter.getAttribute().getName();
+        String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
         String value = removeBrackets(obj.toString());
         return createComparisonQuery(attrName, not ? "!=" : "=", value);
@@ -112,7 +116,8 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      */
     @Override
     protected IQuery createGreaterThanOrEqualExpression(GreaterThanOrEqualFilter filter, boolean not) {
-        String attrName = filter.getAttribute().getName();
+        String tmpName = filter.getAttribute().getName();
+        String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
         String value = removeBrackets(obj.toString());
         return createComparisonQuery(attrName, not ? "<=" : ">=", value);
@@ -141,7 +146,8 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      */
     @Override
     protected IQuery createLessThanExpression(LessThanFilter filter, boolean not) {
-        String attrName = filter.getAttribute().getName();
+        String tmpName = filter.getAttribute().getName();
+        String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
         String value = removeBrackets(obj.toString());
         return createComparisonQuery(attrName, not ? ">" : "<", value);
@@ -152,7 +158,8 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      */
     @Override
     protected IQuery createLessThanOrEqualExpression(LessThanOrEqualFilter filter, boolean not) {
-        String attrName = filter.getAttribute().getName();
+        String tmpName = filter.getAttribute().getName();
+        String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
         String value = removeBrackets(obj.toString());
         return createComparisonQuery(attrName, not ? ">=" : "<=", value);
@@ -206,5 +213,12 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
     private String[] createFunctionArgs(String attrName, Object obj) {
         String[] args = {"$x/" + attrName, "'" + removeBrackets(obj.toString()) + "'"};
         return args;
+    }
+
+    private String createNameWithNamespace(String attrName) {
+        String ns = NSLookup.INSTANCE.getNamespace(attrName);
+        if (ns == null)
+            ns = XMLHandlerImpl.RI_NAMESPACE_PREFIX;
+        return ns + ":" + attrName;
     }
 }

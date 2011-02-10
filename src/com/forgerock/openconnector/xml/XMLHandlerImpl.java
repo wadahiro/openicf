@@ -90,6 +90,8 @@ public class XMLHandlerImpl implements XMLHandler {
         this.riSchema = xsdSchemas.getSchema(1);
         this.icfSchema = xsdSchemas.getSchema(2);
 
+        NSLookup.INSTANCE.initialize(icfSchema);
+
         buildDocument();
     }
 
@@ -348,19 +350,26 @@ public class XMLHandlerImpl implements XMLHandler {
             try {
                 XQResultSequence result = executeXqueryExpression(query);
 
+                
+
                 hits = new ArrayList<ConnectorObject>();
                 
                 while (result.next()) {
+
+                    System.out.println("RESULTAT!!!!!!!!!!!!!!!!!!!!!!!!");
                     ConnectorObject connectorObject = createConnectorObject(result.getItem(), objClass, attrInfo);
-                    System.out.println("CONNECTOROBJECT UID:\n" + connectorObject.getUid());
                     hits.add(connectorObject);
                 }
+                
                 
             } catch (JDOMException ex) {
                 Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
             } catch (XQException ex) {
                 Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
+                ex.printStackTrace();;
             }
+            System.out.println("returning hits... size: " + hits.size());
         }
         return hits;
     }
@@ -406,12 +415,13 @@ public class XMLHandlerImpl implements XMLHandler {
     private void addAllAttributesToBuilder(NodeList nodeList, Map<String, String> attrInfo, ConnectorObjectBuilder conObjBuilder) {
         boolean hasUid = false;
         String nameTmp = "";
+        System.out.println("NODELISTLENGTH: " + nodeList.getLength());
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node attributeNode = nodeList.item(i);
             if (elementHasTextContent(attributeNode)) {
                 Node textNode = attributeNode.getFirstChild();
 
-                String attrName = attributeNode.getNodeName();
+                String attrName = attributeNode.getLocalName();
                 String attrValue = textNode.getNodeValue();
 
                 if (attrName.equals("__UID__")) {
@@ -437,6 +447,8 @@ public class XMLHandlerImpl implements XMLHandler {
         AttributeBuilder attrBuilder = new AttributeBuilder();
         
         attrBuilder.setName(attrName);
+
+        System.out.println("attrName: " + attrName + ", attrval: " + attrValue);
 
         // valid attribute
         if (attrInfo.containsKey(attrName)) {
@@ -517,7 +529,9 @@ public class XMLHandlerImpl implements XMLHandler {
             }
             return attrBuilder.build();
         }
-        return null;
+
+        String s = new String(attrValue);
+        return attrBuilder.build();
     }
 
     // see if an attribute-node has text-content
