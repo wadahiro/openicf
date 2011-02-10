@@ -169,7 +169,7 @@ public class SchemaParser {
             }
         }
         
-        log.info("Exit{0}", METHOD);
+        log.info("Exit {0}", METHOD);
         return schemaBuilder.build();
     }
 
