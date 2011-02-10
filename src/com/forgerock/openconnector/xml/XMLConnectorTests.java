@@ -210,6 +210,8 @@ public class XMLConnectorTests {
     @Test
     public void exampleTest2() {
 
+        log.info("Starting create element test");
+
         XMLConfiguration config = new XMLConfiguration();
         config.setXmlFilePath("test.xml");
         config.setXsdFilePath("test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
@@ -223,7 +225,7 @@ public class XMLConnectorTests {
         GuardedByteArray secretAnswer = new GuardedByteArray(answer.getBytes());
 
         Set<Attribute> attributes = new HashSet<Attribute>();
-        attributes.add(AttributeBuilder.build("__NAME__", "idfield3"));
+        attributes.add(AttributeBuilder.build("__NAME__", "idfield2"));
         attributes.add(AttributeBuilder.build("__PASSWORD__", password));
         attributes.add(AttributeBuilder.build("password-secret-answer", secretAnswer));
         attributes.add(AttributeBuilder.build("is-deleted", "asdasdasd"));
@@ -236,6 +238,8 @@ public class XMLConnectorTests {
         ObjectClass objClass = new ObjectClass(ObjectClass.ACCOUNT_NAME);
 
         Uid uid = handler.create(objClass, attributes);
+
+        log.info("Ending create element test");
     }
 
 

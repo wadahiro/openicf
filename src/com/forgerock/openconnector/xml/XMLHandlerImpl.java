@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 import javax.xml.xquery.XQConnection;
 import javax.xml.xquery.XQConstants;
 import javax.xml.xquery.XQDataSource; 
@@ -45,15 +44,16 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
-import org.jdom.xpath.XPath;
 import net.sf.saxon.xqj.SaxonXQDataSource; 
 import org.identityconnectors.common.Assertions;
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
+import org.identityconnectors.framework.common.objects.AttributeInfoUtil;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.jdom.Namespace;
+import org.jdom.input.DOMBuilder;
 import org.jdom.output.DOMOutputter;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -106,10 +106,7 @@ public class XMLHandlerImpl implements XMLHandler {
         root.addNamespaceDeclaration(getNameSpace(NamespaceType.XSI_NAMESPACE));
         root.addNamespaceDeclaration(getNameSpace(NamespaceType.ICF_NAMESPACE));
         root.addNamespaceDeclaration(getNameSpace(NamespaceType.RI_NAMESPACE));
-
         
-        
-
         root.setNamespace(getNameSpace(NamespaceType.ICF_NAMESPACE));
 
         document = new Document(root);
@@ -121,8 +118,10 @@ public class XMLHandlerImpl implements XMLHandler {
         XQExpression xqexpression = connection.createExpression();
         DOMOutputter dOMOutputter = new DOMOutputter();
         org.w3c.dom.Document w3cDoc = dOMOutputter.output(document);
+
         xqexpression.bindNode(XQConstants.CONTEXT_ITEM, w3cDoc, null);
         XQResultSequence result = xqexpression.executeQuery(query);
+
         return result;
     }
 
@@ -145,6 +144,9 @@ public class XMLHandlerImpl implements XMLHandler {
     }
 
     private void loadDocument(File xmlFile) {
+        final String method = "loadDocument";
+        log.info("Entry {0}", method);
+
         SAXBuilder builder = new SAXBuilder();
 
         try {
@@ -154,6 +156,8 @@ public class XMLHandlerImpl implements XMLHandler {
         } catch (IOException ex) {
             log.info(ex.getMessage());
         }
+
+        log.info("Exit {0}", method);
     }
 
     // creating the Document-object
@@ -175,10 +179,11 @@ public class XMLHandlerImpl implements XMLHandler {
     // TODO: Logging
     // TODO: Exceptions
     // TODO: Uid
-    // TODO: Check if all fields exists
-    // TODO: Attribute type: GuardedString, GuardedByteArray
     // TODO: Check if types is valid?
     public Uid create(final ObjectClass objClass, final Set<Attribute> attributes) throws AlreadyExistsException {
+        final String method = "create";
+        log.info("Entry {0}", method);
+
         ObjectClassInfo objInfo = connSchema.findObjectClassInfo(objClass.getObjectClassValue());
         Set<AttributeInfo> objAttributes = objInfo.getAttributeInfo();
         Map<String, Attribute> attributesMap = new HashMap<String, Attribute>(AttributeUtil.toMap(attributes));
@@ -240,26 +245,31 @@ public class XMLHandlerImpl implements XMLHandler {
                 child.setNamespace(getNameSpace(NamespaceType.RI_NAMESPACE));
             
             root.addContent(child);
-
-            
         }
 
         document.getRootElement().addContent(root);
 
         serialize();
 
+        log.info("Exit {0}", method);
+
         return new Uid(name.getNameValue());
     }
 
     // TODO: Uid
     public Uid update(ObjectClass objClass, Uid uid, Set<Attribute> replaceAttributes) throws UnknownUidException {
+        final String method = "update";
+        log.info("Entry {0}", method);
 
         // TODO: Check if field exists in the schema
         ObjectClassInfo objInfo = connSchema.findObjectClassInfo(objClass.getObjectClassValue());
-        Set<AttributeInfo> objAttributes = objInfo.getAttributeInfo();
-
+        Map<String, AttributeInfo> objAttributes = AttributeInfoUtil.toMap(objInfo.getAttributeInfo());
 
         Name name = new Name(uid.getUidValue());
+
+        if (!riSchema.getElementDecls().containsKey(objClass.getObjectClassValue())) {
+            throw new IllegalArgumentException("Object type: " + objClass.getObjectClassValue() + " is not supported.");
+        }
 
         if (entryExists(objClass, name)) {
 
@@ -267,21 +277,26 @@ public class XMLHandlerImpl implements XMLHandler {
 
             for (Attribute attribute : replaceAttributes) {
 
-                Element entryChild = entry.getChild(attribute.getName());
-
-                if (entryChild == null) {
+                if (!objAttributes.containsKey(attribute.getName())) {
                     throw new IllegalArgumentException("Data field: " + attribute.getName() + " is not supported.");
                 }
+                
+                // TODO: GuardedString, GuardedByteArray
+                if (objAttributes.get(attribute.getName()).isRequired() && AttributeUtil.getStringValue(attribute).isEmpty()) {
+                    throw new IllegalArgumentException(attribute.getName() + " is a required field and cannot be empty.");
+                }
 
+                // TODO: GuardedString, GuardedByteArray
                 entry.getChild(attribute.getName()).setText(AttributeUtil.getStringValue(attribute));
             }
-
-            System.out.println(entry.getChild("firstname").getText());
-        } else {
-            throw new IllegalArgumentException("..."); // TODO: Add exception message if object does not exist
+        }
+        else {
+            throw new IllegalArgumentException("Could not update entry. No entry of type " + objClass.getObjectClassValue() + " with the id " + name.getNameValue() + " found.");
         }
 
         serialize();
+
+        log.info("Exit {0}", method);
 
         return uid;
     }
@@ -291,26 +306,38 @@ public class XMLHandlerImpl implements XMLHandler {
 
         XMLFilterTranslator translator = new XMLFilterTranslator();
         AttributeBuilder builder = new AttributeBuilder();
-        builder.setName(name.NAME);
+        builder.setName(Name.NAME);
         builder.addValue(name.getNameValue());
         EqualsFilter equals = new EqualsFilter(builder.build());
         IQuery query = translator.createEqualsExpression(equals, false);
         QueryBuilder queryBuilder = new QueryBuilder(query, objClass);
+        XQResultSequence results = null;
 
-        
-        queryBuilder.toString();
-
-
-
-        Element result = null;
-        
         try {
-            result = (Element) XPath.selectSingleNode(document, "OpenICFContainer/" + objClass.getObjectClassValue() + "[__NAME__='" + name.getNameValue() + "']");
+            results = executeXqueryExpression(queryBuilder.toString());
+
+            if (results.next()) {
+                org.w3c.dom.Element element = (org.w3c.dom.Element)results.getItem().getNode();
+
+                DOMBuilder oMBuilder = new DOMBuilder();
+                return oMBuilder.build(element);
+
+            }
+            
+        } catch (XQException ex) {
+            log.error(ex.getMessage());
         } catch (JDOMException ex) {
-            Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex); // TODO: Change to framework logger
+            log.error(ex.getMessage());
+        }
+        finally {
+            try {
+                results.close();
+            } catch (XQException ex) {
+                log.error(ex.getMessage());
+            }
         }
 
-        return result;
+        return null;
     }
 
     public void delete(final ObjectClass objClass, final Uid uid) throws UnknownUidException {
@@ -320,7 +347,7 @@ public class XMLHandlerImpl implements XMLHandler {
         if (entryExists(objClass, name)) {
             document.getRootElement().removeContent(getEntry(objClass, name));
         } else {
-            throw new IllegalArgumentException("..."); // TODO: Add message for exception
+            throw new UnknownUidException("Deleting entry failed. Could not find an entry of type " + objClass.getObjectClassValue() + " with the uid " + name.getNameValue());
         }
         
         serialize();
