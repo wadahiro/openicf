@@ -81,7 +81,7 @@
                 <xsd:element name="lastname-first-letter" type="xsd:string" minOccurs="0">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <icf:javaclass>char</icf:javaclass>
+                            <icf:javaclass>java.lang.Character</icf:javaclass>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
