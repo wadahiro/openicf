@@ -34,7 +34,6 @@ import org.identityconnectors.common.StringUtil;
  */
 public class XMLConfiguration extends AbstractConfiguration {
 
-
     private String xmlFilePath = null;
 
     private String xsdFilePath = null;

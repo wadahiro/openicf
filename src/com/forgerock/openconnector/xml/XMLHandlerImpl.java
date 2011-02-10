@@ -1,5 +1,7 @@
 package com.forgerock.openconnector.xml;
 
+import com.forgerock.openconnector.xml.query.IQuery;
+import com.forgerock.openconnector.xml.query.QueryBuilder;
 import com.forgerock.openconnector.xsdparser.NamespaceType;
 import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
@@ -45,10 +47,12 @@ import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 import org.jdom.xpath.XPath;
 import net.sf.saxon.xqj.SaxonXQDataSource; 
+import org.identityconnectors.common.Assertions;
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
+import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.jdom.Namespace;
 import org.jdom.output.DOMOutputter;
 import org.w3c.dom.Node;
@@ -78,14 +82,13 @@ public class XMLHandlerImpl implements XMLHandler {
 
     // TODO: Use Assertions class for null and blank check
     public XMLHandlerImpl(String filePath, Schema connSchema, XSSchemaSet xsdSchemas) {
-        checkNull(filePath);
-        checkEmpty(filePath);
+        Assertions.nullCheck(filePath, "filePath");
+        Assertions.blankCheck(filePath, "filePath");
         this.filePath = filePath;
 
         this.connSchema = connSchema;
         this.riSchema = xsdSchemas.getSchema(1);
         this.icfSchema = xsdSchemas.getSchema(2);
-
 
         buildDocument();
     }
@@ -101,6 +104,9 @@ public class XMLHandlerImpl implements XMLHandler {
         root.addNamespaceDeclaration(getNameSpace(NamespaceType.XSI_NAMESPACE));
         root.addNamespaceDeclaration(getNameSpace(NamespaceType.ICF_NAMESPACE));
         root.addNamespaceDeclaration(getNameSpace(NamespaceType.RI_NAMESPACE));
+
+        
+        
 
         root.setNamespace(getNameSpace(NamespaceType.ICF_NAMESPACE));
 
@@ -142,9 +148,9 @@ public class XMLHandlerImpl implements XMLHandler {
         try {
             document = builder.build(xmlFile);
         } catch (JDOMException ex) {
-            Logger.getLogger(XMLHandler.class.getName()).log(Level.SEVERE, null, ex); // TODO: Change to framework logger
+            log.info(ex.getMessage());
         } catch (IOException ex) {
-            Logger.getLogger(XMLHandler.class.getName()).log(Level.SEVERE, null, ex); // TODO: Change to framework logger
+            log.info(ex.getMessage());
         }
     }
 
@@ -164,49 +170,36 @@ public class XMLHandlerImpl implements XMLHandler {
         log.info("Exit {0}", method);
     }
 
-    private void checkNull(String filePath) {
-        if (filePath == null) {
-            throw new IllegalArgumentException("Filepath can't be null");
-        }
-    }
-
-    private void checkEmpty(String filePath) {
-        if (filePath.isEmpty()) {
-            throw new IllegalArgumentException("Filepath can't be empty");
-        }
-    }
-
+    // TODO: Logging
+    // TODO: Exceptions
     // TODO: Uid
     // TODO: Check if all fields exists
+    // TODO: Attribute type: GuardedString, GuardedByteArray
+    // TODO: Check if types is valid?
     public Uid create(final ObjectClass objClass, final Set<Attribute> attributes) throws AlreadyExistsException {
-        
         ObjectClassInfo objInfo = connSchema.findObjectClassInfo(objClass.getObjectClassValue());
         Set<AttributeInfo> objAttributes = objInfo.getAttributeInfo();
         Map<String, Attribute> attributesMap = new HashMap<String, Attribute>(AttributeUtil.toMap(attributes));
         Name name = AttributeUtil.getNameFromAttributes(attributes);
 
         if (!riSchema.getElementDecls().containsKey(objClass.getObjectClassValue())) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Object type: " + objClass.getObjectClassValue() + " is not supported.");
         }
 
         if (entryExists(objClass, name)) {
-            log.info("Already exists");
-            throw new AlreadyExistsException(); // TODO: Add exception message
+            throw new AlreadyExistsException("Could not create entry. An entry with this id already exists.");
         }
-        else
-            log.info("Not existing");
 
         // Create object type element
         Element root = new Element(objClass.getObjectClassValue());
         root.setNamespace(getNameSpace(NamespaceType.RI_NAMESPACE));
-        
 
         // Add child elements
         for (AttributeInfo attrInfo : objAttributes) {
 
             if (attrInfo.isRequired()) {
                 if (!attributesMap.containsKey(attrInfo.getName()) || attributesMap.get(attrInfo.getName()).getValue().isEmpty()) {
-                    throw new IllegalArgumentException("Missing required field: " + attrInfo.getName()); // TODO: Add exception message
+                    throw new IllegalArgumentException("Missing required field: " + attrInfo.getName());
                 }
             }
 
@@ -214,15 +207,39 @@ public class XMLHandlerImpl implements XMLHandler {
 
             // Add attribute value to field
             if (attributesMap.containsKey(attrInfo.getName())) {
-                child.setText(AttributeUtil.getStringValue(attributesMap.get(attrInfo.getName())));
+
+                String elementText = "";
+                
+                // TODO: Refactor typecheck to utility class
+                if (attrInfo.getType().getName().equals("org.identityconnectors.common.security.GuardedString")) {
+                    GuardedStringAccessor accessor = new GuardedStringAccessor();
+                    GuardedString gs = AttributeUtil.getGuardedStringValue(attributesMap.get(attrInfo.getName()));
+                    gs.access(accessor);
+
+                    elementText = String.valueOf(accessor.getArray());
+                }
+                else if (attrInfo.getType().getName().equals("org.identityconnectors.common.security.GuardedByteArray")) {
+                    GuardedByteArrayAccessor accessor = new GuardedByteArrayAccessor();
+                    GuardedByteArray gba = (GuardedByteArray)attributesMap.get(attrInfo.getName()).getValue().get(0);
+                    gba.access(accessor);
+                    elementText = new String(accessor.getArray());
+                }
+                else {
+                    elementText = AttributeUtil.getStringValue(attributesMap.get(attrInfo.getName()));
+                }
+
+                child.setText(elementText);
             }
 
+            // Set namespace
             if (icfSchema.getElementDecls().containsKey(attrInfo.getName()))
                 child.setNamespace(getNameSpace(NamespaceType.ICF_NAMESPACE));
             else
                 child.setNamespace(getNameSpace(NamespaceType.RI_NAMESPACE));
             
             root.addContent(child);
+
+            
         }
 
         document.getRootElement().addContent(root);
@@ -269,6 +286,20 @@ public class XMLHandlerImpl implements XMLHandler {
 
     // TODO: Change to use search method
     public Element getEntry(ObjectClass objClass, Name name) {
+
+        XMLFilterTranslator translator = new XMLFilterTranslator();
+        AttributeBuilder builder = new AttributeBuilder();
+        builder.setName(name.NAME);
+        builder.addValue(name.getNameValue());
+        EqualsFilter equals = new EqualsFilter(builder.build());
+        IQuery query = translator.createEqualsExpression(equals, false);
+        QueryBuilder queryBuilder = new QueryBuilder(query, objClass);
+
+        
+        queryBuilder.toString();
+
+
+
         Element result = null;
         
         try {

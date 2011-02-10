@@ -17,6 +17,8 @@ import org.identityconnectors.common.Assertions;
 import org.junit.*;
 
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.common.security.GuardedByteArray;
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
@@ -214,9 +216,17 @@ public class XMLConnectorTests {
         SchemaParser parser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
         
         XMLHandlerImpl handler = new XMLHandlerImpl(config.getXmlFilePath(), XmlHandlerUtil.createHardcodedSchema(), parser.getXsdSchema());
+        //XMLHandlerImpl handler = new XMLHandlerImpl(config.getXmlFilePath(), XmlHandlerUtil.createHardcodedSchema(), parser.getXsdSchema());
+
+        GuardedString password = new GuardedString(new char[] {'a', 's', 'd', 'f'});
+        String answer = "forgerock";
+        GuardedByteArray secretAnswer = new GuardedByteArray(answer.getBytes());
 
         Set<Attribute> attributes = new HashSet<Attribute>();
         attributes.add(AttributeBuilder.build("__NAME__", "idfield3"));
+        attributes.add(AttributeBuilder.build("__PASSWORD__", password));
+        attributes.add(AttributeBuilder.build("password-secret-answer", secretAnswer));
+        attributes.add(AttributeBuilder.build("is-deleted", "asdasdasd"));
         attributes.add(AttributeBuilder.build(ATTR_REGISTRY_NAME, "registry"));
         attributes.add(AttributeBuilder.build(ATTR_IMPORT_FROM_REGISTRY, String.valueOf(false)));
         attributes.add(AttributeBuilder.build(ATTR_FIRST_NAME, "Ola S."));
