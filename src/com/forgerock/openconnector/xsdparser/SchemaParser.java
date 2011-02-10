@@ -1,6 +1,5 @@
 package com.forgerock.openconnector.xsdparser;
 
-import com.forgerock.openconnector.xml.XMLConnector;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -35,6 +34,7 @@ import com.sun.xml.xsom.parser.XSOMParser;
 import org.identityconnectors.common.Assertions;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.FrameworkUtil;
+import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 
 public class SchemaParser {
 
@@ -193,9 +193,13 @@ public class SchemaParser {
 
             this.schemaSet = parser.getResult();
         } catch (SAXException e) {
-            log.error(e, "Failed to parser XSD-schema from file: {0}" , filePath);
+            String eMessage =  "Failed to parser XSD-schema from file: " + filePath;
+            log.error(e, eMessage);
+            throw new ConnectorIOException(filePath, e);
         } catch (IOException e) {
-            log.error(e, "Failed to read from file: {0}" , filePath);
+            String eMessage =  "Failed to read from file: " + filePath;
+            log.error(e, eMessage);
+            throw new ConnectorIOException(filePath, e);
         }
     }
 
