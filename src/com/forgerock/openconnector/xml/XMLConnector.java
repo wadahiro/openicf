@@ -198,11 +198,9 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
     public void executeQuery(ObjectClass objClass, IQuery query, ResultsHandler handler, OperationOptions options) {
         QueryBuilder queryBuilder = new QueryBuilder(query, objClass);
         Collection<ConnectorObject> hits = xmlHandler.search(queryBuilder.toString(), objClass);
-        ConnectorObjectBuilder conObjBuilder = new ConnectorObjectBuilder();
         for (ConnectorObject hit : hits) {
-            conObjBuilder.add(hit);
+            handler.handle(hit);
         }
-        handler.handle(conObjBuilder.build());
    }
 
     

@@ -152,7 +152,9 @@ public class XMLFilterTranslatorTest {
         ContainsFilter filter = new ContainsFilter(attrBld.build());
         IQuery query = ft.createContainsExpression(filter, true);
         QueryBuilder builder = new QueryBuilder(query, ObjectClass.ACCOUNT);
+        System.out.println("GETTING JØRGEN");
         int hits = xmlHandler.search(builder.toString(), ObjectClass.ACCOUNT).size();
+        System.out.println("/GETTING JØRGEN");
         assertEquals(1, hits);
     }
 
