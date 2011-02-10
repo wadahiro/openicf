@@ -44,10 +44,7 @@ import org.identityconnectors.framework.common.objects.filter.*;
  */
 public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
 
-    
-
-
-    /**
+     /**
      * {@inheritDoc}
      */
     @Override

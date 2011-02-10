@@ -96,10 +96,10 @@ public class XMLHandlerTests {
 //        XMLHandlerImpl xmlHandlerBlankConstr = new XMLHandlerImpl("", null);
 //    }
 
-    @Test(expected=IllegalArgumentException.class)
-    public void nullInConstructorShouldThrowException() {
-        XMLHandlerImpl xmlHandlerNullConstr = new XMLHandlerImpl(null, null, null);
-    }
+//    @Test(expected=IllegalArgumentException.class)
+//    public void nullInConstructorShouldThrowException() {
+//        XMLHandlerImpl xmlHandlerNullConstr = new XMLHandlerImpl(null, null, null);
+//    }
 
     @Test
     public void emptySearchQueryShouldReturnNull() {
@@ -139,5 +139,19 @@ public class XMLHandlerTests {
         assertTrue(val instanceof Integer);
     }
 
-    
+    @Test
+    public void testReturntypeForOvertimeCommission() {
+        Attribute attribute = existingUsrConObj.getAttributeByName("overtime-commission");
+        List<Object> values = attribute.getValue();
+        Object val = values.get(0);
+        assertTrue(val instanceof Double);
+    }
+
+    @Test
+    public void testReturntypeForPermanentEmployee() {
+        Attribute attribute = existingUsrConObj.getAttributeByName("permanent-employee");
+        List<Object> values = attribute.getValue();
+        Object val = values.get(0);
+        assertTrue(val instanceof Boolean);
+    } 
 }
