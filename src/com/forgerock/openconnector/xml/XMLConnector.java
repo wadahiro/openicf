@@ -42,7 +42,7 @@ import org.identityconnectors.common.logging.Log;
 @ConnectorClass(
     displayNameKey = "XML",
     configurationClass = XMLConfiguration.class)
-public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp, DeleteOp, SearchOp<IQuery>, SchemaOp, ScriptOnConnectorOp, ScriptOnResourceOp, SyncOp, TestOp, UpdateOp
+public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp, DeleteOp, SearchOp<IQuery>, SchemaOp, TestOp, UpdateOp
 {
     /**
      * Setup logging for the {@link XMLConnector}.
@@ -160,22 +160,6 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
     
     /**
      * {@inheritDoc}
-     */    
-    public Object runScriptOnConnector(ScriptContext request, OperationOptions options) { 
-        throw new UnsupportedOperationException();
-    } 
-    
-    
-    /**
-     * {@inheritDoc}
-     */     
-    public Object runScriptOnResource(ScriptContext request, OperationOptions options) { 
-        throw new UnsupportedOperationException();
-    } 
-    
-    
-    /**
-     * {@inheritDoc}
      */
     @Override
     public FilterTranslator<IQuery> createFilterTranslator(ObjectClass objClass, OperationOptions options) {
@@ -202,22 +186,6 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
             handler.handle(hit);
         }
    }
-
-    
-    /**
-     * {@inheritDoc}
-     */   
-    public void sync(ObjectClass objClass, SyncToken token, SyncResultsHandler handler, final OperationOptions options) {
-        throw new UnsupportedOperationException();
-    } 
-    /**
-     * {@inheritDoc}
-     */   
-    public SyncToken getLatestSyncToken(ObjectClass objectClass) {
-        throw new UnsupportedOperationException();
-    } 
-    
-          
     
     /**
      * {@inheritDoc}
