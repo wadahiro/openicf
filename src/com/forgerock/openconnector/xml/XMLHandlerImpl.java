@@ -1,5 +1,6 @@
 package com.forgerock.openconnector.xml;
 
+import com.forgerock.openconnector.util.AttrTypeUtil;
 import com.forgerock.openconnector.util.GuardedByteArrayAccessor;
 import com.forgerock.openconnector.util.NamespaceLookup;
 import com.forgerock.openconnector.util.GuardedStringAccessor;
@@ -11,8 +12,6 @@ import com.sun.xml.xsom.XSSchemaSet;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -363,27 +362,27 @@ public class XMLHandlerImpl implements XMLHandler {
      * */
     public Collection<ConnectorObject> search(String query, ObjectClass objClass) { // TODO: remove exception
 
-        List<ConnectorObject> hits = null;
+        List<ConnectorObject> results = null;
 
         if (query != null && !query.isEmpty() && objClass != null) {
 
             ObjectClassInfo objInfo = connSchema.findObjectClassInfo(objClass.getObjectClassValue());
             Set<AttributeInfo> objAttributes = objInfo.getAttributeInfo();
 
+            // create a map with the attribute-names and what class they are
             HashMap<String, String> attrInfo = new HashMap<String, String>();
-            
             for (AttributeInfo info : objAttributes) {
                 attrInfo.put(info.getName(), info.getType().getSimpleName());
             }
 
             try {
-                XQResultSequence result = executeXqueryExpression(query);
+                XQResultSequence queryResult = executeXqueryExpression(query);
 
-                hits = new ArrayList<ConnectorObject>();
+                results = new ArrayList<ConnectorObject>();
 
-                while (result.next()) {
-                    ConnectorObject connectorObject = createConnectorObject(result.getItem(), objClass, attrInfo);
-                    hits.add(connectorObject);
+                while (queryResult.next()) {
+                    ConnectorObject connectorObject = createConnectorObject(queryResult.getItem(), objClass, attrInfo);
+                    results.add(connectorObject);
                 }
                 
             } catch (JDOMException ex) {
@@ -394,7 +393,7 @@ public class XMLHandlerImpl implements XMLHandler {
                 ex.printStackTrace();
             }
         }
-        return hits;
+        return results;
     }
 
     private boolean entryExists(ObjectClass objClass, Name name) {
@@ -473,87 +472,11 @@ public class XMLHandlerImpl implements XMLHandler {
         
         attrBuilder.setName(attrName);
 
-        // valid attribute
+        // check if attrInfo has the attributes object-type
         if (attrInfo.containsKey(attrName)) {
-
-            // add the correct object to the attributebuilder
             String javaclass = attrInfo.get(attrName);
-
-//            Object value = formatter.createObject(javaclass, attrValue);
-//            attrBuilder.addValue(value);
-
-            if (javaclass.equals("String")) {
-                String s = new String(attrValue);
-                attrBuilder.addValue(s);
-            }
-            else if (javaclass.equals("int")) {
-                int i = new Integer(attrValue);
-                attrBuilder.addValue(i);
-            }
-            else if (javaclass.equals("Integer")) {
-                Integer i = new Integer(attrValue);
-                attrBuilder.addValue(i);
-            } 
-            else if (javaclass.equals("Long")) {
-                Long l = new Long(attrValue);
-                attrBuilder.addValue(l);
-            }
-            else if (javaclass.equals("long")) {
-                long l = new Long(attrValue);
-                attrBuilder.addValue(l);
-            }
-            else if (javaclass.equals("Boolean")) {
-                Boolean b = new Boolean(attrValue);
-                attrBuilder.addValue(b);
-            }
-            else if (javaclass.equals("boolean")) {
-                boolean b = new Boolean(attrValue);
-                attrBuilder.addValue(b);
-            }
-            else if (javaclass.equals("Double")) {
-                Double d = new Double(attrValue);
-                attrBuilder.addValue(d);
-            }
-            else if (javaclass.equals("double")) {
-                double d = new Double(attrValue);
-                attrBuilder.addValue(d);
-            }
-            else if (javaclass.equals("Float")) {
-                Float f = new Float(attrValue);
-                attrBuilder.addValue(f);
-            }
-            else if (javaclass.equals("float")) {
-                float f = new Float(attrValue);
-                attrBuilder.addValue(f);
-            }
-            else if (javaclass.equals("Character")) {
-                Character c = attrValue.charAt(0);
-                attrBuilder.addValue(c);
-            }
-            else if (javaclass.equals("char")) {
-                char c = attrValue.charAt(0);
-                attrBuilder.addValue(c);
-            }
-            else if (javaclass.equals("BigInteger")) {
-                BigInteger bi = new BigInteger(attrValue);
-                attrBuilder.addValue(bi);
-            }
-            else if (javaclass.equals("BigDecimal")) {
-                BigDecimal bd = new BigDecimal(attrValue);
-                attrBuilder.addValue(bd);
-            }
-            else if (javaclass.equals("GuardedString")) {
-                GuardedString gs = new GuardedString(attrValue.toCharArray());
-                attrBuilder.addValue(gs);
-            }
-            else if (javaclass.equals("GuardedByteArray")) {
-                GuardedByteArray gb = new GuardedByteArray(attrValue.getBytes());
-                attrBuilder.addValue(gb);
-            }
-            else if (javaclass.equals("byte[]")) { 
-                byte[] b = attrValue.getBytes();
-                attrBuilder.addValue(b);
-            }
+            Object value = AttrTypeUtil.createInstantiatedObject(attrValue, javaclass);
+            attrBuilder.addValue(value);
             return attrBuilder.build();
         }
         return null;
@@ -563,5 +486,4 @@ public class XMLHandlerImpl implements XMLHandler {
     private boolean isTextNode(Node node) {
         return node != null && node.getNodeType() == Node.TEXT_NODE;
     }
-
 }
