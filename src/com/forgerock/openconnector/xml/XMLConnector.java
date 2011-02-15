@@ -137,16 +137,7 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         return new XMLFilterTranslator();
     }
 
-    /*
-     * oclass - The object class for the search. Will never be null.
-    query - The native query to run. A value of null means "return every instance of the given object class".
-    handler - Results should be returned to this handler
-    options - Additional options that impact the way this operation is run. If the caller passes null,
-    the framework will convert this into an empty set of options, so SPI need not guard against options being null.
-     *
-     *
-     * The framework conta
-     */
+ 
     public void executeQuery(ObjectClass objClass, IQuery query, ResultsHandler handler, OperationOptions options) {
         QueryBuilder queryBuilder = new QueryBuilder(query, objClass);
         Collection<ConnectorObject> hits = xmlHandler.search(queryBuilder.toString(), objClass);
