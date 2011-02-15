@@ -70,9 +70,6 @@ public class XMLConfiguration extends AbstractConfiguration {
         this.xsdRIFilePath = xsdFilePath;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void validate() {
         Assertions.blankCheck(xmlFilePath, "xmlFilePath");
         Assertions.blankCheck(xsdFilePath, "xsdFilePath");
