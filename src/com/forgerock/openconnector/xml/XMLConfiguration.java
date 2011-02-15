@@ -25,7 +25,6 @@ package com.forgerock.openconnector.xml;
 import org.identityconnectors.common.Assertions;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
 import org.identityconnectors.framework.spi.ConfigurationProperty;
-import org.identityconnectors.common.StringUtil;
 
 /**
  * Extends the {@link AbstractConfiguration} class to provide all the necessary
