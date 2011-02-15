@@ -191,6 +191,9 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
      * {@inheritDoc}
      */   
     public void test() {
+       //tester at alt av config er riktig
+       //tester at alle filer og tilkoblinger er tilgjengelige
+       //kaster så nøyaktige Exceptions som mulig
        throw new UnsupportedOperationException();
     } 
      
