@@ -42,248 +42,54 @@ import org.jdom.Element;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 
-/**
- * Attempts to test the {@link XMLConnector} with the framework.
- *
- * @author slogum
- * @version 1.0
- * @since 1.0
- */
 public class XMLConnectorTests {
 
-    public static final String ATTR_REGISTRY_NAME = "registryName";
-    public static final String ATTR_FIRST_NAME = "firstname";
-    public static final String ATTR_LAST_NAME = "lastname";
-    public static final String ATTR_SSO_USER = "ssoUser";
-    public static final String ATTR_PASSWORD_POLICY = "passwordPolicy";
-    public static final String ATTR_EXPIRE_PASSWORD = "expirePassword";
-    public static final String ATTR_DELETE_FROM_REGISTRY = "deleteFromRegistry";
-    public static final String ATTR_SYNC_GSO_CREDENTIALS = "syncGSOCredentials";
-    public static final String ATTR_IMPORT_FROM_REGISTRY = "importFromRegistry";
-    public static final String ATTR_GROUP_MEMBERS = "members";
-    public static final String ATTR_GSO_WEB_CREDENTIALS = "gsoWebCredentials";
-    public static final String ATTR_GSO_GROUP_CREDENTIALS = "gsoGroupCredentials";
-    public static final String TYPE_GSO_GROUP_RESOURCE = "GSOGroupResource";
-    public static final String TYPE_GSO_RESOURCE = "GSOWebResource";
-    public static final String TOKEN_GSO_RESOURCE = "|:";
-
-    //set up logging
-    private static final Log log = Log.getLog(XMLConnectorTests.class);
+    private static XMLConnector xmlConnector;
+    private static XMLConfiguration xmlConfig;
 
     @BeforeClass
     public static void setUp() {
-        //Assert.assertNotNull(HOST);
-        //Assert.assertNotNull(LOGIN);
-        //Assert.assertNotNull(PASSWORD);
-        //
-        //other setup work to do before running tests
-        //
+        xmlConfig = new XMLConfiguration();
+        xmlConfig.setXmlFilePath("test/xml_store/testXmlConnector.xml");
+        xmlConfig.setXsdFilePath("test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
+        
+        xmlConnector = new XMLConnector();
     }
 
     @AfterClass
     public static void tearDown() {
-        //
-        //clean up resources
-        //
+        xmlConfig = null;
+        xmlConnector = null;
     }
 
     @Test
-    public void exampleTest1() {
-
-        // Create test attributes
-        Set<Attribute> attributes = new HashSet<Attribute>();
-        attributes.add(AttributeBuilder.build("__NAME__", "namedid"));
-        attributes.add(AttributeBuilder.build(ATTR_IMPORT_FROM_REGISTRY, String.valueOf(false)));
-        attributes.add(AttributeBuilder.build(ATTR_FIRST_NAME, "Jan Eirik"));
-        attributes.add(AttributeBuilder.build(ATTR_LAST_NAME, "Hallstensen"));
-        Name name = AttributeUtil.getNameFromAttributes(attributes);
-
-        // Convert attribute set to map
-        Map<String, Attribute> attrMap = new HashMap<String, Attribute>(AttributeUtil.toMap(attributes));
-
-        // Get schema
-        Schema schema = getSchema();
-
-
-        ObjectClass c = new ObjectClass("ASD");
-        //System.out.println(c.getObjectClassValue());
-
-        // Get object class
-        ObjectClassInfo info =  schema.findObjectClassInfo(ObjectClass.ACCOUNT_NAME);
-
-        // Get fields for object class
-        Set<AttributeInfo> attr = info.getAttributeInfo();
-
-
-
-        // Create "root" element
-        Element root = new Element(ObjectClass.ACCOUNT_NAME);
-
-        // Add child elements
-        for (AttributeInfo ai : attr) {
-            //System.out.println(ai.isRequired());
-
-            Element child = new Element(ai.getName());
-
-            // Add attribute value to field
-            if (attrMap.containsKey(ai.getName())) {
-                child.setText(AttributeUtil.getStringValue(attrMap.get(ai.getName())));
-            }
-
-            root.addContent(child);
-        }
-
-        XMLOutputter out = new XMLOutputter(Format.getPrettyFormat());
-
-        /*try {
-            out.output(root, System.out);
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }*/
-    }
-
-    public Schema getSchema() {
-        Schema schema;
-
-        SchemaBuilder schemaBuilder = new SchemaBuilder(XMLConnector.class);
-
-            // GSO WEB Resource
-            ObjectClassInfoBuilder ocBuilder = new ObjectClassInfoBuilder();
-            ocBuilder.setType(TYPE_GSO_RESOURCE);
-            ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(Name.NAME, String.class, EnumSet.of(Flags.REQUIRED)));
-            ObjectClassInfo objectClassInfo = ocBuilder.build();
-            schemaBuilder.defineObjectClass(objectClassInfo);
-            schemaBuilder.removeSupportedObjectClass(CreateOp.class, objectClassInfo);
-            schemaBuilder.removeSupportedObjectClass(UpdateOp.class, objectClassInfo);
-            schemaBuilder.removeSupportedObjectClass(DeleteOp.class, objectClassInfo);
-
-
-            // GSO GROUP Resource
-            ocBuilder = new ObjectClassInfoBuilder();
-            ocBuilder.setType(TYPE_GSO_GROUP_RESOURCE);
-            ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(Name.NAME, String.class, EnumSet.of(Flags.REQUIRED)));
-            objectClassInfo = ocBuilder.build();
-            schemaBuilder.defineObjectClass(objectClassInfo);
-            schemaBuilder.removeSupportedObjectClass(CreateOp.class, objectClassInfo);
-            schemaBuilder.removeSupportedObjectClass(UpdateOp.class, objectClassInfo);
-            schemaBuilder.removeSupportedObjectClass(DeleteOp.class, objectClassInfo);
-
-
-            // Group
-            ocBuilder = new ObjectClassInfoBuilder();
-            ocBuilder.setType(ObjectClass.GROUP_NAME);
-            ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(Name.NAME, String.class, EnumSet.of(Flags.REQUIRED)));
-            //ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(Uid.NAME, String.class, EnumSet.of(Flags.REQUIRED)));
-            ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(ATTR_REGISTRY_NAME, String.class, EnumSet.of(Flags.REQUIRED)));
-            ocBuilder.addAttributeInfo(PredefinedAttributeInfos.DESCRIPTION);
-            ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(ATTR_GROUP_MEMBERS, String.class, EnumSet.of(Flags.MULTIVALUED)));
-            ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(ATTR_IMPORT_FROM_REGISTRY, Boolean.class));
-            schemaBuilder.defineObjectClass(ocBuilder.build());
-
-
-            // Users
-            ocBuilder = new ObjectClassInfoBuilder();
-            ocBuilder.setType(ObjectClass.ACCOUNT_NAME);
-            //The name of the object
-            ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(Name.NAME, String.class, EnumSet.of(Flags.REQUIRED, Flags.NOT_UPDATEABLE)));
-            //User registry name
-            ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(ATTR_REGISTRY_NAME, String.class, EnumSet.of(Flags.REQUIRED, Flags.NOT_UPDATEABLE)));
-            ocBuilder.addAttributeInfo(PredefinedAttributeInfos.DESCRIPTION);
-            ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(ATTR_FIRST_NAME, String.class, EnumSet.of(Flags.NOT_UPDATEABLE)));
-            ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(ATTR_LAST_NAME, String.class, EnumSet.of(Flags.NOT_UPDATEABLE)));
-            ocBuilder.addAttributeInfo(PredefinedAttributeInfos.LAST_LOGIN_DATE);
-            ocBuilder.addAttributeInfo(PredefinedAttributeInfos.GROUPS);
-            ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(ATTR_SSO_USER, Boolean.class));
-            ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(ATTR_IMPORT_FROM_REGISTRY, Boolean.class));
-            ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(ATTR_EXPIRE_PASSWORD, Boolean.class));
-            ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(ATTR_PASSWORD_POLICY, Boolean.class, EnumSet.of(Flags.NOT_UPDATEABLE)));
-            ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(ATTR_GSO_GROUP_CREDENTIALS, String.class, EnumSet.of(Flags.MULTIVALUED)));
-            ocBuilder.addAttributeInfo(AttributeInfoBuilder.build(ATTR_GSO_WEB_CREDENTIALS, String.class, EnumSet.of(Flags.MULTIVALUED)));
-            ocBuilder.addAttributeInfo(OperationalAttributeInfos.PASSWORD);
-            ocBuilder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
-            schemaBuilder.defineObjectClass(ocBuilder.build());
-            schema = schemaBuilder.build();
-
-            return schema;
+    public void callInitShouldNotCastException(){
+        xmlConnector.init(xmlConfig);
     }
 
     @Test
-    public void exampleTest2() {
+    public void callTestShouldNotCastException(){
+        xmlConnector.test();
+    }
 
-        log.info("Starting create element test");
+    @Test(expected=NullPointerException.class)
+    public void callTestShouldCastNullPointerException(){
+        XMLConnector xmlCon = new XMLConnector();
+        xmlCon.test();
+    }
 
-        XMLConfiguration config = new XMLConfiguration();
-        config.setXmlFilePath("test.xml");
-        config.setXsdFilePath("test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
-        SchemaParser parser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
+    @Test(expected=IllegalArgumentException.class)
+    public void callTestShouldCastIllegalArgumentException(){
+        XMLConfiguration conf = new XMLConfiguration();
         
-        XMLHandlerImpl handler = new XMLHandlerImpl(config.getXmlFilePath(), XmlHandlerUtil.createHardcodedSchema(), parser.getXsdSchema());
-        //XMLHandlerImpl handler = new XMLHandlerImpl(config.getXmlFilePath(), XmlHandlerUtil.createHardcodedSchema(), parser.getXsdSchema());
+        conf.setXmlFilePath("404.xml");
+        conf.setXsdFilePath("test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
+        conf.setXsdIcfFilePath("404.xml");
 
-        GuardedString password = new GuardedString(new char[] {'a', 's', 'd', 'f'});
-        String answer = "forgerock";
-        GuardedByteArray secretAnswer = new GuardedByteArray(answer.getBytes());
-
-        Set<Attribute> attributes = new HashSet<Attribute>();
-        attributes.add(AttributeBuilder.build("__NAME__", "idfield2"));
-        attributes.add(AttributeBuilder.build("__PASSWORD__", password));
-        attributes.add(AttributeBuilder.build("password-secret-answer", secretAnswer));
-        attributes.add(AttributeBuilder.build("is-deleted", "asdasdasd"));
-        attributes.add(AttributeBuilder.build(ATTR_REGISTRY_NAME, "registry"));
-        attributes.add(AttributeBuilder.build(ATTR_IMPORT_FROM_REGISTRY, String.valueOf(false)));
-        attributes.add(AttributeBuilder.build(ATTR_FIRST_NAME, "Ola S."));
-        attributes.add(AttributeBuilder.build(ATTR_LAST_NAME, "Christophersen"));
-
-
-        ObjectClass objClass = new ObjectClass(ObjectClass.ACCOUNT_NAME);
-
-        Uid uid = handler.create(objClass, attributes);
-
-        log.info("Ending create element test");
+        XMLConnector xmlCon = new XMLConnector();
+        xmlCon.init(conf);
+        
+        xmlCon.test();
     }
-
-
-    @Test
-    public void exampleTest3() {
-        XMLConfiguration config = new XMLConfiguration();
-        config.setXmlFilePath("test.xml");
-        config.setXsdFilePath("test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
-        SchemaParser parser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
-
-        XMLHandlerImpl handler = new XMLHandlerImpl(config.getXmlFilePath(), XmlHandlerUtil.createHardcodedSchema(), parser.getXsdSchema());
-
-        Set<Attribute> attributes = new HashSet<Attribute>();
-        //attributes.add(AttributeBuilder.build("__NAME__", "idfield3"));
-        attributes.add(AttributeBuilder.build(ATTR_FIRST_NAME, "Jan Eirik Test"));
-        attributes.add(AttributeBuilder.build(ATTR_LAST_NAME, "Hallstensen Test 2"));
-
-
-        ObjectClass objClass = new ObjectClass(ObjectClass.ACCOUNT_NAME);
-
-
-//        handler.update(objClass, new Uid("idfield3"), attributes);
-
-        //Element element = handler.getEntry(objClass, AttributeUtil.getNameFromAttributes(attributes));
-
-
-        //System.out.println(element.getChild(ATTR_FIRST_NAME).getText());
-    }
-
-    @Test
-    public void exampleTest4() {
-        XMLConfiguration config = new XMLConfiguration();
-        config.setXmlFilePath("test.xml");
-        config.setXsdFilePath("test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
-        SchemaParser parser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
-
-        XMLHandlerImpl handler = new XMLHandlerImpl(config.getXmlFilePath(), parser.parseSchema(), parser.getXsdSchema());
-//        handler.delete(ObjectClass.ACCOUNT, new Uid("idfield3"));
-    }
-
-    @Test
-    public void testSchema() {
-        XmlHandlerUtil util = new XmlHandlerUtil();
-        util.createHardcodedSchema();
-    }
+  
 }
