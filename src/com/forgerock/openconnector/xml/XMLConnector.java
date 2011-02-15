@@ -23,6 +23,9 @@ package com.forgerock.openconnector.xml;
 import com.forgerock.openconnector.xml.query.IQuery;
 import com.forgerock.openconnector.xml.query.QueryBuilder;
 import com.forgerock.openconnector.xsdparser.SchemaParser;
+import java.io.File;
+import java.io.IOException;
+import java.rmi.ConnectIOException;
 import java.util.*;
 
 import org.identityconnectors.common.Assertions;
@@ -138,6 +141,24 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         Assertions.nullCheck(xmlHandler, "xmlHandler");
         Assertions.nullCheck(schemaParser, "schemaParser");
 
+        File fileXml = new File(config.getXmlFilePath());
+        if(!fileXml.exists()){
+            throw new IllegalArgumentException("File at filepath " +  config.getXmlFilePath() + " does not exists");
+        }
+
+        File fileXsd = new File(config.getXsdFilePath());
+        if(!fileXsd.exists()){
+             throw new IllegalArgumentException("File at filepath " +  config.getXsdFilePath() + " does not exists");
+        }
+
+        if(config.getXsdIcfFilePath() != null){
+            File fileXsdIcf = new File(config.getXsdFilePath());
+            if(!fileXsdIcf.exists()){
+             throw new IllegalArgumentException("File at filepath " +  config.getXsdIcfFilePath() + " does not exists");
+            }
+        }
+
+        
         log.info("Exit {0}", method);
     }
 }
