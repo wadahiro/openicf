@@ -3,8 +3,9 @@
  * and open the template in the editor.
  */
 
-package com.forgerock.openconnector.xml;
+package com.forgerock.openconnector.util;
 
+import com.forgerock.openconnector.xml.*;
 import java.util.EnumSet;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;

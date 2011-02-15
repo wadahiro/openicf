@@ -1,12 +1,13 @@
-package com.forgerock.openconnector.xml;
+package com.forgerock.openconnector.util;
 
+import com.forgerock.openconnector.xml.*;
 import com.sun.xml.xsom.XSElementDecl;
 import com.sun.xml.xsom.XSSchema;
 import java.util.HashMap;
 import java.util.Map;
 
 
-public enum NSLookup {
+public enum NamespaceLookup {
 
     INSTANCE;
 

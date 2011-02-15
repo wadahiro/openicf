@@ -8,10 +8,6 @@ import com.forgerock.openconnector.xml.XMLHandlerImpl;
 import java.util.Iterator;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 
-/**
- *
- * @author slogum
- */
 public class QueryBuilder {
 
     private IQuery query;
@@ -52,7 +48,6 @@ public class QueryBuilder {
         if (query == null || query.getParts().isEmpty()) {
             return String.format("%s %s", selectPart, returnPart);
         } else {
-            System.out.println(String.format("%s %s %s", selectPart, wherePart, returnPart));
             return String.format("%s %s %s", selectPart, wherePart, returnPart);
         }
     }
@@ -70,6 +65,6 @@ public class QueryBuilder {
     }
 
     private void appendFLWORExpression(StringBuilder sb, ObjectClass objClass) {
-        sb.append("for $x in /icf:OpenICFContainer/" + XMLHandlerImpl.RI_NAMESPACE_PREFIX + ":" + objClass.getObjectClassValue());
+        sb.append("for $x in /icf:OpenICFContainer//" + XMLHandlerImpl.RI_NAMESPACE_PREFIX + ":" + objClass.getObjectClassValue());
     }
 }

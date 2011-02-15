@@ -1,5 +1,8 @@
 package com.forgerock.openconnector.xml;
 
+import com.forgerock.openconnector.util.GuardedByteArrayAccessor;
+import com.forgerock.openconnector.util.NamespaceLookup;
+import com.forgerock.openconnector.util.GuardedStringAccessor;
 import com.forgerock.openconnector.xml.query.IQuery;
 import com.forgerock.openconnector.xml.query.QueryBuilder;
 import com.forgerock.openconnector.xsdparser.NamespaceType;
@@ -90,7 +93,7 @@ public class XMLHandlerImpl implements XMLHandler {
         this.riSchema = xsdSchemas.getSchema(1);
         this.icfSchema = xsdSchemas.getSchema(2);
 
-        NSLookup.INSTANCE.initialize(icfSchema);
+        NamespaceLookup.INSTANCE.initialize(icfSchema);
 
         buildDocument();
     }
@@ -354,26 +357,25 @@ public class XMLHandlerImpl implements XMLHandler {
     }
 
     //TODO:
-    /*
-     * se litt mer på hvordan man bygger objectinfo-objektet
-     * refaktorer koden
-     * sett uid riktig
+       /*
      * close connections
      *
      * */
     public Collection<ConnectorObject> search(String query, ObjectClass objClass) { // TODO: remove exception
 
-        ObjectClassInfo objInfo = connSchema.findObjectClassInfo(ObjectClass.ACCOUNT_NAME);
-        Set<AttributeInfo> objAttributes = objInfo.getAttributeInfo();
-
-        HashMap<String, String> attrInfo = new HashMap<String, String>();
-        for (AttributeInfo info : objAttributes) {
-            attrInfo.put(info.getName(), info.getType().getSimpleName());
-        }
-        
         List<ConnectorObject> hits = null;
 
-        if (query != null && !query.isEmpty()) {
+        if (query != null && !query.isEmpty() && objClass != null) {
+
+            ObjectClassInfo objInfo = connSchema.findObjectClassInfo(objClass.getObjectClassValue());
+            Set<AttributeInfo> objAttributes = objInfo.getAttributeInfo();
+
+            HashMap<String, String> attrInfo = new HashMap<String, String>();
+            
+            for (AttributeInfo info : objAttributes) {
+                attrInfo.put(info.getName(), info.getType().getSimpleName());
+            }
+
             try {
                 XQResultSequence result = executeXqueryExpression(query);
 
@@ -476,6 +478,10 @@ public class XMLHandlerImpl implements XMLHandler {
 
             // add the correct object to the attributebuilder
             String javaclass = attrInfo.get(attrName);
+
+//            Object value = formatter.createObject(javaclass, attrValue);
+//            attrBuilder.addValue(value);
+
             if (javaclass.equals("String")) {
                 String s = new String(attrValue);
                 attrBuilder.addValue(s);
@@ -537,10 +543,10 @@ public class XMLHandlerImpl implements XMLHandler {
                 attrBuilder.addValue(bd);
             }
             else if (javaclass.equals("GuardedString")) {
-                GuardedString gs = new GuardedString(attrValue.toCharArray()); // ???
+                GuardedString gs = new GuardedString(attrValue.toCharArray());
                 attrBuilder.addValue(gs);
             }
-            else if (javaclass.equals("GuardedByteArray")) { // ???
+            else if (javaclass.equals("GuardedByteArray")) {
                 GuardedByteArray gb = new GuardedByteArray(attrValue.getBytes());
                 attrBuilder.addValue(gb);
             }

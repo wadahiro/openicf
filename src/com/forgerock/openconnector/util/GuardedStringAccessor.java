@@ -23,7 +23,7 @@
  * 
  * $Id$
  */
-package com.forgerock.openconnector.xml;
+package com.forgerock.openconnector.util;
 
 import java.util.Arrays;
 import org.identityconnectors.common.security.GuardedString;

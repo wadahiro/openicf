@@ -22,6 +22,7 @@
  */
 package com.forgerock.openconnector.xml;
 
+import com.forgerock.openconnector.util.NamespaceLookup;
 import com.forgerock.openconnector.xml.query.IQuery;
 import com.forgerock.openconnector.xml.query.QueryImpl;
 import com.forgerock.openconnector.xml.query.ComparisonQuery;
@@ -216,7 +217,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
     }
 
     private String createNameWithNamespace(String attrName) {
-        String ns = NSLookup.INSTANCE.getNamespace(attrName);
+        String ns = NamespaceLookup.INSTANCE.getNamespace(attrName);
         if (ns == null)
             ns = XMLHandlerImpl.RI_NAMESPACE_PREFIX;
         return ns + ":" + attrName;

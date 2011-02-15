@@ -6,6 +6,7 @@
 package com.forgerock.openconnector.xml;
 
 
+import com.forgerock.openconnector.util.XmlHandlerUtil;
 import com.forgerock.openconnector.xsdparser.SchemaParser;
 import com.sun.org.apache.xerces.internal.parsers.XMLParser;
 import java.util.EnumSet;
