@@ -83,9 +83,6 @@ public class XMLConfiguration extends AbstractConfiguration {
         return this.xsdRIFilePath;
     }
 
-    /**
-     * @param xmlFilePath the xmlFilePath to set
-     */
     public void setXsdRIFilePath(String xsdFilePath) {
         this.xsdRIFilePath = xsdFilePath;
     }
