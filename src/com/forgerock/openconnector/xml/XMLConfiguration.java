@@ -96,5 +96,6 @@ public class XMLConfiguration extends AbstractConfiguration {
     public void validate() {
         Assertions.blankCheck(xmlFilePath, "xmlFilePath");
         Assertions.blankCheck(xsdFilePath, "xsdFilePath");
+        Assertions.blankCheck(xsdRIFilePath, "xsdRIFilePath");
     }
 }
