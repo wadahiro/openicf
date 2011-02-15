@@ -41,7 +41,7 @@ public class SchemaParserTests {
     
     @Test(expected= NullPointerException.class)
     public void newSchemaParserWithNullClassShouldReturnNullPointerException(){
-        SchemaParser parserTest = new SchemaParser(null, "test/xml_store/404");
+        SchemaParser parserTest = new SchemaParser(null, null);
     }
 
     @Test
