@@ -100,6 +100,21 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         return uid;
     }
 
+
+    public Uid update(ObjectClass objClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
+        final String method = "update";
+        log.info("Entry {0}", method);
+
+        Assertions.nullCheck(objClass, "objectClass");
+        Assertions.nullCheck(uid, "attributes");
+
+        Uid returnUid = xmlHandler.update(objClass, uid, replaceAttributes);
+
+        log.info("Exit {0}", method);
+
+        return returnUid;
+    }
+
     public void delete(final ObjectClass objClass, final Uid uid, final OperationOptions options) {
 
         final String method = "delete";
@@ -149,19 +164,5 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         Assertions.nullCheck(schemaParser, "schemaParser");
 
         log.info("Exit {0}", method);
-    }
-
-    public Uid update(ObjectClass objClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
-        final String method = "update";
-        log.info("Entry {0}", method);
-
-        Assertions.nullCheck(objClass, "objectClass");
-        Assertions.nullCheck(uid, "attributes");
-
-        Uid returnUid = xmlHandler.update(objClass, uid, replaceAttributes);
-
-        log.info("Exit {0}", method);
-        
-        return returnUid;
     }
 }
