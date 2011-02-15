@@ -93,13 +93,24 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         Assertions.nullCheck(objClass, "objectClass");
         Assertions.nullCheck(attributes, "attributes");
 
+        Uid uid = xmlHandler.create(objClass, attributes);
+
         log.info("Exit {0}", method);
 
-        return xmlHandler.create(objClass, attributes);
+        return uid;
     }
 
     public void delete(final ObjectClass objClass, final Uid uid, final OperationOptions options) {
-        throw new UnsupportedOperationException();
+
+        final String method = "delete";
+        log.info("Entry {0}", method);
+
+        Assertions.nullCheck(objClass, "objectClass");
+        Assertions.nullCheck(uid, "attributes");
+
+        xmlHandler.delete(objClass, uid);
+
+        log.info("Exit {0}", method);
     }
 
     public Schema schema() {
@@ -130,16 +141,27 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
     }
 
     public void test() {
-        //tester at alt av config er riktig
-        //tester at alle filer og tilkoblinger er tilgjengelige
-        //kaster så nøyaktige Exceptions som mulig
-        throw new UnsupportedOperationException();
+        final String method = "test";
+        log.info("Entry {0}", method);
+
+        Assertions.nullCheck(config, "config");
+        Assertions.nullCheck(xmlHandler, "xmlHandler");
+        Assertions.nullCheck(schemaParser, "schemaParser");
+
+        log.info("Exit {0}", method);
     }
 
-    public Uid update(ObjectClass objclass,
-            Uid uid,
-            Set<Attribute> replaceAttributes,
-            OperationOptions options) {
-        throw new UnsupportedOperationException();
+    public Uid update(ObjectClass objClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
+        final String method = "update";
+        log.info("Entry {0}", method);
+
+        Assertions.nullCheck(objClass, "objectClass");
+        Assertions.nullCheck(uid, "attributes");
+
+        Uid returnUid = xmlHandler.update(objClass, uid, replaceAttributes);
+
+        log.info("Exit {0}", method);
+        
+        return returnUid;
     }
 }
