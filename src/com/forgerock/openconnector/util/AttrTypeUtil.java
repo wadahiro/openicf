@@ -13,6 +13,7 @@ import org.identityconnectors.framework.common.objects.AttributeInfo;
 
 public class AttrTypeUtil {
 
+    // List of all supported classes in the framework
     public static final String STRING = "String";
     public static final String INT_PRIMITIVE = "int";
     public static final String INTEGER = "Integer";
