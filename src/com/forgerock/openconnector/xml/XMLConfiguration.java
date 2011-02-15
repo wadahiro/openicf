@@ -61,7 +61,7 @@ public class XMLConfiguration extends AbstractConfiguration {
         this.xsdFilePath = xsdFilePath;
     }
 
-    @ConfigurationProperty(displayMessageKey="XSD_RI_FILEPATH_PROPERTY_DISPLAY", helpMessageKey="XSD_RI_FILEPATH_PROPERTY_HELP", confidential=false)
+    @ConfigurationProperty(displayMessageKey="XSD_ICF_FILEPATH_PROPERTY_DISPLAY", helpMessageKey="XSD_ICF_FILEPATH_PROPERTY_HELP", confidential=false)
     public String getXsdIcfFilePath() {
         return this.xsdIcfFilePath;
     }
