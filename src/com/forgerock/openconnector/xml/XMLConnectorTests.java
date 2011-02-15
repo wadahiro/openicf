@@ -1,17 +1,13 @@
 package com.forgerock.openconnector.xml;
 
 
-import com.forgerock.openconnector.xml.query.IQuery;
-import com.forgerock.openconnector.xml.query.QueryBuilder;
 import java.util.HashSet;
 import java.util.Set;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
-import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
-import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.junit.*;
 import static org.junit.Assert.*;
