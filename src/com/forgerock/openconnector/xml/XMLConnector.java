@@ -110,7 +110,6 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         return schemaParser.parseSchema();
     }
 
-    @Override
     public FilterTranslator<IQuery> createFilterTranslator(ObjectClass objClass, OperationOptions options) {
         return new XMLFilterTranslator();
     }
