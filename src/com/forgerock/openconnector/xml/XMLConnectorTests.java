@@ -6,6 +6,7 @@ import com.forgerock.openconnector.xml.query.QueryBuilder;
 import java.util.HashSet;
 import java.util.Set;
 import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -85,6 +86,12 @@ public class XMLConnectorTests {
 
     @Test
     public void createAccountShouldReturnUid(){
+        Uid uid = xmlConnector.create(ObjectClass.ACCOUNT, creatAttributes(), null);
+        assertNotNull(uid);
+    }
+
+    @Test(expected=AlreadyExistsException.class)
+    public void createAccountWithSameNameShouldCastAlreadyExistsException(){
         Uid uid = xmlConnector.create(ObjectClass.ACCOUNT, creatAttributes(), null);
         assertNotNull(uid);
     }
