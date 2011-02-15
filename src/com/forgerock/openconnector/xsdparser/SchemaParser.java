@@ -1,5 +1,6 @@
 package com.forgerock.openconnector.xsdparser;
 
+import com.forgerock.openconnector.util.AttrTypeUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -129,7 +130,12 @@ public class SchemaParser {
                                 }
                                 if (attrType == null) {
                                     XSType typeNotFlagedJavaclass = elementTerm.getType();
-                                    attrType = findJavaClassType(typeNotFlagedJavaclass.getName());
+                                    if(typeNotFlagedJavaclass.getName() != null){
+                                        Object classObject = AttrTypeUtil.createInstantiatedObject("1337", typeNotFlagedJavaclass.getName());
+                                        if(classObject != null){
+                                            attrType = classObject.getClass();
+                                        }
+                                    }
                                 }
 
                                 try {
@@ -250,38 +256,6 @@ public class SchemaParser {
             }
         }
         return list;
-    }
-
-    private Class<?> findJavaClassType(String name) {
-        if (name != null) {
-
-            if (name.equals("string")) {
-                return String.class;
-
-            } else if (name.equals("boolean")) {
-                return boolean.class;
-
-            } else if (name.equals("long")) {
-                return long.class;
-                
-            } else if (name.equals("int")) {
-                return int.class;
-
-            } else if (name.equals("float")) {
-                return float.class;
-
-            } else if (name.equals("double")) {
-                return double.class;
-
-            } else if (name.equals("base64Binary")) {
-                return byte[].class;
-
-            } else if (name.equals("char")){
-                return char.class;
-                
-            }
-        }
-        return null;
     }
 
     private Class<?> getJavaClassType(List<String> list) {
