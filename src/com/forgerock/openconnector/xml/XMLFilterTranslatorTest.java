@@ -10,6 +10,7 @@ import com.forgerock.openconnector.xml.query.IQuery;
 import com.forgerock.openconnector.xml.query.QueryBuilder;
 import com.forgerock.openconnector.xsdparser.SchemaParser;
 import java.util.Collection;
+import java.util.List;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -17,7 +18,9 @@ import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
 import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.GreaterThanFilter;
+import org.identityconnectors.framework.common.objects.filter.GreaterThanOrEqualFilter;
 import org.identityconnectors.framework.common.objects.filter.LessThanFilter;
+import org.identityconnectors.framework.common.objects.filter.LessThanOrEqualFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -38,8 +41,11 @@ public class XMLFilterTranslatorTest {
     private IQuery equalsQueryFnJan;
     private IQuery equalsQueryFnJorgen;
     private IQuery equalsQueryLnHallstensen;
+    private IQuery equalsQueryLnRingen;
     private IQuery gtQueryMs;
     private IQuery ltQueryMs;
+    private IQuery gtoreqQueryYearsEmployed;
+    private IQuery ltoreqQueryYearsEmployed;
 
     public XMLFilterTranslatorTest() {
     }
@@ -55,7 +61,7 @@ public class XMLFilterTranslatorTest {
     @Before
     public void setUp() {
         XMLConfiguration config = new XMLConfiguration();
-        config.setXmlFilePath("test-sample2.xml");
+        config.setXmlFilePath("test-values.xml");
         config.setXsdFilePath("test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
         SchemaParser parser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
 
@@ -75,6 +81,12 @@ public class XMLFilterTranslatorTest {
         equalsQueryLnHallstensen = ft.createEqualsExpression(filter2, false);
 
         attrBld = new AttributeBuilder();
+        attrBld.setName("lastname");
+        attrBld.addValue("Ringen");
+        EqualsFilter filter4 = new EqualsFilter(attrBld.build());
+        equalsQueryLnRingen = ft.createEqualsExpression(filter4, false);
+
+        attrBld = new AttributeBuilder();
         attrBld.setName("firstname");
         attrBld.addValue("Jørgen");
         EqualsFilter filter3 = new EqualsFilter(attrBld.build());
@@ -84,14 +96,28 @@ public class XMLFilterTranslatorTest {
         attrBld.setName("ms-employed");
         attrBld.addValue("1");
         GreaterThanFilter gtFilter = new GreaterThanFilter(attrBld.build());
-        IQuery gtQueryMs = ft.createGreaterThanExpression(gtFilter, false);
+        gtQueryMs = ft.createGreaterThanExpression(gtFilter, false);
 
 
         attrBld = new AttributeBuilder();
         attrBld.setName("ms-employed");
-        attrBld.addValue("10000000000");
+        attrBld.addValue("99999999");
         LessThanFilter ltFilter = new LessThanFilter(attrBld.build());
-        IQuery ltQueryMs = ft.createLessThanExpression(ltFilter, false);
+        ltQueryMs = ft.createLessThanExpression(ltFilter, false);
+
+
+        attrBld = new AttributeBuilder();
+        attrBld.setName("years-employed");
+        attrBld.addValue("200");
+        LessThanOrEqualFilter ltoreqFilter = new LessThanOrEqualFilter(attrBld.build());
+        ltoreqQueryYearsEmployed = ft.createLessThanOrEqualExpression(ltoreqFilter, false);
+
+
+        attrBld = new AttributeBuilder();
+        attrBld.setName("years-employed");
+        attrBld.addValue("200");
+        GreaterThanOrEqualFilter gtoreqFilter = new GreaterThanOrEqualFilter(attrBld.build());
+        gtoreqQueryYearsEmployed = ft.createGreaterThanOrEqualExpression(gtoreqFilter, false);
     }
 
     @After
@@ -208,13 +234,33 @@ public class XMLFilterTranslatorTest {
     public void testGTAndLTExpressions() {
         IQuery andQuery = ft.createAndExpression(gtQueryMs, ltQueryMs);
         QueryBuilder builder = new QueryBuilder(andQuery, ObjectClass.ACCOUNT);
-        System.out.println("BUILDER: " + builder.toString());
         int hits = xmlHandler.search(builder.toString(), ObjectClass.ACCOUNT).size();
-        System.out.println("HITS: " + hits);
+        assertEquals(2, hits);
     }
 
     @Test
     public void testGTOREQAndLTOREQExpressions() {
-        
+        IQuery andQuery = ft.createAndExpression(gtoreqQueryYearsEmployed, ltoreqQueryYearsEmployed);
+        QueryBuilder builder = new QueryBuilder(andQuery, ObjectClass.ACCOUNT);
+        int hits = xmlHandler.search(builder.toString(), ObjectClass.ACCOUNT).size();
+        assertEquals(1, hits);
+    }
+
+    @Test
+    public void testAndChainedWithOr() {
+        IQuery andQuery = ft.createAndExpression(equalsQueryFnJan, equalsQueryLnHallstensen);
+        IQuery andQuery2 = ft.createAndExpression(equalsQueryFnJorgen, equalsQueryLnRingen);
+        List results = getResultsFromQuery(andQuery);
+        assertEquals(1, results.size());
+        results = getResultsFromQuery(andQuery2);
+        assertEquals(1, results.size());
+
+        IQuery orQuery = ft.createOrExpression(andQuery, andQuery2);
+        results = getResultsFromQuery(orQuery);
+        assertEquals(2, results.size());
+    }
+
+    private List getResultsFromQuery(IQuery query) {
+        return (List) xmlHandler.search(new QueryBuilder(query, ObjectClass.ACCOUNT).toString(), ObjectClass.ACCOUNT);
     }
 }

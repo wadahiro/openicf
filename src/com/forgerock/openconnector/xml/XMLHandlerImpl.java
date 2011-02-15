@@ -400,7 +400,6 @@ public class XMLHandlerImpl implements XMLHandler {
         if (getEntry(objClass, name) != null) {
             return true;
         }
-
         return false;
     }
     
@@ -423,7 +422,7 @@ public class XMLHandlerImpl implements XMLHandler {
         }
     }
 
-    // Returnes a connectorobject with correct objectclass and attributes
+    // Returns a connectorobject with correct objectclass and attributes
     private ConnectorObject createConnectorObject(XQItem xqItem, ObjectClass objClass, Map<String, String> attrInfo) throws XQException {
         Node node = xqItem.getNode();
         NodeList nodeList = node.getChildNodes();

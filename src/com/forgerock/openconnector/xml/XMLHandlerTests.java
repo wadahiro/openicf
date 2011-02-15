@@ -36,7 +36,7 @@ import static org.junit.Assert.*;
 public class XMLHandlerTests {
 
     private XMLHandler xmlHandler;
-    private static final String filePath = "test-sample2.xml";
+    private static final String filePath = "test-values.xml";
 
     private File testFile;
     private Collection<ConnectorObject> hits;
