@@ -11,16 +11,16 @@ public enum NamespaceLookup {
 
     INSTANCE;
 
-    private Map<String, String> nsFieldMap = new HashMap<String, String>();
+    private Map<String, String> namespaceMap = new HashMap<String, String>();
 
     public void initialize(XSSchema schema) {
         Map<String,XSElementDecl> map = schema.getElementDecls();
         for (String s : map.keySet()) {
-            nsFieldMap.put(s, XMLHandlerImpl.ICF_NAMESPACE_PREFIX);
+            namespaceMap.put(s, XMLHandlerImpl.ICF_NAMESPACE_PREFIX);
         }
     }
 
     public String getNamespace(String attrName) {
-        return nsFieldMap.get(attrName);
+        return namespaceMap.get(attrName);
     }
 }
