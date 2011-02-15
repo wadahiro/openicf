@@ -38,41 +38,25 @@ public class XMLConfiguration extends AbstractConfiguration {
     private String xsdFilePath = null;
 
     private String xsdRIFilePath = null;
-    /**
-     * Constructor
-     */
+
     public XMLConfiguration() {
 
     }
 
-    /**
-     * Accessor for the xml filepath property. Uses ConfigurationProperty annotation
-     * to provide property metadata to the application.
-     */
     @ConfigurationProperty(displayMessageKey="XML_FILEPATH_PROPERTY_DISPLAY", helpMessageKey="XML_FILEPATH_PROPERTY_HELP", confidential=false)
     public String getXmlFilePath() {
         return xmlFilePath;
     }
 
-    /**
-     * @param xmlFilePath the xmlFilePath to set
-     */
     public void setXmlFilePath(String xmlFilePath) {
         this.xmlFilePath = xmlFilePath;
     }
 
-        /**
-     * Accessor for the xml filepath property. Uses ConfigurationProperty annotation
-     * to provide property metadata to the application.
-     */
     @ConfigurationProperty(displayMessageKey="XSD_ICF_FILEPATH_PROPERTY_DISPLAY", helpMessageKey="XSD_ICF_FILEPATH_PROPERTY_HELP", confidential=false)
     public String getXsdFilePath() {
         return this.xsdFilePath;
     }
 
-    /**
-     * @param xmlFilePath the xmlFilePath to set
-     */
     public void setXsdFilePath(String xsdFilePath) {
         this.xsdFilePath = xsdFilePath;
     }
