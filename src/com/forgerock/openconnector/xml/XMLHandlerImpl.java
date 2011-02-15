@@ -438,22 +438,25 @@ public class XMLHandlerImpl implements XMLHandler {
         String nameTmp = "";
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node attributeNode = nodeList.item(i);
-            if (elementHasTextContent(attributeNode)) {
+            if (attributeNode.getNodeType() == Node.ELEMENT_NODE) {
+
                 Node textNode = attributeNode.getFirstChild();
-
-                String attrName = attributeNode.getLocalName();
-                String attrValue = textNode.getNodeValue();
-
-                if (attrName.equals("__UID__")) {
-                    conObjBuilder.setUid(attrValue);
-                    hasUid = true;
-                }
-                if (!hasUid && attrName.equals("__NAME__")) {
-                    nameTmp = attrValue;
-                }
                 
-                Attribute attribute = createAttribute(attrName, attrValue, attrInfo);
-                conObjBuilder.addAttribute(attribute);
+                if (isTextNode(textNode)) {
+                    String attrName = attributeNode.getLocalName();
+                    String attrValue = textNode.getNodeValue();
+
+                    if (attrName.equals("__UID__")) {
+                        conObjBuilder.setUid(attrValue);
+                        hasUid = true;
+                    }
+                    if (!hasUid && attrName.equals("__NAME__")) {
+                        nameTmp = attrValue;
+                    }
+
+                    Attribute attribute = createAttribute(attrName, attrValue, attrInfo);
+                    conObjBuilder.addAttribute(attribute);
+                }
             }
         }
         // set __NAME__ attribute as UID if no UID was wound
@@ -551,13 +554,8 @@ public class XMLHandlerImpl implements XMLHandler {
     }
 
     // see if an attribute-node has text-content
-    private boolean elementHasTextContent(Node node) {
-        Node child = node.getFirstChild();
-        if (child != null) {
-            if (child.getNodeType() == Node.TEXT_NODE) {
-                return true;
-            }
-        }
-        return false;
+    private boolean isTextNode(Node node) {
+        return node != null && node.getNodeType() == Node.TEXT_NODE;
     }
+
 }

@@ -103,7 +103,6 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
     /**
      * {@inheritDoc}
      */
-    // TODO: Typechecking??
     @Override
     protected IQuery createGreaterThanExpression(GreaterThanFilter filter, boolean not) {
         String attrName = filter.getAttribute().getName();

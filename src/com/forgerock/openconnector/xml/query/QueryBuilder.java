@@ -30,15 +30,10 @@ public class QueryBuilder {
 
     private void createSelectPart(ObjectClass objClass) {
         StringBuilder sb = new StringBuilder();
-        sb.append("declare namespace ");
-        sb.append(XMLHandlerImpl.ICF_NAMESPACE_PREFIX);
-        sb.append(" = \"http://openidm.forgerock.com/xml/ns/public/resource/openicf/resource-schema-1.xsd\"; ");
-        sb.append("declare namespace ");
-        sb.append(XMLHandlerImpl.RI_NAMESPACE_PREFIX);
-        sb.append(" = \"http://openidm.forgerock.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4\"; ");
-        sb.append("for $x in /icf:OpenICFContainer/" + XMLHandlerImpl.RI_NAMESPACE_PREFIX + ":" + objClass.getObjectClassValue());
+        appendIcfNamespace(sb);
+        appendRINamespace(sb);
+        appendFLWORExpression(sb, objClass);
         this.selectPart = sb.toString();
-        System.out.println("SELECTPART: " + selectPart);
     }
 
     private void createReturnPart() {
@@ -60,5 +55,21 @@ public class QueryBuilder {
             System.out.println(String.format("%s %s %s", selectPart, wherePart, returnPart));
             return String.format("%s %s %s", selectPart, wherePart, returnPart);
         }
+    }
+
+    private void appendIcfNamespace(StringBuilder sb) {
+        sb.append("declare namespace ");
+        sb.append(XMLHandlerImpl.ICF_NAMESPACE_PREFIX);
+        sb.append(" = \"http://openidm.forgerock.com/xml/ns/public/resource/openicf/resource-schema-1.xsd\"; ");
+    }
+
+    private void appendRINamespace(StringBuilder sb) {
+        sb.append("declare namespace ");
+        sb.append(XMLHandlerImpl.RI_NAMESPACE_PREFIX);
+        sb.append(" = \"http://openidm.forgerock.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4\"; ");
+    }
+
+    private void appendFLWORExpression(StringBuilder sb, ObjectClass objClass) {
+        sb.append("for $x in /icf:OpenICFContainer/" + XMLHandlerImpl.RI_NAMESPACE_PREFIX + ":" + objClass.getObjectClassValue());
     }
 }

@@ -206,5 +206,4 @@ public class XMLFilterTranslatorTest {
         System.out.println(builder.toString());
         assertEquals(1, hits);
     }
-
 }
