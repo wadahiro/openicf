@@ -22,11 +22,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.xquery.XQConnection;
-import javax.xml.xquery.XQConstants;
-import javax.xml.xquery.XQDataSource; 
 import javax.xml.xquery.XQException;
-import javax.xml.xquery.XQExpression;
 import javax.xml.xquery.XQItem;
 import javax.xml.xquery.XQResultSequence; 
 import org.identityconnectors.common.logging.Log;
@@ -47,7 +43,6 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
-import net.sf.saxon.xqj.SaxonXQDataSource; 
 import org.identityconnectors.common.Assertions;
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
@@ -57,7 +52,6 @@ import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.jdom.Namespace;
 import org.jdom.input.DOMBuilder;
-import org.jdom.output.DOMOutputter;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 

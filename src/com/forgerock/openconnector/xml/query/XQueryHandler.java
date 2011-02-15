@@ -18,10 +18,6 @@ import org.jdom.Document;
 import org.jdom.JDOMException;
 import org.jdom.output.DOMOutputter;
 
-/**
- *
- * @author slogum
- */
 public class XQueryHandler {
 
     private XQDataSource datasource;
