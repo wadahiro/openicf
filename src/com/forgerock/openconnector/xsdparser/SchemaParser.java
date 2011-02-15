@@ -33,7 +33,6 @@ import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
-import javax.swing.filechooser.FileSystemView;
 import org.identityconnectors.common.Assertions;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.FrameworkUtil;
