@@ -25,6 +25,7 @@ import com.forgerock.openconnector.xml.query.QueryBuilder;
 import com.forgerock.openconnector.xsdparser.SchemaParser;
 import java.util.*;
 
+import org.identityconnectors.common.Assertions;
 import org.identityconnectors.common.security.*;
 import org.identityconnectors.framework.spi.*;
 import org.identityconnectors.framework.spi.operations.*;
@@ -39,20 +40,16 @@ import org.identityconnectors.common.logging.Log;
  * @version 1.0
  * @since 1.0
  */
-@ConnectorClass(
-    displayNameKey = "XML",
-    configurationClass = XMLConfiguration.class)
-public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp, DeleteOp, SearchOp<IQuery>, SchemaOp, TestOp, UpdateOp
-{
+@ConnectorClass(displayNameKey = "XML",
+configurationClass = XMLConfiguration.class)
+public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp, DeleteOp, SearchOp<IQuery>, SchemaOp, TestOp, UpdateOp {
+
     /**
      * Setup logging for the {@link XMLConnector}.
      */
     private static final Log log = Log.getLog(XMLConnector.class);
-
     private XMLHandler xmlHandler;
-    
     private XMLConfiguration config;
-
     private SchemaParser schemaParser;
 
     /**
@@ -70,7 +67,6 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
     public void init(Configuration cfg) {
         this.config = (XMLConfiguration) cfg;
         this.schemaParser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
-        //TODO:fix schemaParser.getXsdSchema().getSchema(1)
         this.xmlHandler = new XMLHandlerImpl(config.getXmlFilePath(), schema(), schemaParser.getXsdSchema());
     }
 
@@ -80,101 +76,47 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
      * @see Connector#dispose()
      */
     public void dispose() {
-        
     }
 
     public void checkAlive() {
-        
     }
 
-    /******************
-     * SPI Operations
-     * 
-     * Implement the following operations using the contract and
-     * description found in the Javadoc for these methods.
-     ******************/     
-           
-    /**
-     * {@inheritDoc}
-     */
-    public Uid authenticate(final ObjectClass objectClass, final String username, final GuardedString password, final OperationOptions options) { 
-       throw new UnsupportedOperationException();
-    } 
-    
-    
-    /**
-     * {@inheritDoc}
-     */
+    public Uid authenticate(final ObjectClass objectClass, final String username, final GuardedString password, final OperationOptions options) {
+        throw new UnsupportedOperationException();
+    }
+
     public Uid create(final ObjectClass objClass, final Set<Attribute> attributes, final OperationOptions options) {
 
         final String method = "create";
         log.info("Entry {0}", method);
 
-        if (objClass == null) {
-            throw new IllegalArgumentException("msg"); // TODO: Add exception message
-        }
-
-        if (attributes == null || attributes.size() == 0) {
-            throw new IllegalArgumentException("msg"); // TODO: Add exception message
-        }
-
-
-        
-
-        Uid uid = null;
-        Map<String, Attribute> attrMap = new HashMap<String, Attribute>(AttributeUtil.toMap(attributes));
-        Name name = AttributeUtil.getNameFromAttributes(attributes);
-
-        log.info("create({0},{1})", objClass.getObjectClassValue(), name.getNameValue());
-
-        if (objClass.is(ObjectClass.ACCOUNT_NAME)) {
-            //connection.getXmlHandler().createEntry();
-        }
-        else if (objClass.is(ObjectClass.GROUP_NAME)) {
-            //connection.getXmlHandler().createGroup(null);
-        }
-        else
-            throw new IllegalArgumentException("Unsupported Object Class=" + objClass.getObjectClassValue());
+        Assertions.nullCheck(objClass, "objectClass");
+        Assertions.nullCheck(attributes, "attributes");
 
         log.info("Exit {0}", method);
 
-        return new Uid(name.getNameValue());
-    } 
-       
-    
-    /**
-     * {@inheritDoc}
-     */ 
-    public void delete(final ObjectClass objClass, final Uid uid, final OperationOptions options) { 
+        return xmlHandler.create(objClass, attributes);
+    }
+
+    public void delete(final ObjectClass objClass, final Uid uid, final OperationOptions options) {
         throw new UnsupportedOperationException();
-    } 
-    
-    
-    /**
-     * {@inheritDoc}
-     */
+    }
+
     public Schema schema() {
         return schemaParser.parseSchema();
-    } 
-    
-    
-    /**
-     * {@inheritDoc}
-     */
+    }
+
     @Override
     public FilterTranslator<IQuery> createFilterTranslator(ObjectClass objClass, OperationOptions options) {
-            return new XMLFilterTranslator();
+        return new XMLFilterTranslator();
     }
-    
-    /**
-     * {@inheritDoc}
-     */
+
     /*
      * oclass - The object class for the search. Will never be null.
-        query - The native query to run. A value of null means "return every instance of the given object class".
-        handler - Results should be returned to this handler
-        options - Additional options that impact the way this operation is run. If the caller passes null,
-     the framework will convert this into an empty set of options, so SPI need not guard against options being null.
+    query - The native query to run. A value of null means "return every instance of the given object class".
+    handler - Results should be returned to this handler
+    options - Additional options that impact the way this operation is run. If the caller passes null,
+    the framework will convert this into an empty set of options, so SPI need not guard against options being null.
      *
      *
      * The framework conta
@@ -185,27 +127,19 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         for (ConnectorObject hit : hits) {
             handler.handle(hit);
         }
-   }
-    
-    /**
-     * {@inheritDoc}
-     */   
+    }
+
     public void test() {
-       //tester at alt av config er riktig
-       //tester at alle filer og tilkoblinger er tilgjengelige
-       //kaster så nøyaktige Exceptions som mulig
-       throw new UnsupportedOperationException();
-    } 
-     
-    
-    /**
-     * {@inheritDoc}
-     */
+        //tester at alt av config er riktig
+        //tester at alle filer og tilkoblinger er tilgjengelige
+        //kaster så nøyaktige Exceptions som mulig
+        throw new UnsupportedOperationException();
+    }
+
     public Uid update(ObjectClass objclass,
             Uid uid,
             Set<Attribute> replaceAttributes,
             OperationOptions options) {
         throw new UnsupportedOperationException();
     }
-    
 }
