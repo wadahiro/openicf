@@ -5,7 +5,7 @@
 
 package com.forgerock.openconnector.xml;
 
-import junit.framework.Assert;
+import static org.junit.Assert.*;
 import org.identityconnectors.common.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,10 +15,7 @@ import org.junit.Test;
  * @author slogum
  */
 public class XMLConfigurationTests {
-
-    //set up logging
-    private static final Log log = Log.getLog(XMLConfigurationTests.class);
-
+    
     private XMLConfiguration config;
 
     @Before
@@ -27,19 +24,29 @@ public class XMLConfigurationTests {
     }
 
     @Test
-    public void should_get_xml_filepath_from_configuration() {
+    public void shouldGetXmlFilepathFromConfiguration() {
         config.setXmlFilePath("users.xml");
-        Assert.assertEquals("users.xml", config.getXmlFilePath());
+        assertEquals("users.xml", config.getXmlFilePath());
+    }
+    @Test
+    public void shouldGetXsdRIFilepathFromConfiguration() {
+        config.setXmlFilePath("xsdRi.xsd");
+        assertEquals("xsdRi.xsd", config.getXsdRIFilePath());
+    }
+    @Test
+    public void shouldGetXsdFilepathFromConfiguration() {
+        config.setXmlFilePath("xsdTest.xsd");
+        assertEquals("xsdTest.xsd", config.getXsdFilePath());
     }
 
     @Test(expected=IllegalArgumentException.class)
-    public void should_throw_exception_when_validating_with_null_filepath() {
+    public void shouldThrowExceptionWhenValidatingWithNullFilepath() {
         config.setXmlFilePath(null);
         config.validate();
     }
 
     @Test(expected=IllegalArgumentException.class)
-    public void should_throw_exception_when_validating_with_blank_filepath() {
+    public void shouldThrowExceptionWhenValidatingWithBlankFilepath() {
         config.setXmlFilePath("");
         config.validate();
     }
