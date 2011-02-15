@@ -33,48 +33,27 @@ import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.common.logging.Log;
 
-/**
- * Main implementation of the XML Connector
- * 
- * @author slogum
- * @version 1.0
- * @since 1.0
- */
+
 @ConnectorClass(displayNameKey = "XML",
 configurationClass = XMLConfiguration.class)
 public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp, DeleteOp, SearchOp<IQuery>, SchemaOp, TestOp, UpdateOp {
 
-    /**
-     * Setup logging for the {@link XMLConnector}.
-     */
     private static final Log log = Log.getLog(XMLConnector.class);
     private XMLHandler xmlHandler;
     private XMLConfiguration config;
     private SchemaParser schemaParser;
 
-    /**
-     * Gets the Configuration context for this connector.
-     */
+
     public Configuration getConfiguration() {
         return this.config;
     }
 
-    /**
-     * Callback method to receive the {@link Configuration}.
-     * 
-     * @see Connector#init
-     */
     public void init(Configuration cfg) {
         this.config = (XMLConfiguration) cfg;
         this.schemaParser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
         this.xmlHandler = new XMLHandlerImpl(config.getXmlFilePath(), schema(), schemaParser.getXsdSchema());
     }
 
-    /**
-     * Disposes of the {@link XMLConnector}'s resources.
-     * 
-     * @see Connector#dispose()
-     */
     public void dispose() {
     }
 
@@ -99,7 +78,6 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
 
         return uid;
     }
-
 
     public Uid update(ObjectClass objClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
         final String method = "update";
