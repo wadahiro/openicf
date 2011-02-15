@@ -6,7 +6,6 @@
 package com.forgerock.openconnector.xml;
 
 import static org.junit.Assert.*;
-import org.identityconnectors.common.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,12 +29,12 @@ public class XMLConfigurationTests {
     }
     @Test
     public void shouldGetXsdRIFilepathFromConfiguration() {
-        config.setXmlFilePath("xsdRi.xsd");
+        config.setXsdRIFilePath("xsdRi.xsd");
         assertEquals("xsdRi.xsd", config.getXsdRIFilePath());
     }
     @Test
     public void shouldGetXsdFilepathFromConfiguration() {
-        config.setXmlFilePath("xsdTest.xsd");
+        config.setXsdFilePath("xsdTest.xsd");
         assertEquals("xsdTest.xsd", config.getXsdFilePath());
     }
 
