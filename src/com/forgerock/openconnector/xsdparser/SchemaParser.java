@@ -1,6 +1,7 @@
 package com.forgerock.openconnector.xsdparser;
 
 import com.forgerock.openconnector.util.AttrTypeUtil;
+import com.forgerock.openconnector.util.XmlHandlerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -221,40 +222,40 @@ public class SchemaParser {
         List<Class<? extends SPIOperation>> list = new LinkedList<Class<? extends SPIOperation>>();
 
         for (String s : supportedOpList) {
-            if (s.equals("CREATE")) {
+            if (s.equals(XmlHandlerUtil.CREATE)) {
                 list.add(CreateOp.class);
 
-            } else if (s.equals("AUTHENTICATE")) {
+            } else if (s.equals(XmlHandlerUtil.AUTHENTICATE)) {
                 list.add(AuthenticateOp.class);
 
-            } else if (s.equals("DELETE")) {
+            } else if (s.equals(XmlHandlerUtil.DELETE)) {
                 list.add(DeleteOp.class);
 
-            } else if (s.equals("RESOLVEUSERNAME")) {
+            } else if (s.equals(XmlHandlerUtil.RESOLVEUSERNAME)) {
                 list.add(ResolveUsernameOp.class);
 
-            } else if (s.equals("SCHEMA")) {
+            } else if (s.equals(XmlHandlerUtil.SCHEMA)) {
                 list.add(SchemaOp.class);
 
-            } else if (s.equals("SCRIPTONCONNECTOR")) {
+            } else if (s.equals(XmlHandlerUtil.SCRIPTONCONNECTOR)) {
                 list.add(ScriptOnConnectorOp.class);
 
-            } else if (s.equals("SCRIPTONRESOURCE")) {
+            } else if (s.equals(XmlHandlerUtil.SCRIPTONRESOURCE)) {
                 list.add(ScriptOnResourceOp.class);
 
-            } else if (s.equals("SEARCH")) {
+            } else if (s.equals(XmlHandlerUtil.SEARCH)) {
                 list.add(SearchOp.class);
 
-            } else if (s.equals("SYNC")) {
+            } else if (s.equals(XmlHandlerUtil.SYNC)) {
                 list.add(SyncOp.class);
 
-            } else if (s.equals("TEST")) {
+            } else if (s.equals(XmlHandlerUtil.TEST)) {
                 list.add(TestOp.class);
 
-            } else if (s.equals("UPDATEATTRIBUTEVALUES")) {
+            } else if (s.equals(XmlHandlerUtil.UPDATEATTRIBUTEVALUES)) {
                 list.add(UpdateAttributeValuesOp.class);
 
-            } else if (s.equals("UPDATE")) {
+            } else if (s.equals(XmlHandlerUtil.UPDATE)) {
                 list.add(UpdateOp.class);
             }
         }
@@ -283,17 +284,17 @@ public class SchemaParser {
         Set<Flags> flags = new HashSet<Flags>();
         
         for (String s : list) {
-            if (s.equals("NOT_CREATABLE")) {
+            if (s.equals(XmlHandlerUtil.NOT_CREATABLE)) {
                 flags.add(Flags.NOT_CREATABLE);
 
-            } else if (s.equals("NOT_UPDATABLE")) {
+            } else if (s.equals(XmlHandlerUtil.NOT_UPDATABLE)) {
                 flags.add(Flags.NOT_UPDATEABLE);
 
-            } else if (s.equals("NOT_READABLE")) {
+            } else if (s.equals(XmlHandlerUtil.NOT_READABLE)) {
                 flags.add(Flags.NOT_READABLE);
                 flags.add(Flags.NOT_RETURNED_BY_DEFAULT);
 
-            } else if (s.equals("NOT_RETURNED_BY_DEFAULT")) {
+            } else if (s.equals(XmlHandlerUtil.NOT_RETURNED_BY_DEFAULT)) {
                 flags.add(Flags.NOT_RETURNED_BY_DEFAULT);
                 
             }

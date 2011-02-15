@@ -13,79 +13,59 @@ import org.identityconnectors.framework.common.objects.AttributeInfo;
 
 public class AttrTypeUtil {
 
-    // List of all supported classes in the framework
-    public static final String STRING = "String";
-    public static final String INT_PRIMITIVE = "int";
-    public static final String INTEGER = "Integer";
-    public static final String LONG_PRIMITIVE = "long";
-    public static final String LONG = "Long";
-    public static final String BOOLEAN_PRIMITIVE = "boolean";
-    public static final String BOOLEAN = "Boolean";
-    public static final String DOUBLE_PRIMITIVE = "double";
-    public static final String DOUBLE = "Double";
-    public static final String FLOAT_PRIMITIVE = "float";
-    public static final String FLOAT = "Float";
-    public static final String CHAR_PRIMITIVE = "char";
-    public static final String CHARACTER = "Character";
-    public static final String BIG_INTEGER = "BigInteger";
-    public static final String BIG_DECIMAL = "BigDecimal";
-    public static final String GUARDED_STRING = "GuardedString";
-    public static final String GUARDED_BYTE_ARRAY = "GuardedByteArray";
-    public static final String BYTE_ARRAY = "byte[]";
-
     public static Object createInstantiatedObject(String attrValue, String javaclass) {
-        if (javaclass.equals(STRING)) {
+        if (javaclass.equals(XmlHandlerUtil.STRING)) {
             String s = new String(attrValue);
             return s;
-        } else if (javaclass.equals(INT_PRIMITIVE)) {
+        } else if (javaclass.equals(XmlHandlerUtil.INT_PRIMITIVE)) {
             int i = new Integer(attrValue);
             return i;
-        } else if (javaclass.equals(INTEGER)) {
+        } else if (javaclass.equals(XmlHandlerUtil.INTEGER)) {
             Integer i = new Integer(attrValue);
             return i;
-        } else if (javaclass.equals(LONG)) {
+        } else if (javaclass.equals(XmlHandlerUtil.LONG)) {
             Long l = new Long(attrValue);
             return l;
-        } else if (javaclass.equals(LONG_PRIMITIVE)) {
+        } else if (javaclass.equals(XmlHandlerUtil.LONG_PRIMITIVE)) {
             long l = new Long(attrValue);
             return l;
-        } else if (javaclass.equals(BOOLEAN)) {
+        } else if (javaclass.equals(XmlHandlerUtil.BOOLEAN)) {
             Boolean b = new Boolean(attrValue);
             return b;
-        } else if (javaclass.equals(BOOLEAN_PRIMITIVE)) {
+        } else if (javaclass.equals(XmlHandlerUtil.BOOLEAN_PRIMITIVE)) {
             boolean b = new Boolean(attrValue);
             return b;
-        } else if (javaclass.equals(DOUBLE)) {
+        } else if (javaclass.equals(XmlHandlerUtil.DOUBLE)) {
             Double d = new Double(attrValue);
             return d;
-        } else if (javaclass.equals(DOUBLE_PRIMITIVE)) {
+        } else if (javaclass.equals(XmlHandlerUtil.DOUBLE_PRIMITIVE)) {
             double d = new Double(attrValue);
             return d;
-        } else if (javaclass.equals(FLOAT)) {
+        } else if (javaclass.equals(XmlHandlerUtil.FLOAT)) {
             Float f = new Float(attrValue);
             return f;
-        } else if (javaclass.equals(FLOAT_PRIMITIVE)) {
+        } else if (javaclass.equals(XmlHandlerUtil.FLOAT_PRIMITIVE)) {
             float f = new Float(attrValue);
             return f;
-        } else if (javaclass.equals(CHARACTER)) {
+        } else if (javaclass.equals(XmlHandlerUtil.CHARACTER)) {
             Character c = attrValue.charAt(0);
             return c;
-        } else if (javaclass.equals(CHAR_PRIMITIVE)) {
+        } else if (javaclass.equals(XmlHandlerUtil.CHAR_PRIMITIVE)) {
             char c = attrValue.charAt(0);
             return c;
-        } else if (javaclass.equals(BIG_INTEGER)) {
+        } else if (javaclass.equals(XmlHandlerUtil.BIG_INTEGER)) {
             BigInteger bi = new BigInteger(attrValue);
             return bi;
-        } else if (javaclass.equals(BIG_DECIMAL)) {
+        } else if (javaclass.equals(XmlHandlerUtil.BIG_DECIMAL)) {
             BigDecimal bd = new BigDecimal(attrValue);
             return bd;
-        } else if (javaclass.equals(GUARDED_STRING)) {
+        } else if (javaclass.equals(XmlHandlerUtil.GUARDED_STRING)) {
             GuardedString gs = new GuardedString(attrValue.toCharArray());
             return gs;
-        } else if (javaclass.equals(GUARDED_BYTE_ARRAY)) {
+        } else if (javaclass.equals(XmlHandlerUtil.GUARDED_BYTE_ARRAY)) {
             GuardedByteArray gb = new GuardedByteArray(attrValue.getBytes());
             return gb;
-        } else if (javaclass.equals(BYTE_ARRAY)) {
+        } else if (javaclass.equals(XmlHandlerUtil.BYTE_ARRAY)) {
             byte[] b = attrValue.getBytes();
             return b;
         } else {

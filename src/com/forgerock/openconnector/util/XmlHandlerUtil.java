@@ -7,6 +7,7 @@ package com.forgerock.openconnector.util;
 
 import com.forgerock.openconnector.xml.*;
 import java.util.EnumSet;
+import org.identityconnectors.framework.common.FrameworkUtil;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.Name;
@@ -32,11 +33,53 @@ import org.identityconnectors.framework.spi.operations.TestOp;
  */
 public class XmlHandlerUtil {
 
+
+    // List of all supported classes in the framework
+    public static final String STRING = "String";
+    public static final String INT_PRIMITIVE = "int";
+    public static final String INTEGER = "Integer";
+    public static final String LONG_PRIMITIVE = "long";
+    public static final String LONG = "Long";
+    public static final String BOOLEAN_PRIMITIVE = "boolean";
+    public static final String BOOLEAN = "Boolean";
+    public static final String DOUBLE_PRIMITIVE = "double";
+    public static final String DOUBLE = "Double";
+    public static final String FLOAT_PRIMITIVE = "float";
+    public static final String FLOAT = "Float";
+    public static final String CHAR_PRIMITIVE = "char";
+    public static final String CHARACTER = "Character";
+    public static final String BIG_INTEGER = "BigInteger";
+    public static final String BIG_DECIMAL = "BigDecimal";
+    public static final String GUARDED_STRING = "GuardedString";
+    public static final String GUARDED_BYTE_ARRAY = "GuardedByteArray";
+    public static final String BYTE_ARRAY = "byte[]";
+
+    // List of all supported operations
+    public static final String CREATE = "CREATE";
+    public static final String AUTHENTICATE = "AUTHENTICATE";
+    public static final String DELETE = "DELETE";
+    public static final String RESOLVEUSERNAME = "RESOLVEUSERNAME";
+    public static final String SCHEMA = "SCHEMA";
+    public static final String SCRIPTONCONNECTOR = "SCRIPTONCONNECTOR";
+    public static final String SCRIPTONRESOURCE = "SCRIPTONRESOURCE";
+    public static final String SEARCH = "SEARCH";
+    public static final String SYNC = "SYNC";
+    public static final String TEST = "TEST";
+    public static final String UPDATEATTRIBUTEVALUES = "UPDATEATTRIBUTEVALUES";
+    public static final String UPDATE = "UPDATE";
+
+    // List of all flags
+    public static final String NOT_CREATABLE = "NOT_CREATABLE";
+    public static final String NOT_UPDATABLE = "NOT_UPDATABLE";
+    public static final String NOT_READABLE = "NOT_READABLE";
+    public static final String NOT_RETURNED_BY_DEFAULT = "NOT_RETURNED_BY_DEFAULT";
+
+
+
     public static Schema createHardcodedSchema() {
         SchemaBuilder schemaBuilder = new SchemaBuilder(XMLConnector.class);
         Schema schema = null;
         ObjectClassInfoBuilder ocBuilder;
-
 
         //ACCOUNT
         ocBuilder = new ObjectClassInfoBuilder();
@@ -116,7 +159,6 @@ public class XmlHandlerUtil {
         schemaBuilder.removeSupportedObjectClass(DeleteOp.class, objectClassInfo);
         
         schema = schemaBuilder.build();
-//        System.out.println(schema.toString());
         return schema;
     }
 }

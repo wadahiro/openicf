@@ -330,7 +330,7 @@ public class XMLHandlerImpl implements XMLHandler {
     }
 
 
-    public Collection<ConnectorObject> search(String query, ObjectClass objClass) { // TODO: remove exception
+    public Collection<ConnectorObject> search(String query, ObjectClass objClass) {
 
         List<ConnectorObject> results = null;
 
