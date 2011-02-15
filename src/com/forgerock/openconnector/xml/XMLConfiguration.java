@@ -37,7 +37,7 @@ public class XMLConfiguration extends AbstractConfiguration {
 
     private String xsdFilePath = null;
 
-    private String xsdRIFilePath = null;
+    private String xsdIcfFilePath = null;
 
     public XMLConfiguration() {
 
@@ -62,17 +62,17 @@ public class XMLConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(displayMessageKey="XSD_RI_FILEPATH_PROPERTY_DISPLAY", helpMessageKey="XSD_RI_FILEPATH_PROPERTY_HELP", confidential=false)
-    public String getXsdICFFilePath() {
-        return this.xsdRIFilePath;
+    public String getXsdIcfFilePath() {
+        return this.xsdIcfFilePath;
     }
 
-    public void setXsdICFFilePath(String xsdFilePath) {
-        this.xsdRIFilePath = xsdFilePath;
+    public void setXsdIcfFilePath(String xsdFilePath) {
+        this.xsdIcfFilePath = xsdFilePath;
     }
 
     public void validate() {
         Assertions.blankCheck(xmlFilePath, "xmlFilePath");
         Assertions.blankCheck(xsdFilePath, "xsdFilePath");
-        Assertions.blankCheck(xsdRIFilePath, "xsdRIFilePath");
+        Assertions.blankCheck(xsdIcfFilePath, "xsdIcfFilePath");
     }
 }

@@ -29,8 +29,8 @@ public class XMLConfigurationTests {
     }
     @Test
     public void shouldGetXsdRIFilepathFromConfiguration() {
-        config.setXsdICFFilePath("xsdRi.xsd");
-        assertEquals("xsdRi.xsd", config.getXsdICFFilePath());
+        config.setXsdIcfFilePath("xsdRi.xsd");
+        assertEquals("xsdRi.xsd", config.getXsdIcfFilePath());
     }
     @Test
     public void shouldGetXsdFilepathFromConfiguration() {
