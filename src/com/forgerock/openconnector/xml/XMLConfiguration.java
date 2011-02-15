@@ -62,11 +62,11 @@ public class XMLConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(displayMessageKey="XSD_RI_FILEPATH_PROPERTY_DISPLAY", helpMessageKey="XSD_RI_FILEPATH_PROPERTY_HELP", confidential=false)
-    public String getXsdRIFilePath() {
+    public String getXsdICFFilePath() {
         return this.xsdRIFilePath;
     }
 
-    public void setXsdRIFilePath(String xsdFilePath) {
+    public void setXsdICFFilePath(String xsdFilePath) {
         this.xsdRIFilePath = xsdFilePath;
     }
 
