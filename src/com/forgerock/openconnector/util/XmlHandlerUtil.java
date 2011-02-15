@@ -6,6 +6,7 @@
 package com.forgerock.openconnector.util;
 
 import com.forgerock.openconnector.xml.*;
+import com.sun.xml.xsom.XSSchema;
 import java.util.EnumSet;
 import org.identityconnectors.framework.common.FrameworkUtil;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
@@ -77,6 +78,7 @@ public class XmlHandlerUtil {
 
 
     public static Schema createHardcodedSchema() {
+        
         SchemaBuilder schemaBuilder = new SchemaBuilder(XMLConnector.class);
         Schema schema = null;
         ObjectClassInfoBuilder ocBuilder;
@@ -160,5 +162,11 @@ public class XmlHandlerUtil {
         
         schema = schemaBuilder.build();
         return schema;
+    }
+
+    public static void checkObjectType(ObjectClass objClass, XSSchema schema) {
+        if (!schema.getElementDecls().containsKey(objClass.getObjectClassValue())) {
+            throw new IllegalArgumentException("Object type: " + objClass.getObjectClassValue() + " is not supported.");
+        }
     }
 }

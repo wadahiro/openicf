@@ -17,7 +17,7 @@ import org.identityconnectors.framework.common.objects.Uid;
 
 public interface XMLHandler {
 
-    public Uid create(final ObjectClass objClass, final Set<Attribute> attributes) throws AlreadyExistsException;
+    public Uid create(final ObjectClass objClass, final Set<Attribute> attributes);
 
     public Uid update(ObjectClass objClass, Uid uid, Set<Attribute> replaceAttributes) throws UnknownUidException;
 

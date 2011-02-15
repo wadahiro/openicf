@@ -4,6 +4,7 @@ import com.forgerock.openconnector.util.AttrTypeUtil;
 import com.forgerock.openconnector.util.GuardedByteArrayAccessor;
 import com.forgerock.openconnector.util.NamespaceLookup;
 import com.forgerock.openconnector.util.GuardedStringAccessor;
+import com.forgerock.openconnector.util.XmlHandlerUtil;
 import com.forgerock.openconnector.xml.query.IQuery;
 import com.forgerock.openconnector.xml.query.QueryBuilder;
 import com.forgerock.openconnector.xml.query.XQueryHandler;
@@ -19,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,6 +48,7 @@ import org.jdom.output.XMLOutputter;
 import org.identityconnectors.common.Assertions;
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.framework.common.FrameworkUtil;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoUtil;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
@@ -164,22 +167,33 @@ public class XMLHandlerImpl implements XMLHandler {
     // TODO: Exceptions
     // TODO: Uid
     // TODO: Check if types is valid?
-    public Uid create(final ObjectClass objClass, final Set<Attribute> attributes) throws AlreadyExistsException {
+    // TODO: Check if type and fields is creatable
+    public Uid create(final ObjectClass objClass, final Set<Attribute> attributes) {
         final String method = "create";
         log.info("Entry {0}", method);
+
+        XmlHandlerUtil.checkObjectType(objClass, riSchema);
 
         ObjectClassInfo objInfo = connSchema.findObjectClassInfo(objClass.getObjectClassValue());
         Set<AttributeInfo> objAttributes = objInfo.getAttributeInfo();
         Map<String, Attribute> attributesMap = new HashMap<String, Attribute>(AttributeUtil.toMap(attributes));
+        Map<String, AttributeInfo> attributeInfoMap = new HashMap<String, AttributeInfo>(AttributeInfoUtil.toMap(objAttributes));
+        String uidValue = null;
+
+        if (!attributesMap.containsKey(Name.NAME) || attributesMap.get(Name.NAME).getValue().isEmpty()) {
+            throw new IllegalArgumentException(Name.NAME + " must be defined.");
+        }
+
         Name name = AttributeUtil.getNameFromAttributes(attributes);
 
-        if (!riSchema.getElementDecls().containsKey(objClass.getObjectClassValue())) {
-            throw new IllegalArgumentException("Object type: " + objClass.getObjectClassValue() + " is not supported.");
+        if (entryExists(objClass, name)) {
+            throw new AlreadyExistsException("Could not create entry. An entry with the " + Uid.NAME + " of " + name.getNameValue() + " already exists.");
         }
 
-        if (entryExists(objClass, name)) {
-            throw new AlreadyExistsException("Could not create entry. An entry with this id already exists.");
-        }
+        if (attributeInfoMap.containsKey(Uid.NAME))
+            uidValue = UUID.randomUUID().toString();
+        else
+            uidValue = name.getNameValue();
 
         // Create object type element
         Element root = new Element(objClass.getObjectClassValue());
@@ -194,41 +208,37 @@ public class XMLHandlerImpl implements XMLHandler {
                 }
             }
 
+            if (!attrInfo.isCreateable() && attributesMap.containsKey(attrInfo.getName())) {
+                throw new IllegalArgumentException(attrInfo.getName() + " is not creatable.");
+            }
+
             Element child = new Element(attrInfo.getName());
+            String elementText = "";
 
             // Add attribute value to field
-            if (attributesMap.containsKey(attrInfo.getName())) {
-
-                String elementText = "";
-                
-                // TODO: Refactor typecheck to utility class
-                if (attrInfo.getType().getName().equals("org.identityconnectors.common.security.GuardedString")) {
-                    GuardedStringAccessor accessor = new GuardedStringAccessor();
-                    GuardedString gs = AttributeUtil.getGuardedStringValue(attributesMap.get(attrInfo.getName()));
-                    gs.access(accessor);
-
-                    elementText = String.valueOf(accessor.getArray());
-                }
-                else if (attrInfo.getType().getName().equals("org.identityconnectors.common.security.GuardedByteArray")) {
-                    GuardedByteArrayAccessor accessor = new GuardedByteArrayAccessor();
-                    GuardedByteArray gba = (GuardedByteArray)attributesMap.get(attrInfo.getName()).getValue().get(0);
-                    gba.access(accessor);
-                    elementText = new String(accessor.getArray());
-                }
-                else {
-                    elementText = AttributeUtil.getStringValue(attributesMap.get(attrInfo.getName()));
-                }
-
-                child.setText(elementText);
+            if (attrInfo.getName().equals(Uid.NAME)) {
+                elementText = uidValue;
             }
+            else if (attributesMap.containsKey(attrInfo.getName())) {
+                elementText = AttrTypeUtil.findAttributeValue(attributesMap.get(attrInfo.getName()), attrInfo);
+            }
+
+            child.setText(elementText);
 
             // Set namespace
             if (icfSchema.getElementDecls().containsKey(attrInfo.getName()))
                 child.setNamespace(getNameSpace(NamespaceType.ICF_NAMESPACE));
             else
                 child.setNamespace(getNameSpace(NamespaceType.RI_NAMESPACE));
-            
+
             root.addContent(child);
+
+            if (attributesMap.containsKey(attrInfo.getName()))
+                attributesMap.remove(attrInfo.getName());
+        }
+
+        if (attributesMap.size() > 0) {
+            throw new IllegalArgumentException("Entry contains attributes that is not supported: " + attributesMap.toString());
         }
 
         document.getRootElement().addContent(root);
@@ -237,7 +247,11 @@ public class XMLHandlerImpl implements XMLHandler {
 
         log.info("Exit {0}", method);
 
-        return new Uid(name.getNameValue());
+        return new Uid(uidValue);
+    }
+
+    public boolean checkAttributeExists() {
+        return false;
     }
 
     // TODO: Uid
@@ -245,15 +259,13 @@ public class XMLHandlerImpl implements XMLHandler {
         final String method = "update";
         log.info("Entry {0}", method);
 
+        XmlHandlerUtil.checkObjectType(objClass, riSchema);
+
         // TODO: Check if field exists in the schema
         ObjectClassInfo objInfo = connSchema.findObjectClassInfo(objClass.getObjectClassValue());
         Map<String, AttributeInfo> objAttributes = AttributeInfoUtil.toMap(objInfo.getAttributeInfo());
 
         Name name = new Name(uid.getUidValue());
-
-        if (!riSchema.getElementDecls().containsKey(objClass.getObjectClassValue())) {
-            throw new IllegalArgumentException("Object type: " + objClass.getObjectClassValue() + " is not supported.");
-        }
 
         if (entryExists(objClass, name)) {
 

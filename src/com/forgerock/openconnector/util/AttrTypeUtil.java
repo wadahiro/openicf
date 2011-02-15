@@ -6,10 +6,13 @@ package com.forgerock.openconnector.util;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
+import org.identityconnectors.framework.common.objects.AttributeUtil;
 
 public class AttrTypeUtil {
 
@@ -75,6 +78,37 @@ public class AttrTypeUtil {
 
     public static String findAttributeValue(Attribute attr, AttributeInfo attrInfo) {
 
-        return null;
+        String javaClass = attrInfo.getType().getName();
+        String value = null;
+
+        Class clazz;
+        try {
+            clazz = Class.forName(javaClass);
+            if (!clazz.isInstance(AttributeUtil.getSingleValue(attr))) {
+                throw new IllegalArgumentException(attrInfo.getName() + " not valid type. Should be of type " + clazz.getName());
+            }
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(AttrTypeUtil.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        // Get value
+
+        if (javaClass.equals("org.identityconnectors.common.security.GuardedString")) {
+            GuardedStringAccessor accessor = new GuardedStringAccessor();
+            GuardedString gs = AttributeUtil.getGuardedStringValue(attr);
+            gs.access(accessor);
+            value = String.valueOf(accessor.getArray());
+        }
+        else if (javaClass.equals("org.identityconnectors.common.security.GuardedByteArray")) {
+            GuardedByteArrayAccessor accessor = new GuardedByteArrayAccessor();
+            GuardedByteArray gba = (GuardedByteArray)attr.getValue().get(0);
+            gba.access(accessor);
+            value = new String(accessor.getArray());
+        }
+        else {
+            value = AttributeUtil.getAsStringValue(attr);
+        }
+
+        return value;
     }
 }
