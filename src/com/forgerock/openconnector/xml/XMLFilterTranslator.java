@@ -106,7 +106,8 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      */
     @Override
     protected IQuery createGreaterThanExpression(GreaterThanFilter filter, boolean not) {
-        String attrName = filter.getAttribute().getName();
+        String tmpName = filter.getAttribute().getName();
+        String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
         String value = removeBrackets(obj.toString());
         return createComparisonQuery(attrName, not ? "<" : ">", value);
