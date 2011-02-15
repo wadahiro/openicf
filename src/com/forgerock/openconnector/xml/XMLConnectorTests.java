@@ -6,46 +6,27 @@
 package com.forgerock.openconnector.xml;
 
 
-import com.forgerock.openconnector.util.XmlHandlerUtil;
-import com.forgerock.openconnector.xsdparser.SchemaParser;
-import com.sun.org.apache.xerces.internal.parsers.XMLParser;
-import java.util.EnumSet;
-import java.util.HashMap;
+import com.forgerock.openconnector.xml.query.IQuery;
+import com.forgerock.openconnector.xml.query.QueryBuilder;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import org.identityconnectors.common.Assertions;
-import org.junit.*;
-
-import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
-import org.identityconnectors.framework.common.objects.AttributeInfo;
-import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
-import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
-import org.identityconnectors.framework.common.objects.AttributeUtil;
-import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
-import org.identityconnectors.framework.common.objects.ObjectClassInfo;
-import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
-import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
-import org.identityconnectors.framework.common.objects.PredefinedAttributeInfos;
-import org.identityconnectors.framework.common.objects.Schema;
-import org.identityconnectors.framework.common.objects.SchemaBuilder;
+import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.identityconnectors.framework.spi.operations.CreateOp;
-import org.identityconnectors.framework.spi.operations.DeleteOp;
-import org.identityconnectors.framework.spi.operations.UpdateOp;
-import org.jdom.Element;
-import org.jdom.output.Format;
-import org.jdom.output.XMLOutputter;
+import org.junit.*;
+import static org.junit.Assert.*;
+
 
 public class XMLConnectorTests {
 
     private static XMLConnector xmlConnector;
     private static XMLConfiguration xmlConfig;
+
+    private final static String NAME = "Name";
 
     @BeforeClass
     public static void setUp() {
@@ -91,5 +72,53 @@ public class XMLConnectorTests {
         
         xmlCon.test();
     }
-  
+
+    @Test
+    public void schemaShouldReturnSchema(){
+        assertNotNull(xmlConnector.schema());
+    }
+
+    @Test
+    public void creatFilterTranslatorShouldReturnNewXmlFilterTranslator(){
+        assertNotNull(xmlConnector.createFilterTranslator(ObjectClass.ACCOUNT, null));
+    }
+
+    @Test
+    public void executeQueryShouldNotCastException(){
+        
+    }
+
+    @Test
+    public void createAccountShouldReturnUid(){
+        Uid uid = xmlConnector.create(ObjectClass.ACCOUNT, creatAttributes(), null);
+        assertNotNull(uid);
+    }
+
+    @Test
+    public void updateAccountShouldReturnUid(){
+        Set<Attribute> set = creatAttributes();
+
+        set.add(AttributeBuilder.build("email","mailadress@company.org"));
+        set.add(AttributeBuilder.build("__ENABLE__", true));
+
+        Uid uid = xmlConnector.update(ObjectClass.ACCOUNT, new Uid(NAME), set, null);
+
+        assertNotNull(uid);
+    }
+
+    @Test
+    public void deleteAccountShouldNotCastException(){
+        xmlConnector.delete(ObjectClass.ACCOUNT, new Uid(NAME), null);
+    }
+
+    private Set<Attribute> creatAttributes(){
+        Set<Attribute> set = new HashSet<Attribute>();
+
+        set.add(AttributeBuilder.build("__NAME__", NAME));
+
+        char[] chars = {'A', 'B', 'C', 'D'};
+        set.add(AttributeBuilder.buildPassword(new GuardedString(chars)));
+        set.add(AttributeBuilder.build("address", "Adressroad 12"));
+        return set;
+    }
 }
