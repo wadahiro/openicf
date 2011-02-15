@@ -139,5 +139,15 @@ public class XMLHandlerTests {
         List<Object> values = attribute.getValue();
         Object val = values.get(0);
         assertTrue(val instanceof Boolean);
-    } 
+    }
+
+    @Test
+    public void testReadingNOT_READABLEfield() {
+        Attribute attribute = existingUsrConObj.getAttributeByName("secret-pin");
+        assertNull(attribute);
+
+        // testing readable field
+        attribute = existingUsrConObj.getAttributeByName("years-employed");
+        assertNotNull(attribute);
+    }
 }
