@@ -72,11 +72,11 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         Assertions.nullCheck(objClass, "objectClass");
         Assertions.nullCheck(attributes, "attributes");
 
-        Uid uid = xmlHandler.create(objClass, attributes);
+        Uid returnUid = xmlHandler.create(objClass, attributes);
 
         log.info("Exit {0}", method);
 
-        return uid;
+        return returnUid;
     }
 
     public Uid update(ObjectClass objClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
