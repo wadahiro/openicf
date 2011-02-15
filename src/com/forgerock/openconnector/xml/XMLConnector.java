@@ -60,10 +60,12 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
     public void checkAlive() {
     }
 
+    @Override
     public Uid authenticate(final ObjectClass objectClass, final String username, final GuardedString password, final OperationOptions options) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public Uid create(final ObjectClass objClass, final Set<Attribute> attributes, final OperationOptions options) {
 
         final String method = "create";
@@ -79,6 +81,7 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         return returnUid;
     }
 
+    @Override
     public Uid update(ObjectClass objClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
         final String method = "update";
         log.info("Entry {0}", method);
@@ -93,6 +96,7 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         return returnUid;
     }
 
+    @Override
     public void delete(final ObjectClass objClass, final Uid uid, final OperationOptions options) {
 
         final String method = "delete";
@@ -106,15 +110,18 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         log.info("Exit {0}", method);
     }
 
+    @Override
     public Schema schema() {
         return schemaParser.parseSchema();
     }
 
+    @Override
     public FilterTranslator<IQuery> createFilterTranslator(ObjectClass objClass, OperationOptions options) {
         return new XMLFilterTranslator();
     }
 
- 
+
+    @Override
     public void executeQuery(ObjectClass objClass, IQuery query, ResultsHandler handler, OperationOptions options) {
         QueryBuilder queryBuilder = new QueryBuilder(query, objClass);
         Collection<ConnectorObject> hits = xmlHandler.search(queryBuilder.toString(), objClass);
@@ -123,6 +130,7 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         }
     }
 
+    @Override
     public void test() {
         final String method = "test";
         log.info("Entry {0}", method);
