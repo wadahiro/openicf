@@ -34,8 +34,7 @@ import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.common.logging.Log;
 
 
-@ConnectorClass(displayNameKey = "XML",
-configurationClass = XMLConfiguration.class)
+@ConnectorClass(displayNameKey = "XML", configurationClass = XMLConfiguration.class)
 public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp, DeleteOp, SearchOp<IQuery>, SchemaOp, TestOp, UpdateOp {
 
     private static final Log log = Log.getLog(XMLConnector.class);
