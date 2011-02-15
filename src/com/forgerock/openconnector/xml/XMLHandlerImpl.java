@@ -6,6 +6,7 @@ import com.forgerock.openconnector.util.NamespaceLookup;
 import com.forgerock.openconnector.util.GuardedStringAccessor;
 import com.forgerock.openconnector.xml.query.IQuery;
 import com.forgerock.openconnector.xml.query.QueryBuilder;
+import com.forgerock.openconnector.xml.query.XQueryHandler;
 import com.forgerock.openconnector.xsdparser.NamespaceType;
 import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
@@ -113,20 +114,7 @@ public class XMLHandlerImpl implements XMLHandler {
 
         document = new Document(root);
     }
-
-    private XQResultSequence executeXqueryExpression(String query) throws XQException, JDOMException {
-        XQDataSource datasource = new SaxonXQDataSource();
-        XQConnection connection = datasource.getConnection();
-        XQExpression xqexpression = connection.createExpression();
-        DOMOutputter dOMOutputter = new DOMOutputter();
-        org.w3c.dom.Document w3cDoc = dOMOutputter.output(document);
-
-        xqexpression.bindNode(XQConstants.CONTEXT_ITEM, w3cDoc, null);
-        XQResultSequence result = xqexpression.executeQuery(query);
-
-        return result;
-    }
-
+    
     private Namespace getNameSpace(NamespaceType namespaceType) {
         Namespace namespace = null;
 
@@ -303,7 +291,6 @@ public class XMLHandlerImpl implements XMLHandler {
         return uid;
     }
 
-    // TODO: Change to use search method
     public Element getEntry(ObjectClass objClass, Name name) {
 
         XMLFilterTranslator translator = new XMLFilterTranslator();
@@ -313,30 +300,23 @@ public class XMLHandlerImpl implements XMLHandler {
         EqualsFilter equals = new EqualsFilter(builder.build());
         IQuery query = translator.createEqualsExpression(equals, false);
         QueryBuilder queryBuilder = new QueryBuilder(query, objClass);
-        XQResultSequence results = null;
 
+        XQueryHandler xqHandler = null;
         try {
-            results = executeXqueryExpression(queryBuilder.toString());
+            xqHandler = new XQueryHandler(queryBuilder.toString(), document);
+            XQResultSequence results = xqHandler.getResultSequence();
 
             if (results.next()) {
                 org.w3c.dom.Element element = (org.w3c.dom.Element)results.getItem().getNode();
 
                 DOMBuilder oMBuilder = new DOMBuilder();
                 return oMBuilder.build(element);
-
             }
-            
         } catch (XQException ex) {
             log.error(ex.getMessage());
-        } catch (JDOMException ex) {
-            log.error(ex.getMessage());
-        }
+        } 
         finally {
-            try {
-                results.close();
-            } catch (XQException ex) {
-                log.error(ex.getMessage());
-            }
+                xqHandler.close();
         }
 
         return null;
@@ -355,11 +335,7 @@ public class XMLHandlerImpl implements XMLHandler {
         serialize();
     }
 
-    //TODO:
-       /*
-     * close connections
-     *
-     * */
+
     public Collection<ConnectorObject> search(String query, ObjectClass objClass) { // TODO: remove exception
 
         List<ConnectorObject> results = null;
@@ -375,8 +351,10 @@ public class XMLHandlerImpl implements XMLHandler {
                 attrInfo.put(info.getName(), info.getType().getSimpleName());
             }
 
+            XQueryHandler xqHandler = null;
             try {
-                XQResultSequence queryResult = executeXqueryExpression(query);
+                xqHandler = new XQueryHandler(query, document);
+                XQResultSequence queryResult = xqHandler.getResultSequence();
 
                 results = new ArrayList<ConnectorObject>();
 
@@ -384,13 +362,15 @@ public class XMLHandlerImpl implements XMLHandler {
                     ConnectorObject connectorObject = createConnectorObject(queryResult.getItem(), objClass, attrInfo);
                     results.add(connectorObject);
                 }
+
+                xqHandler.close();
                 
-            } catch (JDOMException ex) {
-                Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
             } catch (XQException ex) {
-                Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             } catch (Exception ex) {
                 ex.printStackTrace();
+            } finally {
+                xqHandler.close();
             }
         }
         return results;
