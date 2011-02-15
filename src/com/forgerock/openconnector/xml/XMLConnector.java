@@ -105,7 +105,7 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         log.info("Entry {0}", method);
 
         Assertions.nullCheck(objClass, "objectClass");
-        Assertions.nullCheck(uid, "attributes");
+        Assertions.nullCheck(uid, "uid");
 
         xmlHandler.delete(objClass, uid);
 
