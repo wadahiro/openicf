@@ -254,21 +254,21 @@ public class XMLHandlerImpl implements XMLHandler {
                 }
             }
 
-            if (attributesMap.containsKey(attrInfo.getName())) {
-
-                if (attrInfo.isCreateable()) {
-                    throw new IllegalArgumentException(attrInfo.getName() + " is not creatable.");
-                }
-
-                /*if (attrInfo.isMultiValued() && attributesMap.get(attrInfo.getName()).getValue().size() > 1) {
-                    for (Object obj : attributesMap.get(attrInfo.getName()).getValue()) {
-                        objElement.appendChild(createDomElementFromAttribute());
-                    }
-                }
-                else {
-                    objElement.appendChild(createDomElementFromAttribute());
-                }*/
-            }
+//            if (attributesMap.containsKey(attrInfo.getName())) {
+//
+//                if (attrInfo.isCreateable()) {
+//                    throw new IllegalArgumentException(attrInfo.getName() + " is not creatable.");
+//                }
+//
+//                /*if (attrInfo.isMultiValued() && attributesMap.get(attrInfo.getName()).getValue().size() > 1) {
+//                    for (Object obj : attributesMap.get(attrInfo.getName()).getValue()) {
+//                        objElement.appendChild(createDomElementFromAttribute());
+//                    }
+//                }
+//                else {
+//                    objElement.appendChild(createDomElementFromAttribute());
+//                }*/
+//            }
 
             if (!attrInfo.isCreateable() && attributesMap.containsKey(attrInfo.getName())) {
                 throw new IllegalArgumentException(attrInfo.getName() + " is not creatable.");
