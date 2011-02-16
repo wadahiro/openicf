@@ -17,8 +17,8 @@ public class XMLConnectorTests {
 
     private static XMLConnector xmlConnector, queryXmlConnector;
     private static XMLConfiguration xmlConfig, queryXmlConfig;
-    private final static String ACCOUNT_NAME = "Name";
-    private final static String GROUP_NAME = "This is name";
+    private final static String ACCOUNT_NAME = "Erwita";
+    private final static String GROUP_NAME = "Admin";
 
     @BeforeClass
     public static void setUp() {
@@ -95,7 +95,6 @@ public class XMLConnectorTests {
         assertEquals(1, r.getSumResults());
     }
 
-
     @Test
     public void createAccountShouldReturnUid() {
         Uid uid = xmlConnector.create(ObjectClass.ACCOUNT, createAttributesAccount(), null);
@@ -150,7 +149,7 @@ public class XMLConnectorTests {
     public void updateEntryWithNullShouldCastNullPointerException() {
         xmlConnector.update(null, null, null, null);
     }
-    
+
     @Test
     public void deleteAccountQueryShouldReturnZero() {
         xmlConnector.delete(ObjectClass.ACCOUNT, new Uid(ACCOUNT_NAME), null);
@@ -196,14 +195,16 @@ public class XMLConnectorTests {
         return attributes;
     }
 
-    private class TestResultsHandler implements ResultsHandler{
+    private class TestResultsHandler implements ResultsHandler {
+
         int sumResults = 0;
 
         public boolean handle(ConnectorObject arg0) {
             sumResults++;
             return true;
         }
-        public int getSumResults(){
+
+        public int getSumResults() {
             return sumResults;
         }
     }
