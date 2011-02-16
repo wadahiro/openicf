@@ -34,7 +34,6 @@ import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.common.logging.Log;
 
-
 @ConnectorClass(displayNameKey = "XML", configurationClass = XMLConfiguration.class)
 public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp, DeleteOp, SearchOp<IQuery>, SchemaOp, TestOp, UpdateOp {
 
@@ -42,7 +41,6 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
     private XMLHandler xmlHandler;
     private XMLConfiguration config;
     private SchemaParser schemaParser;
-
 
     public Configuration getConfiguration() {
         return this.config;
@@ -123,7 +121,6 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         return new XMLFilterTranslator();
     }
 
-
     @Override
     public void executeQuery(ObjectClass objClass, IQuery query, ResultsHandler handler, OperationOptions options) {
         QueryBuilder queryBuilder = new QueryBuilder(query, objClass);
@@ -143,23 +140,23 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         Assertions.nullCheck(schemaParser, "schemaParser");
 
         File fileXml = new File(config.getXmlFilePath());
-        if(!fileXml.exists()){
-            throw new IllegalArgumentException("File at filepath " +  config.getXmlFilePath() + " does not exists");
+        if (!fileXml.exists()) {
+            throw new IllegalArgumentException("File at filepath " + config.getXmlFilePath() + " does not exists");
         }
 
         File fileXsd = new File(config.getXsdFilePath());
-        if(!fileXsd.exists()){
-             throw new IllegalArgumentException("File at filepath " +  config.getXsdFilePath() + " does not exists");
+        if (!fileXsd.exists()) {
+            throw new IllegalArgumentException("File at filepath " + config.getXsdFilePath() + " does not exists");
         }
 
-        if(config.getXsdIcfFilePath() != null){
+        if (config.getXsdIcfFilePath() != null) {
             File fileXsdIcf = new File(config.getXsdFilePath());
-            if(!fileXsdIcf.exists()){
-             throw new IllegalArgumentException("File at filepath " +  config.getXsdIcfFilePath() + " does not exists");
+            if (!fileXsdIcf.exists()) {
+                throw new IllegalArgumentException("File at filepath " + config.getXsdIcfFilePath() + " does not exists");
             }
         }
 
-        
+
         log.info("Exit {0}", method);
     }
 }
