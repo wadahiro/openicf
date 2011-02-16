@@ -6,15 +6,17 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
+import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.junit.*;
 import static org.junit.Assert.*;
 
 public class XMLConnectorTests {
 
-    private static XMLConnector xmlConnector;
-    private static XMLConfiguration xmlConfig;
+    private static XMLConnector xmlConnector, queryXmlConnector;
+    private static XMLConfiguration xmlConfig, queryXmlConfig;
     private final static String ACCOUNT_NAME = "Name";
     private final static String GROUP_NAME = "This is name";
 
@@ -25,6 +27,14 @@ public class XMLConnectorTests {
         xmlConfig.setXsdFilePath("test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
 
         xmlConnector = new XMLConnector();
+
+        queryXmlConfig = new XMLConfiguration();
+        queryXmlConfig.setXmlFilePath("test/xml_store/testQueryXmlConnector.xml");
+        queryXmlConfig.setXsdFilePath("test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
+
+        queryXmlConnector = new XMLConnector();
+        queryXmlConnector.init(queryXmlConfig);
+
     }
 
     @AfterClass
@@ -79,8 +89,12 @@ public class XMLConnectorTests {
     }
 
     @Test
-    public void executeQueryShouldNotCastException() {
+    public void executeQueryShouldReturnOne() {
+        TestResultsHandler r = new TestResultsHandler();
+        queryXmlConnector.executeQuery(ObjectClass.ACCOUNT, null, r, null);
+        assertEquals(1, r.getSumResults());
     }
+
 
     @Test
     public void createAccountShouldReturnUid() {
@@ -136,15 +150,23 @@ public class XMLConnectorTests {
     public void updateEntryWithNullShouldCastNullPointerException() {
         xmlConnector.update(null, null, null, null);
     }
-
+    
     @Test
-    public void deleteAccountShouldNotCastException() {
+    public void deleteAccountQueryShouldReturnZero() {
         xmlConnector.delete(ObjectClass.ACCOUNT, new Uid(ACCOUNT_NAME), null);
+
+        TestResultsHandler r = new TestResultsHandler();
+        xmlConnector.executeQuery(ObjectClass.ACCOUNT, null, r, null);
+        assertEquals(0, r.getSumResults());
     }
 
     @Test
-    public void deleteGroupShouldNotCastException() {
+    public void deleteGroupQueryShouldReturnZero() {
         xmlConnector.delete(ObjectClass.GROUP, new Uid(GROUP_NAME), null);
+
+        TestResultsHandler r = new TestResultsHandler();
+        xmlConnector.executeQuery(ObjectClass.GROUP, null, r, null);
+        assertEquals(0, r.getSumResults());
     }
 
     @Test(expected = NullPointerException.class)
@@ -156,6 +178,7 @@ public class XMLConnectorTests {
         Set<Attribute> set = new HashSet<Attribute>();
 
         set.add(AttributeBuilder.build("__NAME__", ACCOUNT_NAME));
+        set.add(AttributeBuilder.build("lastname", "Lastnamerson"));
 
         char[] chars = {'A', 'B', 'C', 'D'};
         set.add(AttributeBuilder.buildPassword(new GuardedString(chars)));
@@ -171,5 +194,17 @@ public class XMLConnectorTests {
         attributes.add(AttributeBuilder.build("__SHORT_NAME__", "tid"));
 
         return attributes;
+    }
+
+    private class TestResultsHandler implements ResultsHandler{
+        int sumResults = 0;
+
+        public boolean handle(ConnectorObject arg0) {
+            sumResults++;
+            return true;
+        }
+        public int getSumResults(){
+            return sumResults;
+        }
     }
 }
