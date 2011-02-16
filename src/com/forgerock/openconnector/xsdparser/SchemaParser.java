@@ -1,9 +1,6 @@
 package com.forgerock.openconnector.xsdparser;
 
-import com.forgerock.openconnector.util.AttrTypeUtil;
-import com.forgerock.openconnector.util.XmlHandlerUtil;
-import java.io.File;
-import java.io.IOException;
+import com.forgerock.openconnector.util.SchemaParserUtil;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -21,7 +18,6 @@ import org.identityconnectors.framework.common.objects.SchemaBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.operations.*;
-import org.xml.sax.SAXException;
 
 import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSContentType;
@@ -32,11 +28,9 @@ import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
-import com.sun.xml.xsom.parser.XSOMParser;
 import org.identityconnectors.common.Assertions;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.FrameworkUtil;
-import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 
 public class SchemaParser {
 
@@ -53,7 +47,7 @@ public class SchemaParser {
         this.connectorClass = connectorClass;
         this.filePath = filePath;
         
-        parseXSDSchema();
+        this.schemaSet = SchemaParserUtil.parseXSDSchema(filePath);
     }
 
     /*
@@ -89,7 +83,7 @@ public class SchemaParser {
                     String[] supportedOpStringSplit = supportedOpString.split(" |\n");
                     List<String> supportedOpListString = Arrays.asList(supportedOpStringSplit);
 
-                    supportedOp = getSupportedOpClasses(supportedOpListString);
+                    supportedOp = SchemaParserUtil.getSupportedOpClasses(supportedOpListString);
                 }
 
                 XSContentType xsContType = xsCompType.getContentType();
@@ -116,25 +110,27 @@ public class SchemaParser {
                                 if (childParticle.getMaxOccurs() > 1 || childParticle.getMaxOccurs() == -1) {
                                     flags.add(Flags.MULTIVALUED);
                                 }
+
                                 if (elementTerm.getAnnotation() != null) {
                                     String annotations = elementTerm.getAnnotation().getAnnotation().toString();
 
                                     String[] annotationsSplit = annotations.split(" |\n");
                                     List<String> annotationList = Arrays.asList(annotationsSplit);
 
-                                    if (getFlags(annotationList) != null) {
-                                        flags.addAll(getFlags(annotationList));
+                                    Set<Flags> flagList = SchemaParserUtil.getFlags(annotationList);
+
+                                    if (flagList != null) {
+                                        flags.addAll(flagList);
                                     }
-                                    attrType = getJavaClassType(annotationList);
+                                    
+                                    attrType = SchemaParserUtil.getJavaClassType(annotationList);
 
                                 }
                                 if (attrType == null) {
                                     XSType typeNotFlagedJavaclass = elementTerm.getType();
                                     if(typeNotFlagedJavaclass.getName() != null){
-                                        Object classObject = AttrTypeUtil.createInstantiatedObject("1337", typeNotFlagedJavaclass.getName());
-                                        if(classObject != null){
-                                            attrType = classObject.getClass();
-                                        }
+                                        attrType = SchemaParserUtil.findJavaClassType(typeNotFlagedJavaclass.getName());
+                                        
                                     }
                                 }
 
@@ -179,7 +175,7 @@ public class SchemaParser {
         Schema returnSchema = schemaBuilder.build();
 
         log.info("Exit {0}", METHOD);
-
+        System.out.println(returnSchema.toString());
         return returnSchema;
     }
 
@@ -187,117 +183,8 @@ public class SchemaParser {
         if(schemaSet != null){
             return schemaSet;
         }else {
-            parseXSDSchema();
+            this.schemaSet = SchemaParserUtil.parseXSDSchema(filePath);
             return schemaSet;
         }
-    }
-
-    private void parseXSDSchema(){
-        XSOMParser parser = new XSOMParser();
-
-        try {
-            File file = new File(filePath);
-            
-            parser.setAnnotationParser(new XSDAnnotationFactory());
-            parser.parse(file);
-
-            this.schemaSet = parser.getResult();
-            
-        } catch (SAXException e) {
-            String eMessage =  "Failed to parser XSD-schema from file: " + filePath;
-
-            log.error(e, eMessage);
-            throw new ConnectorIOException(filePath, e);
-            
-        } catch (IOException e) {
-            String eMessage =  "Failed to read from file: " + filePath;
-            
-            log.error(e, eMessage);
-            throw new ConnectorIOException(filePath, e);
-        }
-    }
-
-    private List<Class<? extends SPIOperation>> getSupportedOpClasses(List<String> supportedOpList) {
-        List<Class<? extends SPIOperation>> list = new LinkedList<Class<? extends SPIOperation>>();
-
-        for (String s : supportedOpList) {
-            if (s.equals(XmlHandlerUtil.CREATE)) {
-                list.add(CreateOp.class);
-
-            } else if (s.equals(XmlHandlerUtil.AUTHENTICATE)) {
-                list.add(AuthenticateOp.class);
-
-            } else if (s.equals(XmlHandlerUtil.DELETE)) {
-                list.add(DeleteOp.class);
-
-            } else if (s.equals(XmlHandlerUtil.RESOLVEUSERNAME)) {
-                list.add(ResolveUsernameOp.class);
-
-            } else if (s.equals(XmlHandlerUtil.SCHEMA)) {
-                list.add(SchemaOp.class);
-
-            } else if (s.equals(XmlHandlerUtil.SCRIPTONCONNECTOR)) {
-                list.add(ScriptOnConnectorOp.class);
-
-            } else if (s.equals(XmlHandlerUtil.SCRIPTONRESOURCE)) {
-                list.add(ScriptOnResourceOp.class);
-
-            } else if (s.equals(XmlHandlerUtil.SEARCH)) {
-                list.add(SearchOp.class);
-
-            } else if (s.equals(XmlHandlerUtil.SYNC)) {
-                list.add(SyncOp.class);
-
-            } else if (s.equals(XmlHandlerUtil.TEST)) {
-                list.add(TestOp.class);
-
-            } else if (s.equals(XmlHandlerUtil.UPDATEATTRIBUTEVALUES)) {
-                list.add(UpdateAttributeValuesOp.class);
-
-            } else if (s.equals(XmlHandlerUtil.UPDATE)) {
-                list.add(UpdateOp.class);
-            }
-        }
-        return list;
-    }
-
-    private Class<?> getJavaClassType(List<String> list) {
-        for (int i = 0; i < list.size(); i++) {
-            String fileString = list.get(i);
-                    
-            if (fileString.contains("javaclass")){
-                String clasString = list.get(i + 1);
-                
-                try {
-                    return Class.forName(clasString);
-                    
-                } catch (ClassNotFoundException e) {
-                   log.error(e, "Class {0} not found.", clasString);
-                }
-            }
-        }
-        return null;
-    }
-
-    private Set<Flags> getFlags(List<String> list) {
-        Set<Flags> flags = new HashSet<Flags>();
-        
-        for (String s : list) {
-            if (s.equals(XmlHandlerUtil.NOT_CREATABLE)) {
-                flags.add(Flags.NOT_CREATABLE);
-
-            } else if (s.equals(XmlHandlerUtil.NOT_UPDATABLE)) {
-                flags.add(Flags.NOT_UPDATEABLE);
-
-            } else if (s.equals(XmlHandlerUtil.NOT_READABLE)) {
-                flags.add(Flags.NOT_READABLE);
-                flags.add(Flags.NOT_RETURNED_BY_DEFAULT);
-
-            } else if (s.equals(XmlHandlerUtil.NOT_RETURNED_BY_DEFAULT)) {
-                flags.add(Flags.NOT_RETURNED_BY_DEFAULT);
-                
-            }
-        }
-        return flags;
-    }
+    }  
 }
