@@ -58,7 +58,6 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
         return createFunctionQuery(args, "ends-with", not);
     }
 
-
     // TODO
     @Override
     protected IQuery createContainsAllValuesExpression(ContainsAllValuesFilter filter, boolean not) {

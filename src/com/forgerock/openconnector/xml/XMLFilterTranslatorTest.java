@@ -11,8 +11,10 @@ import com.forgerock.openconnector.xml.query.QueryBuilder;
 import com.forgerock.openconnector.xsdparser.SchemaParser;
 import java.util.Collection;
 import java.util.List;
+import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
+import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
 import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
@@ -127,7 +129,6 @@ public class XMLFilterTranslatorTest {
     @Test
     public void uniqueExistingShouldReturnSizeOne() {
         QueryBuilder qb = new QueryBuilder(equalsQueryFnJan, ObjectClass.ACCOUNT);
-        System.out.println(qb.toString());
         Collection<ConnectorObject> hits = xmlHandler.search(qb.toString(), ObjectClass.ACCOUNT);
         assertEquals(1, hits.size());
     }

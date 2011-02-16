@@ -418,13 +418,12 @@ public class XMLHandlerImpl implements XMLHandler {
         return node.getChildNodes();
     }
 
-    
-
     // Add all the attributes to the connectorbuilder-object
     private void addAllAttributesToBuilder(NodeList nodeList, ConnectorObjectBuilder coBuilder,
             Map<String, String> classes, Map<String, AttributeInfo> infos) {
         
         boolean hasUid = false;
+        HashMap<String, ArrayList<String>> multivalues = new HashMap<String, ArrayList<String>>();
         String nameTmp = "";
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node attributeNode = nodeList.item(i);
@@ -444,7 +443,26 @@ public class XMLHandlerImpl implements XMLHandler {
                         nameTmp = attrValue;
                     }
 
-                    Attribute attribute = createAttribute(attrName, attrValue, classes, infos);
+                    Attribute attribute = null;
+
+                    AttributeInfo info = infos.get(attrName);
+                    if (info.isReadable()) {
+                        if (!info.isMultiValued()) {
+                            // TODO: SJEKK HVORFOR DEN IKKE FINNER MULTIVALUED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                            System.out.println("FOUND NONMULTIVALUED: " + attrName);
+                            attribute = createAttribute(attrName, attrValue, classes);
+                        } else {
+                            System.out.println("FOUND MULTIVALUED: " + attrName);
+                            if (multivalues.containsKey(attrName)) {
+                                multivalues.get(attrName).add(attrValue);
+                            } else {
+                                ArrayList<String> values = new ArrayList<String>();
+                                values.add(attrValue);
+                                multivalues.put(attrName, values);
+                            }
+                        }
+                    }
+
                     if (attribute != null) {
                         coBuilder.addAttribute(attribute);
                     }
@@ -455,11 +473,18 @@ public class XMLHandlerImpl implements XMLHandler {
         if (!hasUid) {
             coBuilder.setUid(nameTmp);
         }
+
+        for (String s : multivalues.keySet()) {
+            System.out.println("LOOPING THROUG MULTIVALUED: " + s);
+            Attribute result = createMultivaluedAttribute(s, multivalues.get(s), classes);
+            if (result != null)
+                coBuilder.addAttribute(result);
+        }
     }
 
     // returns an attributed created for the attribute-node
     private Attribute createAttribute(String attrName, String attrValue,
-            Map<String, String> classes, Map<String, AttributeInfo> infos) {
+            Map<String, String> classes) {
         
         AttributeBuilder attrBuilder = new AttributeBuilder();
         attrBuilder.setName(attrName);
@@ -470,10 +495,22 @@ public class XMLHandlerImpl implements XMLHandler {
             Object value = AttrTypeUtil.createInstantiatedObject(attrValue, javaclass);
             attrBuilder.addValue(value);
             Attribute result = attrBuilder.build();
-            AttributeInfo info = infos.get(attrName);
-            if (info.isReadable()) {
-                return result;
+            return result;
+        }
+        return null;
+    }
+
+    private Attribute createMultivaluedAttribute(String attrName, ArrayList<String> attrValues, Map<String, String> classes) {
+        AttributeBuilder attrBuilder = new AttributeBuilder();
+        attrBuilder.setName(attrName);
+        if (classes.containsKey(attrName)) {
+            String javaclass = classes.get(attrName);
+            for (String eachValue : attrValues) {
+                Object valueObj = AttrTypeUtil.createInstantiatedObject(eachValue, javaclass);
+                attrBuilder.addValue(valueObj);
             }
+            Attribute result = attrBuilder.build();
+            return result;
         }
         return null;
     }
@@ -482,4 +519,6 @@ public class XMLHandlerImpl implements XMLHandler {
     private boolean isTextNode(Node node) {
         return node != null && node.getNodeType() == Node.TEXT_NODE;
     }
+
+  
 }

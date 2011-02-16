@@ -150,4 +150,10 @@ public class XMLHandlerTests {
         attribute = existingUsrConObj.getAttributeByName("years-employed");
         assertNotNull(attribute);
     }
+
+    @Test
+    public void testReadingMULTIVALUED() {
+        Attribute attribute = existingUsrConObj.getAttributeByName("email");
+        assertNull(attribute);
+    }
 }

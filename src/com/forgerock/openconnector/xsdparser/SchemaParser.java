@@ -176,6 +176,9 @@ public class SchemaParser {
 
         log.info("Exit {0}", METHOD);
         
+        System.out.println("\n\nSCHEMA:\n");
+        System.out.println(returnSchema.toString());
+        System.out.println("/SCHEMA:\n");
         return returnSchema;
     }
 
