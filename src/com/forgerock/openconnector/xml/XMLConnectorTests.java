@@ -108,7 +108,7 @@ public class XMLConnectorTests {
 
     @Test
     public void executeLastNameQueryShouldReturnOne() {
-        XMLFilterTranslator f = new XMLFilterTranslator();
+        XMLFilterTranslator f = (XMLFilterTranslator) queryXmlConnector.createFilterTranslator(ObjectClass.ACCOUNT, null);
         
         EqualsFilter ef = new EqualsFilter(AttributeBuilder.build("lastname", LAST_NAME));
         TestResultsHandler r = new TestResultsHandler();
