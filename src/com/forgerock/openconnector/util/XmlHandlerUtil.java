@@ -54,6 +54,7 @@ public class XmlHandlerUtil {
     public static final String GUARDED_STRING = "GuardedString";
     public static final String GUARDED_BYTE_ARRAY = "GuardedByteArray";
     public static final String BYTE_ARRAY = "byte[]";
+    public static final String BASE_64_BINARY = "base64Binary";
 
     // List of all supported operations
     public static final String CREATE = "CREATE";
