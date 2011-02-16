@@ -43,11 +43,20 @@ public class XMLConnectorTests {
     public static void tearDown() {
         xmlConfig = null;
         xmlConnector = null;
+
+        queryXmlConfig = null;
+        queryXmlConnector = null;
     }
 
     @Test
     public void initShouldNotCastException() {
         xmlConnector.init(xmlConfig);
+    }
+
+    @Test(expected=NullPointerException.class)
+    public void initShouldCastNullPointerException(){
+        XMLConnector xmlCon = new XMLConnector();
+        xmlCon.init(null);
     }
 
     @Test
