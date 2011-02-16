@@ -49,6 +49,8 @@ import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoUtil;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
+import org.w3c.dom.Attr;
+import org.w3c.dom.DOMConfiguration;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -111,46 +113,17 @@ public class XMLHandlerImpl implements XMLHandler {
         DOMImplementation implementation = builder.getDOMImplementation();
         document = implementation.createDocument(icfSchema.getTargetNamespace(), ICF_CONTAINER_TAG, null);
 
-
-
-        //Element root = document.createElementNS(icfSchema.getTargetNamespace(), ICF_CONTAINER_TAG);
-
-        //root.setPrefix(ICF_NAMESPACE_PREFIX);
-        //root.setAttributeNS("xmlns", RI_NAMESPACE_PREFIX, riSchema.getTargetNamespace());
-
-        //document.getDocumentElement().setPrefix(ICF_NAMESPACE_PREFIX);
-
         Element root = document.getDocumentElement();
         root.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:" + XSI_NAMESPACE_PREFIX , XSI_NAMESPACE);
         root.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:" + RI_NAMESPACE_PREFIX, riSchema.getTargetNamespace());
         root.setPrefix(ICF_NAMESPACE_PREFIX);
 
-        //Element test = document.createElementNS(riSchema.getTargetNamespace(), "__ACCOUNT__");
-        //test.setPrefix(RI_NAMESPACE_PREFIX);
 
-        //root.appendChild(test);
-        
-
-
-        //document.getDocumentElement().setAttributeNS("qeqwe", "xmlns:qweqwe", "qweq");
-
-        //document.appendChild(root);
-
-
-
-
-
-
-
-//        Element root = new Element(ICF_CONTAINER_TAG);
-//
-//        root.addNamespaceDeclaration(getNameSpace(NamespaceType.XSI_NAMESPACE));
-//        root.addNamespaceDeclaration(getNameSpace(NamespaceType.ICF_NAMESPACE));
-//        root.addNamespaceDeclaration(getNameSpace(NamespaceType.RI_NAMESPACE));
-//
-//        root.setNamespace(getNameSpace(NamespaceType.ICF_NAMESPACE));
-//
-//        document = new Document(root);
+        if(config.getXsdIcfFilePath() == null){
+            root.setAttribute(XSI_NAMESPACE_PREFIX + ":schemaLocation", riSchema.getTargetNamespace() + " " + config.getXsdFilePath());
+        }else{
+            root.setAttribute(XSI_NAMESPACE_PREFIX + ":schemaLocation", riSchema.getTargetNamespace() + " " + config.getXsdFilePath()  + " " + icfSchema.getTargetNamespace()  + " " + config.getXsdIcfFilePath());
+        }
     }
     
     /*private Namespace getNameSpace(NamespaceType namespaceType) {
