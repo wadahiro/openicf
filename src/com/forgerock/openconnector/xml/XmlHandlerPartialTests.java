@@ -149,7 +149,7 @@ public class XmlHandlerPartialTests {
     public void creatingEntryShouldReturnUid() {
         ObjectClass objClass = new ObjectClass(ObjectClass.ACCOUNT_NAME);
 
-        Uid insertedUid = null;
+        /*Uid insertedUid = null;
 
         try {
          insertedUid = handler.create(objClass, attributes);
@@ -158,7 +158,9 @@ public class XmlHandlerPartialTests {
             ex.printStackTrace();
         }
 
-        assertNotNull(insertedUid.getUidValue());
+        assertNotNull(insertedUid.getUidValue());*/
+
+        handler.delete(objClass, new Uid("vaderUID"));
 
         //handler.serialize();
     }

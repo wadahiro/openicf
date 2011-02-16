@@ -60,6 +60,7 @@ import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 public class XMLHandlerImpl implements XMLHandler {
 
@@ -177,22 +178,25 @@ public class XMLHandlerImpl implements XMLHandler {
         return namespace;
     }*/
 
-//    private void loadDocument(File xmlFile) {
-//        final String method = "loadDocument";
-//        log.info("Entry {0}", method);
-//
-//        SAXBuilder builder = new SAXBuilder();
-//
-//        try {
-//            document = builder.build(xmlFile);
-//        } catch (JDOMException ex) {
-//            log.info(ex.getMessage());
-//        } catch (IOException ex) {
-//            log.info(ex.getMessage());
-//        }
-//
-//        log.info("Exit {0}", method);
-//    }
+    private void loadDocument(File xmlFile) {
+        final String method = "loadDocument";
+        log.info("Entry {0}", method);
+
+        DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder docBuilder;
+        try {
+            docBuilder = docBuilderFactory.newDocumentBuilder();
+            document = docBuilder.parse (xmlFile);
+        } catch (SAXException ex) {
+            Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParserConfigurationException ex) {
+            Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        log.info("Exit {0}", method);
+    }
 
     // creating the Document-object
     private void buildDocument() {
@@ -204,7 +208,7 @@ public class XMLHandlerImpl implements XMLHandler {
         if (!xmlFile.exists()) {
             createDocument();
         } else {
-//            loadDocument(xmlFile);
+            loadDocument(xmlFile);
         }
         
         log.info("Exit {0}", method);
@@ -227,41 +231,24 @@ public class XMLHandlerImpl implements XMLHandler {
         Map<String, AttributeInfo> attributeInfoMap = new HashMap<String, AttributeInfo>(AttributeInfoUtil.toMap(objAttributes));
         String uidValue = null;
 
-        System.out.println("1");
-
         if (!attributesMap.containsKey(Name.NAME) || attributesMap.get(Name.NAME).getValue().isEmpty()) {
             throw new IllegalArgumentException(Name.NAME + " must be defined.");
         }
 
-        System.out.println("2");
-
         Name name = AttributeUtil.getNameFromAttributes(attributes);
-
-        System.out.println("3");
 
         if (entryExists(objClass, name)) {
             throw new AlreadyExistsException("Could not create entry. An entry with the " + Uid.NAME + " of " + name.getNameValue() + " already exists.");
         }
-
-        System.out.println("4");
 
         if (attributeInfoMap.containsKey(Uid.NAME))
             uidValue = UUID.randomUUID().toString();
         else
             uidValue = name.getNameValue();
 
-
-        System.out.println("5");
         // Create object type element
-        Element root = document.createElementNS(riSchema.getTargetNamespace(), objClass.getObjectClassValue());
-        root.setPrefix(RI_NAMESPACE_PREFIX);
-
-        System.out.println("6");
-
-        //document.appendChild(root);
-
-                //new Element(objClass.getObjectClassValue());
-        //root.setNamespace(getNameSpace(NamespaceType.RI_NAMESPACE));
+        Element objElement = document.createElementNS(riSchema.getTargetNamespace(), objClass.getObjectClassValue());
+        objElement.setPrefix(RI_NAMESPACE_PREFIX);
 
         // Add child elements
         for (AttributeInfo attrInfo : objAttributes) {
@@ -272,15 +259,30 @@ public class XMLHandlerImpl implements XMLHandler {
                 }
             }
 
+            if (attributesMap.containsKey(attrInfo.getName())) {
+
+                if (attrInfo.isCreateable()) {
+                    throw new IllegalArgumentException(attrInfo.getName() + " is not creatable.");
+                }
+
+                /*if (attrInfo.isMultiValued() && attributesMap.get(attrInfo.getName()).getValue().size() > 1) {
+                    for (Object obj : attributesMap.get(attrInfo.getName()).getValue()) {
+                        objElement.appendChild(createDomElementFromAttribute());
+                    }
+                }
+                else {
+                    objElement.appendChild(createDomElementFromAttribute());
+                }*/
+            }
+
             if (!attrInfo.isCreateable() && attributesMap.containsKey(attrInfo.getName())) {
                 throw new IllegalArgumentException(attrInfo.getName() + " is not creatable.");
             }
 
+            /*if (attrInfo.isMultiValued() && attributesMap.get(attrInfo.getName()).getValue().size() >  1) {
 
-            //Element child = document.createElement(attrInfo.getName());
-            //child.set
+            }*/
 
-            //Element child = new Element(attrInfo.getName());
             String elementText = "";
 
             // Add attribute value to field
@@ -290,8 +292,6 @@ public class XMLHandlerImpl implements XMLHandler {
             else if (attributesMap.containsKey(attrInfo.getName())) {
                 elementText = AttrTypeUtil.findAttributeValue(attributesMap.get(attrInfo.getName()), attrInfo);
             }
-
-            //child.setText(elementText);
 
             Element child = null;
 
@@ -311,8 +311,7 @@ public class XMLHandlerImpl implements XMLHandler {
 
             child.setTextContent(elementText);
 
-            root.appendChild(child);
-            //root.addContent(child);
+            objElement.appendChild(child);
 
             if (attributesMap.containsKey(attrInfo.getName()))
                 attributesMap.remove(attrInfo.getName());
@@ -322,11 +321,7 @@ public class XMLHandlerImpl implements XMLHandler {
             throw new IllegalArgumentException("Entry contains attributes that is not supported: " + attributesMap.toString());
         }
 
-         System.out.println("7");
-
-        document.getDocumentElement().appendChild(root);
-
-        //document.getRootElement().addContent(root);
+        document.getDocumentElement().appendChild(objElement);
 
         serialize();
 
@@ -334,9 +329,23 @@ public class XMLHandlerImpl implements XMLHandler {
 
         return new Uid(uidValue);
     }
+    
+    private Element createDomElementFromAttribute(Attribute attribute) {
+        
+        Element element = null;
 
-    public boolean checkAttributeExists() {
-        return false;
+        if (icfSchema.getElementDecls().containsKey(attribute.getName())) {
+            element = document.createElementNS(icfSchema.getTargetNamespace(), attribute.getName());
+            element.setPrefix(ICF_NAMESPACE_PREFIX);
+            //child.setNamespace(getNameSpace(NamespaceType.ICF_NAMESPACE));
+        }
+        else {
+            element = document.createElementNS(riSchema.getTargetNamespace(), attribute.getName());
+            element.setPrefix(RI_NAMESPACE_PREFIX);
+            //child.setNamespace(getNameSpace(NamespaceType.RI_NAMESPACE));
+        }
+
+        return element;
     }
 
     // TODO: Uid
@@ -398,18 +407,9 @@ public class XMLHandlerImpl implements XMLHandler {
             xqHandler = new XQueryHandler(queryBuilder.toString(), document);
             XQResultSequence results = xqHandler.getResultSequence();
 
-            System.out.println("3324234");
-
             if (results.next()) {
                 Element element = (Element)results.getItem().getNode();
-
-
-                //DOMBuilder oMBuilder = new DOMBuilder();
-                System.out.println("Has result!");
-                System.out.println(element.toString());
-                element.toString();
                 return element;
-                //return oMBuilder.build(element);
             }
             else
                 System.out.println("No results!");
@@ -428,7 +428,7 @@ public class XMLHandlerImpl implements XMLHandler {
         Name name = new Name(uid.getUidValue());
 
         if (entryExists(objClass, name)) {
-            //document.getRootElement().removeContent(getEntry(objClass, name));
+            document.getDocumentElement().removeChild(getEntry(objClass, name));
         } else {
             throw new UnknownUidException("Deleting entry failed. Could not find an entry of type " + objClass.getObjectClassValue() + " with the uid " + name.getNameValue());
         }
