@@ -10,6 +10,7 @@ import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.junit.*;
 import static org.junit.Assert.*;
 
@@ -19,6 +20,7 @@ public class XMLConnectorTests {
     private static XMLConfiguration xmlConfig, queryXmlConfig;
     private final static String ACCOUNT_NAME = "Erwita";
     private final static String GROUP_NAME = "Admin";
+    private final static String LAST_NAME = "Lastnamerson";
 
     @BeforeClass
     public static void setUp() {
@@ -89,10 +91,27 @@ public class XMLConnectorTests {
     }
 
     @Test
-    public void executeQueryShouldReturnOne() {
+    public void executeNullQueryShouldReturnOne() {
         TestResultsHandler r = new TestResultsHandler();
         queryXmlConnector.executeQuery(ObjectClass.ACCOUNT, null, r, null);
         assertEquals(1, r.getSumResults());
+    }
+
+    @Test
+    public void executeLastNameQueryShouldReturnOne() {
+        XMLFilterTranslator f = new XMLFilterTranslator();
+        
+        EqualsFilter ef = new EqualsFilter(AttributeBuilder.build("lastname", LAST_NAME));
+        TestResultsHandler r = new TestResultsHandler();
+
+        queryXmlConnector.executeQuery(ObjectClass.ACCOUNT, f.createEqualsExpression(ef, false), r, null);
+    
+        assertEquals(1, r.getSumResults());
+    }
+
+    @Test(expected=NullPointerException.class)
+    public void executeQueryWithNullShouldCastNullPointerException(){
+        queryXmlConnector.executeQuery(null, null, null, null);
     }
 
     @Test
@@ -177,7 +196,7 @@ public class XMLConnectorTests {
         Set<Attribute> set = new HashSet<Attribute>();
 
         set.add(AttributeBuilder.build("__NAME__", ACCOUNT_NAME));
-        set.add(AttributeBuilder.build("lastname", "Lastnamerson"));
+        set.add(AttributeBuilder.build("lastname", LAST_NAME));
 
         char[] chars = {'A', 'B', 'C', 'D'};
         set.add(AttributeBuilder.buildPassword(new GuardedString(chars)));
