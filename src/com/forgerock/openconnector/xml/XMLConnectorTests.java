@@ -189,7 +189,7 @@ public class XMLConnectorTests {
         Set<Attribute> attributes = new HashSet<Attribute>();
 
         attributes.add(AttributeBuilder.build("__NAME__", GROUP_NAME));
-        attributes.add(AttributeBuilder.build("__DESCRIPTION__", "this is description"));
+        attributes.add(AttributeBuilder.build("__DESCRIPTION__", "The almighty"));
         attributes.add(AttributeBuilder.build("__SHORT_NAME__", "tid"));
 
         return attributes;
