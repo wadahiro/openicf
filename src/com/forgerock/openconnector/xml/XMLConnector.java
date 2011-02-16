@@ -24,8 +24,6 @@ import com.forgerock.openconnector.xml.query.IQuery;
 import com.forgerock.openconnector.xml.query.QueryBuilder;
 import com.forgerock.openconnector.xsdparser.SchemaParser;
 import java.io.File;
-import java.io.IOException;
-import java.rmi.ConnectIOException;
 import java.util.*;
 
 import org.identityconnectors.common.Assertions;
