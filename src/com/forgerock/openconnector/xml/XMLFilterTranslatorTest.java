@@ -67,7 +67,7 @@ public class XMLFilterTranslatorTest {
         config.setXsdFilePath("test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
         SchemaParser parser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
 
-        xmlHandler = new XMLHandlerImpl(config.getXmlFilePath(), parser.parseSchema(), parser.getXsdSchema());
+        xmlHandler = new XMLHandlerImpl(config, parser.parseSchema(), parser.getXsdSchema());
         ft = new XMLFilterTranslator();
 
         AttributeBuilder attrBld = new AttributeBuilder();

@@ -52,7 +52,7 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
 
         this.config = (XMLConfiguration) cfg;
         this.schemaParser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
-        this.xmlHandler = new XMLHandlerImpl(config.getXmlFilePath(), schema(), schemaParser.getXsdSchema());
+        this.xmlHandler = new XMLHandlerImpl(config, schema(), schemaParser.getXsdSchema());
     }
 
     public void dispose() {

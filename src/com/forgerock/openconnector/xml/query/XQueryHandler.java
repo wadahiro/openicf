@@ -14,9 +14,7 @@ import javax.xml.xquery.XQException;
 import javax.xml.xquery.XQExpression;
 import javax.xml.xquery.XQResultSequence;
 import net.sf.saxon.xqj.SaxonXQDataSource;
-import org.jdom.Document;
-import org.jdom.JDOMException;
-import org.jdom.output.DOMOutputter;
+import org.w3c.dom.Document;
 
 public class XQueryHandler {
 
@@ -37,11 +35,7 @@ public class XQueryHandler {
             datasource = new SaxonXQDataSource();
             connection = datasource.getConnection();
             expression = connection.createExpression();
-            DOMOutputter domOutputter = new DOMOutputter();
-            org.w3c.dom.Document w3cDoc = domOutputter.output(document);
-            expression.bindNode(XQConstants.CONTEXT_ITEM, w3cDoc, null);
-        } catch (JDOMException ex) {
-            Logger.getLogger(XQueryHandler.class.getName()).log(Level.SEVERE, null, ex);
+            expression.bindNode(XQConstants.CONTEXT_ITEM, document, null);
         } catch (XQException ex) {
             Logger.getLogger(XQueryHandler.class.getName()).log(Level.SEVERE, null, ex);
         }

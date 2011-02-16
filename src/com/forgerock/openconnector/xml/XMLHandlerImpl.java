@@ -1,9 +1,7 @@
 package com.forgerock.openconnector.xml;
 
 import com.forgerock.openconnector.util.AttrTypeUtil;
-import com.forgerock.openconnector.util.GuardedByteArrayAccessor;
 import com.forgerock.openconnector.util.NamespaceLookup;
-import com.forgerock.openconnector.util.GuardedStringAccessor;
 import com.forgerock.openconnector.util.XmlHandlerUtil;
 import com.forgerock.openconnector.xml.query.IQuery;
 import com.forgerock.openconnector.xml.query.QueryBuilder;
@@ -14,6 +12,7 @@ import com.sun.xml.xsom.XSSchemaSet;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,6 +23,17 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.xquery.XQException;
 import javax.xml.xquery.XQItem;
 import javax.xml.xquery.XQResultSequence; 
@@ -39,22 +49,15 @@ import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.Format;
-import org.jdom.output.XMLOutputter;
 import org.identityconnectors.common.Assertions;
-import org.identityconnectors.common.security.GuardedByteArray;
-import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.framework.common.FrameworkUtil;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoUtil;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
-import org.jdom.Namespace;
-import org.jdom.input.DOMBuilder;
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.DocumentType;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -65,7 +68,7 @@ public class XMLHandlerImpl implements XMLHandler {
      */
     private static final Log log = Log.getLog(XMLHandlerImpl.class);
 
-    private String filePath;
+    private XMLConfiguration config;
     private Document document;
     private Schema connSchema; // TODO: Move to config class
 
@@ -81,10 +84,10 @@ public class XMLHandlerImpl implements XMLHandler {
     public static final String ICF_CONTAINER_TAG = "OpenICFContainer";
 
     // TODO: Use Assertions class for null and blank check
-    public XMLHandlerImpl(String filePath, Schema connSchema, XSSchemaSet xsdSchemas) {
-        Assertions.nullCheck(filePath, "filePath");
-        Assertions.blankCheck(filePath, "filePath");
-        this.filePath = filePath;
+    public XMLHandlerImpl(XMLConfiguration config, Schema connSchema, XSSchemaSet xsdSchemas) {
+        Assertions.nullCheck(config.getXmlFilePath(), "filePath");
+        Assertions.blankCheck(config.getXmlFilePath(), "filePath");
+        this.config = config;
 
         this.connSchema = connSchema;
         this.riSchema = xsdSchemas.getSchema(1);
@@ -95,24 +98,68 @@ public class XMLHandlerImpl implements XMLHandler {
         buildDocument();
     }
 
-    public String getFilePath() {
-        return this.filePath;
-    }
+    //public String getFilePath() {
+    //    return this.filePath;
+    //}
 
     // TODO: Add schemalocation
     private void createDocument() {
-        Element root = new Element(ICF_CONTAINER_TAG);
+        DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+        builderFactory.setNamespaceAware(true);
+        DocumentBuilder builder = null;
+        try {
+            builder = builderFactory.newDocumentBuilder();
+        } catch (ParserConfigurationException ex) {
+            Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
-        root.addNamespaceDeclaration(getNameSpace(NamespaceType.XSI_NAMESPACE));
-        root.addNamespaceDeclaration(getNameSpace(NamespaceType.ICF_NAMESPACE));
-        root.addNamespaceDeclaration(getNameSpace(NamespaceType.RI_NAMESPACE));
+        DOMImplementation implementation = builder.getDOMImplementation();
+        document = implementation.createDocument(icfSchema.getTargetNamespace(), ICF_CONTAINER_TAG, null);
+
+
+
+        //Element root = document.createElementNS(icfSchema.getTargetNamespace(), ICF_CONTAINER_TAG);
+
+        //root.setPrefix(ICF_NAMESPACE_PREFIX);
+        //root.setAttributeNS("xmlns", RI_NAMESPACE_PREFIX, riSchema.getTargetNamespace());
+
+        //document.getDocumentElement().setPrefix(ICF_NAMESPACE_PREFIX);
+
+        Element root = document.getDocumentElement();
+        root.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:" + XSI_NAMESPACE_PREFIX , XSI_NAMESPACE);
+        root.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:" + RI_NAMESPACE_PREFIX, riSchema.getTargetNamespace());
+        root.setPrefix(ICF_NAMESPACE_PREFIX);
+
+        //Element test = document.createElementNS(riSchema.getTargetNamespace(), "__ACCOUNT__");
+        //test.setPrefix(RI_NAMESPACE_PREFIX);
+
+        //root.appendChild(test);
         
-        root.setNamespace(getNameSpace(NamespaceType.ICF_NAMESPACE));
 
-        document = new Document(root);
+
+        //document.getDocumentElement().setAttributeNS("qeqwe", "xmlns:qweqwe", "qweq");
+
+        //document.appendChild(root);
+
+
+
+
+
+
+
+//        Element root = new Element(ICF_CONTAINER_TAG);
+//
+//        root.addNamespaceDeclaration(getNameSpace(NamespaceType.XSI_NAMESPACE));
+//        root.addNamespaceDeclaration(getNameSpace(NamespaceType.ICF_NAMESPACE));
+//        root.addNamespaceDeclaration(getNameSpace(NamespaceType.RI_NAMESPACE));
+//
+//        root.setNamespace(getNameSpace(NamespaceType.ICF_NAMESPACE));
+//
+//        document = new Document(root);
     }
     
-    private Namespace getNameSpace(NamespaceType namespaceType) {
+    /*private Namespace getNameSpace(NamespaceType namespaceType) {
+
         Namespace namespace = null;
 
         switch (namespaceType) {
@@ -128,36 +175,36 @@ public class XMLHandlerImpl implements XMLHandler {
         }
 
         return namespace;
-    }
+    }*/
 
-    private void loadDocument(File xmlFile) {
-        final String method = "loadDocument";
-        log.info("Entry {0}", method);
-
-        SAXBuilder builder = new SAXBuilder();
-
-        try {
-            document = builder.build(xmlFile);
-        } catch (JDOMException ex) {
-            log.info(ex.getMessage());
-        } catch (IOException ex) {
-            log.info(ex.getMessage());
-        }
-
-        log.info("Exit {0}", method);
-    }
+//    private void loadDocument(File xmlFile) {
+//        final String method = "loadDocument";
+//        log.info("Entry {0}", method);
+//
+//        SAXBuilder builder = new SAXBuilder();
+//
+//        try {
+//            document = builder.build(xmlFile);
+//        } catch (JDOMException ex) {
+//            log.info(ex.getMessage());
+//        } catch (IOException ex) {
+//            log.info(ex.getMessage());
+//        }
+//
+//        log.info("Exit {0}", method);
+//    }
 
     // creating the Document-object
     private void buildDocument() {
         final String method = "buildDocument";
         log.info("Entry {0}", method);
 
-        File xmlFile = new File(filePath);
+        File xmlFile = new File(config.getXmlFilePath());
 
         if (!xmlFile.exists()) {
             createDocument();
         } else {
-            loadDocument(xmlFile);
+//            loadDocument(xmlFile);
         }
         
         log.info("Exit {0}", method);
@@ -180,24 +227,41 @@ public class XMLHandlerImpl implements XMLHandler {
         Map<String, AttributeInfo> attributeInfoMap = new HashMap<String, AttributeInfo>(AttributeInfoUtil.toMap(objAttributes));
         String uidValue = null;
 
+        System.out.println("1");
+
         if (!attributesMap.containsKey(Name.NAME) || attributesMap.get(Name.NAME).getValue().isEmpty()) {
             throw new IllegalArgumentException(Name.NAME + " must be defined.");
         }
 
+        System.out.println("2");
+
         Name name = AttributeUtil.getNameFromAttributes(attributes);
+
+        System.out.println("3");
 
         if (entryExists(objClass, name)) {
             throw new AlreadyExistsException("Could not create entry. An entry with the " + Uid.NAME + " of " + name.getNameValue() + " already exists.");
         }
+
+        System.out.println("4");
 
         if (attributeInfoMap.containsKey(Uid.NAME))
             uidValue = UUID.randomUUID().toString();
         else
             uidValue = name.getNameValue();
 
+
+        System.out.println("5");
         // Create object type element
-        Element root = new Element(objClass.getObjectClassValue());
-        root.setNamespace(getNameSpace(NamespaceType.RI_NAMESPACE));
+        Element root = document.createElementNS(riSchema.getTargetNamespace(), objClass.getObjectClassValue());
+        root.setPrefix(RI_NAMESPACE_PREFIX);
+
+        System.out.println("6");
+
+        //document.appendChild(root);
+
+                //new Element(objClass.getObjectClassValue());
+        //root.setNamespace(getNameSpace(NamespaceType.RI_NAMESPACE));
 
         // Add child elements
         for (AttributeInfo attrInfo : objAttributes) {
@@ -212,7 +276,11 @@ public class XMLHandlerImpl implements XMLHandler {
                 throw new IllegalArgumentException(attrInfo.getName() + " is not creatable.");
             }
 
-            Element child = new Element(attrInfo.getName());
+
+            //Element child = document.createElement(attrInfo.getName());
+            //child.set
+
+            //Element child = new Element(attrInfo.getName());
             String elementText = "";
 
             // Add attribute value to field
@@ -223,15 +291,28 @@ public class XMLHandlerImpl implements XMLHandler {
                 elementText = AttrTypeUtil.findAttributeValue(attributesMap.get(attrInfo.getName()), attrInfo);
             }
 
-            child.setText(elementText);
+            //child.setText(elementText);
 
-            // Set namespace
-            if (icfSchema.getElementDecls().containsKey(attrInfo.getName()))
-                child.setNamespace(getNameSpace(NamespaceType.ICF_NAMESPACE));
-            else
-                child.setNamespace(getNameSpace(NamespaceType.RI_NAMESPACE));
+            Element child = null;
 
-            root.addContent(child);
+            //Set namespace
+            if (icfSchema.getElementDecls().containsKey(attrInfo.getName())) {
+                child = document.createElementNS(icfSchema.getTargetNamespace(), attrInfo.getName());
+                child.setPrefix(ICF_NAMESPACE_PREFIX);
+            }
+
+                //child.setNamespace(getNameSpace(NamespaceType.ICF_NAMESPACE));
+            else {
+                child = document.createElementNS(riSchema.getTargetNamespace(), attrInfo.getName());
+                child.setPrefix(RI_NAMESPACE_PREFIX);
+                //child.setNamespace(getNameSpace(NamespaceType.RI_NAMESPACE));
+            }
+
+
+            child.setTextContent(elementText);
+
+            root.appendChild(child);
+            //root.addContent(child);
 
             if (attributesMap.containsKey(attrInfo.getName()))
                 attributesMap.remove(attrInfo.getName());
@@ -241,7 +322,11 @@ public class XMLHandlerImpl implements XMLHandler {
             throw new IllegalArgumentException("Entry contains attributes that is not supported: " + attributesMap.toString());
         }
 
-        document.getRootElement().addContent(root);
+         System.out.println("7");
+
+        document.getDocumentElement().appendChild(root);
+
+        //document.getRootElement().addContent(root);
 
         serialize();
 
@@ -283,7 +368,7 @@ public class XMLHandlerImpl implements XMLHandler {
                 }
 
                 // TODO: GuardedString, GuardedByteArray
-                entry.getChild(attribute.getName()).setText(AttributeUtil.getStringValue(attribute));
+                //entry.getChild(attribute.getName()).setText(AttributeUtil.getStringValue(attribute));
             }
         }
         else {
@@ -298,7 +383,6 @@ public class XMLHandlerImpl implements XMLHandler {
     }
 
     public Element getEntry(ObjectClass objClass, Name name) {
-
         XMLFilterTranslator translator = new XMLFilterTranslator();
         AttributeBuilder builder = new AttributeBuilder();
         builder.setName(Name.NAME);
@@ -309,15 +393,26 @@ public class XMLHandlerImpl implements XMLHandler {
 
         XQueryHandler xqHandler = null;
         try {
+
+            
             xqHandler = new XQueryHandler(queryBuilder.toString(), document);
             XQResultSequence results = xqHandler.getResultSequence();
 
-            if (results.next()) {
-                org.w3c.dom.Element element = (org.w3c.dom.Element)results.getItem().getNode();
+            System.out.println("3324234");
 
-                DOMBuilder oMBuilder = new DOMBuilder();
-                return oMBuilder.build(element);
+            if (results.next()) {
+                Element element = (Element)results.getItem().getNode();
+
+
+                //DOMBuilder oMBuilder = new DOMBuilder();
+                System.out.println("Has result!");
+                System.out.println(element.toString());
+                element.toString();
+                return element;
+                //return oMBuilder.build(element);
             }
+            else
+                System.out.println("No results!");
         } catch (XQException ex) {
             log.error(ex.getMessage());
         } 
@@ -333,14 +428,13 @@ public class XMLHandlerImpl implements XMLHandler {
         Name name = new Name(uid.getUidValue());
 
         if (entryExists(objClass, name)) {
-            document.getRootElement().removeContent(getEntry(objClass, name));
+            //document.getRootElement().removeContent(getEntry(objClass, name));
         } else {
             throw new UnknownUidException("Deleting entry failed. Could not find an entry of type " + objClass.getObjectClassValue() + " with the uid " + name.getNameValue());
         }
         
         serialize();
     }
-
 
     public Collection<ConnectorObject> search(String query, ObjectClass objClass) {
 
@@ -396,20 +490,15 @@ public class XMLHandlerImpl implements XMLHandler {
     
 
     public void serialize() {
-        FileWriter writer = null;
         try {
-            XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
-            writer = new FileWriter(new File(filePath));
-            outputter.output(document, writer);
-            writer.close();
-        } catch (IOException ex) {
-            Logger.getLogger(XMLHandler.class.getName()).log(Level.SEVERE, null, ex); // TODO: Change to framework logger
-        } finally {
-            try {
-                writer.close();
-            } catch (IOException ex) {
-                Logger.getLogger(XMLHandler.class.getName()).log(Level.SEVERE, null, ex); // TODO: Change to framework logger
-            }
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            DOMSource source = new DOMSource(document);
+            StreamResult result = new StreamResult(new File(config.getXmlFilePath()));
+            transformer.transform(source, result);
+
+        } catch (TransformerException ex) {
+            Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
