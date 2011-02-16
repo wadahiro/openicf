@@ -7,7 +7,6 @@ package com.forgerock.openconnector.xml;
 
 import java.util.Collection;
 import java.util.Set;
-import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.ConnectorObject;

@@ -102,10 +102,10 @@ public class XMLHandlerTests {
 //    }
 
     @Test
-    public void emptySearchQueryShouldReturnNull() {
+    public void emptySearchQueryShouldReturnSizeZero() {
         String query = "";
         Collection<ConnectorObject> hits = xmlHandler.search(query, null);
-        assertNull(hits);
+        assertEquals(0, hits.size());
     }
 
 
@@ -154,6 +154,7 @@ public class XMLHandlerTests {
     @Test
     public void testReadingMULTIVALUED() {
         Attribute attribute = existingUsrConObj.getAttributeByName("email");
-        assertNull(attribute);
+        int values = attribute.getValue().size();
+        assertEquals(3, values);
     }
 }

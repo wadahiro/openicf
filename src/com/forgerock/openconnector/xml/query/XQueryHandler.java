@@ -14,6 +14,7 @@ import javax.xml.xquery.XQException;
 import javax.xml.xquery.XQExpression;
 import javax.xml.xquery.XQResultSequence;
 import net.sf.saxon.xqj.SaxonXQDataSource;
+import org.identityconnectors.common.logging.Log;
 import org.w3c.dom.Document;
 
 public class XQueryHandler {
@@ -24,6 +25,8 @@ public class XQueryHandler {
     private String query;
     private Document document;
 
+    private static final Log log = Log.getLog(XQueryHandler.class);
+
     public XQueryHandler(String query, Document document) {
         this.query = query;
         this.document = document;
@@ -31,26 +34,41 @@ public class XQueryHandler {
     }
 
     private void initialize() {
+        final String method = "initialize";
+        log.info("Entry {0}", method);
         try {
             datasource = new SaxonXQDataSource();
             connection = datasource.getConnection();
             expression = connection.createExpression();
             expression.bindNode(XQConstants.CONTEXT_ITEM, document, null);
         } catch (XQException ex) {
-            Logger.getLogger(XQueryHandler.class.getName()).log(Level.SEVERE, null, ex);
+            log.warn("XQEexception while initializing: {0}", ex);
         }
+        log.info("Exit {0}", method);
     }
 
-    public XQResultSequence getResultSequence() throws XQException {
-        return expression.executeQuery(query);
+    public XQResultSequence getResultSequence() {
+        final String method = "getResultSequence";
+        log.info("Entry {0}", method);
+        XQResultSequence sequence = null;
+        try {
+            sequence = expression.executeQuery(query);
+        } catch (XQException ex) {
+            Logger.getLogger(XQueryHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        log.info("Exit {0}", method);
+        return sequence;
     }
 
     public void close() {
+        final String method = "close";
+        log.info("Entry {0}", method);
         try {
             connection.close();
             expression.close();
         } catch (XQException ex) {
-            Logger.getLogger(XQueryHandler.class.getName()).log(Level.SEVERE, null, ex);
+            log.warn("Exception while closing: {0}", ex);
         }
+        log.info("Exit {0}", method);
     }
 }

@@ -6,13 +6,10 @@ import com.forgerock.openconnector.util.XmlHandlerUtil;
 import com.forgerock.openconnector.xml.query.IQuery;
 import com.forgerock.openconnector.xml.query.QueryBuilder;
 import com.forgerock.openconnector.xml.query.XQueryHandler;
-import com.forgerock.openconnector.xsdparser.NamespaceType;
 import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -27,13 +24,11 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 import javax.xml.xquery.XQException;
 import javax.xml.xquery.XQItem;
 import javax.xml.xquery.XQResultSequence; 
@@ -56,7 +51,6 @@ import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
-import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -183,16 +177,17 @@ public class XMLHandlerImpl implements XMLHandler {
         log.info("Entry {0}", method);
 
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+        docBuilderFactory.setNamespaceAware(true);
         DocumentBuilder docBuilder;
         try {
             docBuilder = docBuilderFactory.newDocumentBuilder();
             document = docBuilder.parse (xmlFile);
+        } catch (ParserConfigurationException ex) {
+            Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SAXException ex) {
             Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParserConfigurationException ex) {
-            Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
+            log.error("IOExceptino while building document: {0}", ex);
         }
         
         log.info("Exit {0}", method);
@@ -436,16 +431,17 @@ public class XMLHandlerImpl implements XMLHandler {
         serialize();
     }
 
+    @Override
     public Collection<ConnectorObject> search(String query, ObjectClass objClass) {
 
-        List<ConnectorObject> results = null;
+        List<ConnectorObject> results = new ArrayList<ConnectorObject>();
 
         if (query != null && !query.isEmpty() && objClass != null) {
 
             ObjectClassInfo objInfo = connSchema.findObjectClassInfo(objClass.getObjectClassValue());
             Set<AttributeInfo> objAttributes = objInfo.getAttributeInfo();
 
-            // create a map with the attribute-names and what class they are
+            // map with the attribute-names and what class they are
             HashMap<String, String> attrClasses = new HashMap<String, String>();
             for (AttributeInfo info : objAttributes) {
                 attrClasses.put(info.getName(), info.getType().getSimpleName());
@@ -459,11 +455,10 @@ public class XMLHandlerImpl implements XMLHandler {
                 xqHandler = new XQueryHandler(query, document);
                 XQResultSequence queryResult = xqHandler.getResultSequence();
 
-                results = new ArrayList<ConnectorObject>();
-
                 while (queryResult.next()) {
                     
                     NodeList nodes = createNodeList(queryResult.getItem());
+                    
                     ConnectorObjectBuilder conObjBuilder = new ConnectorObjectBuilder();
                     conObjBuilder.setObjectClass(objClass);
                     addAllAttributesToBuilder(nodes, conObjBuilder, attrClasses, attrInfos);
@@ -512,6 +507,7 @@ public class XMLHandlerImpl implements XMLHandler {
             Map<String, String> classes, Map<String, AttributeInfo> infos) {
         
         boolean hasUid = false;
+        // map for storing multivalued attributes
         HashMap<String, ArrayList<String>> multivalues = new HashMap<String, ArrayList<String>>();
         String nameTmp = "";
         for (int i = 0; i < nodeList.getLength(); i++) {
@@ -522,56 +518,56 @@ public class XMLHandlerImpl implements XMLHandler {
                 
                 if (isTextNode(textNode)) {
                     String attrName = attributeNode.getLocalName();
+
                     String attrValue = textNode.getNodeValue();
 
-                    if (attrName.equals("__UID__")) {
+
+                    if (attrName.equals(Uid.NAME)) {
                         coBuilder.setUid(attrValue);
                         hasUid = true;
                     }
-                    if (!hasUid && attrName.equals("__NAME__")) {
+                    if (!hasUid && attrName.equals(Name.NAME)) {
                         nameTmp = attrValue;
                     }
 
                     Attribute attribute = null;
-
                     AttributeInfo info = infos.get(attrName);
+                    
                     if (info.isReadable()) {
                         if (!info.isMultiValued()) {
-                            // TODO: SJEKK HVORFOR DEN IKKE FINNER MULTIVALUED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                            System.out.println("FOUND NONMULTIVALUED: " + attrName);
                             attribute = createAttribute(attrName, attrValue, classes);
-                        } else {
-                            System.out.println("FOUND MULTIVALUED: " + attrName);
+                        }
+                        else {
                             if (multivalues.containsKey(attrName)) {
                                 multivalues.get(attrName).add(attrValue);
-                            } else {
+                            }
+                            else {
                                 ArrayList<String> values = new ArrayList<String>();
                                 values.add(attrValue);
                                 multivalues.put(attrName, values);
                             }
                         }
                     }
-
                     if (attribute != null) {
                         coBuilder.addAttribute(attribute);
                     }
                 }
             }
         }
+        
         // set __NAME__ attribute as UID if no UID was wound
         if (!hasUid) {
             coBuilder.setUid(nameTmp);
         }
 
+        //add multivalued attributes
         for (String s : multivalues.keySet()) {
-            System.out.println("LOOPING THROUG MULTIVALUED: " + s);
             Attribute result = createMultivaluedAttribute(s, multivalues.get(s), classes);
             if (result != null)
                 coBuilder.addAttribute(result);
         }
     }
-
-    // returns an attributed created for the attribute-node
+    
     private Attribute createAttribute(String attrName, String attrValue,
             Map<String, String> classes) {
         
@@ -588,10 +584,11 @@ public class XMLHandlerImpl implements XMLHandler {
         }
         return null;
     }
-
+    
     private Attribute createMultivaluedAttribute(String attrName, ArrayList<String> attrValues, Map<String, String> classes) {
         AttributeBuilder attrBuilder = new AttributeBuilder();
         attrBuilder.setName(attrName);
+        
         if (classes.containsKey(attrName)) {
             String javaclass = classes.get(attrName);
             for (String eachValue : attrValues) {
@@ -608,6 +605,4 @@ public class XMLHandlerImpl implements XMLHandler {
     private boolean isTextNode(Node node) {
         return node != null && node.getNodeType() == Node.TEXT_NODE;
     }
-
-  
 }

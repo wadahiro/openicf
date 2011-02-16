@@ -98,17 +98,12 @@ public class XmlHandlerPartialTests {
         handler.create(ObjectClass.ACCOUNT, attributes);
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void creatingEntryWithMissingRequiredFieldShouldThrowException() {
         Set<Attribute> emptyAttributes = new HashSet<Attribute>();
-        try {
-            handler.create(ObjectClass.ACCOUNT, emptyAttributes);
-        }
-        catch(IllegalArgumentException ex) {
-            System.out.println("====================================================");
-            ex.printStackTrace();
-            System.out.println("====================================================");
-        }
+
+        handler.create(ObjectClass.ACCOUNT, emptyAttributes);
+
     }
 
     @Test(expected=IllegalArgumentException.class)

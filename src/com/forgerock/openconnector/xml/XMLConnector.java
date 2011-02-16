@@ -47,12 +47,14 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
     }
 
     public void init(Configuration cfg) {
-
+        final String method = "init";
+        log.info("Entry {0}", method);
         Assertions.nullCheck(cfg, "cfg");
-
         this.config = (XMLConfiguration) cfg;
         this.schemaParser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
         this.xmlHandler = new XMLHandlerImpl(config, schema(), schemaParser.getXsdSchema());
+        log.info("XMLConnector initialized");
+        log.info("Exit {0}", method);
     }
 
     public void dispose() {
@@ -123,11 +125,27 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
 
     @Override
     public void executeQuery(ObjectClass objClass, IQuery query, ResultsHandler handler, OperationOptions options) {
+        final String method = "executeQuery";
+        log.info("Entry {0}", method);
         QueryBuilder queryBuilder = new QueryBuilder(query, objClass);
+        
+        if (log.isInfo()) {
+            log.info("Performing query: {0}", queryBuilder.toString());
+        }
+        
         Collection<ConnectorObject> hits = xmlHandler.search(queryBuilder.toString(), objClass);
+
+        if (log.isInfo()) {
+            log.info("Number of hits: {0}", hits.size());
+            log.info("ConnectionObjects found: {0}", hits.toString());
+        }
+        
+
         for (ConnectorObject hit : hits) {
             handler.handle(hit);
         }
+
+        log.info("Exit {0}", method);
     }
 
     @Override

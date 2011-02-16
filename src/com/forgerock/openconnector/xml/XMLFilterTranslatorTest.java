@@ -11,10 +11,8 @@ import com.forgerock.openconnector.xml.query.QueryBuilder;
 import com.forgerock.openconnector.xsdparser.SchemaParser;
 import java.util.Collection;
 import java.util.List;
-import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
-import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
 import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
@@ -44,6 +42,7 @@ public class XMLFilterTranslatorTest {
     private IQuery equalsQueryFnJorgen;
     private IQuery equalsQueryLnHallstensen;
     private IQuery equalsQueryLnRingen;
+    private IQuery equalsQueryNonExisting;
     private IQuery gtQueryMs;
     private IQuery ltQueryMs;
     private IQuery gtoreqQueryYearsEmployed;
@@ -95,6 +94,12 @@ public class XMLFilterTranslatorTest {
         equalsQueryFnJorgen = ft.createEqualsExpression(filter3, false);
 
         attrBld = new AttributeBuilder();
+        attrBld.setName("firstname");
+        attrBld.addValue("nonexisting");
+        EqualsFilter filter5 = new EqualsFilter(attrBld.build());
+        equalsQueryNonExisting = ft.createEqualsExpression(filter5, false);
+
+        attrBld = new AttributeBuilder();
         attrBld.setName("ms-employed");
         attrBld.addValue("1");
         GreaterThanFilter gtFilter = new GreaterThanFilter(attrBld.build());
@@ -134,25 +139,33 @@ public class XMLFilterTranslatorTest {
     }
 
     @Test
-    public void uniqueExistingWTwoQueriesShouldReturnSizeOne() {
+    public void uniqueExistingWithTwoQueriesShouldReturnSizeOne() {
         IQuery andQuery = ft.createAndExpression(equalsQueryFnJan, equalsQueryLnHallstensen);
         QueryBuilder qb = new QueryBuilder(andQuery, ObjectClass.ACCOUNT);
+        Collection<ConnectorObject> hits = xmlHandler.search(qb.toString(), ObjectClass.ACCOUNT);
+        assertEquals(1, hits.size());
+    }
 
-        System.out.println(qb.toString());
+    @Test
+    public void noneExistingShouldReturnSizeZero() {
+        QueryBuilder builder = new QueryBuilder(equalsQueryNonExisting, ObjectClass.ACCOUNT);
+        Collection<ConnectorObject> hits = xmlHandler.search(builder.toString(), ObjectClass.ACCOUNT);
+        assertEquals(0, hits.size());
+    }
 
+    @Test
+    public void noneExistingAndExistingShouldReturnSizeOne() {
+        IQuery andQuery = ft.createOrExpression(equalsQueryFnJan, equalsQueryNonExisting);
+        QueryBuilder qb = new QueryBuilder(andQuery, ObjectClass.ACCOUNT);
         Collection<ConnectorObject> hits = xmlHandler.search(qb.toString(), ObjectClass.ACCOUNT);
         assertEquals(1, hits.size());
     }
 
     @Test
     public void twoExistingShouldReturnSizeTwo() {
-        // make firstname filter for second part of OR
         IQuery orQuery = ft.createOrExpression(equalsQueryFnJan, equalsQueryFnJorgen);
         QueryBuilder qb = new QueryBuilder(orQuery, ObjectClass.ACCOUNT);
-        System.out.println(qb);
-
         Collection<ConnectorObject> hits = xmlHandler.search(qb.toString(), ObjectClass.ACCOUNT);
-
         assertEquals(2, hits.size());
     }
 
@@ -162,7 +175,6 @@ public class XMLFilterTranslatorTest {
         String [] args = {"$x/firstname", "'123'"};
         String expected = "fn:not(matches($x/firstname, '123'))";
         FunctionQuery fq = new FunctionQuery(args, fn, true);
-        System.out.println("EXPR: " + fq.getExpression());
         assertEquals(expected, fq.getExpression());
     }
 
@@ -188,6 +200,18 @@ public class XMLFilterTranslatorTest {
     }
 
     @Test
+    public void testDoesentContainsFunctionQuery() {
+        AttributeBuilder attrBld = new AttributeBuilder();
+        attrBld.setName("firstname");
+        attrBld.addValue("a");
+        ContainsFilter filter = new ContainsFilter(attrBld.build());
+        IQuery query = ft.createContainsExpression(filter, true);
+        QueryBuilder builder = new QueryBuilder(query, ObjectClass.ACCOUNT);
+        int hits = xmlHandler.search(builder.toString(), ObjectClass.ACCOUNT).size();
+        assertEquals(1, hits);
+    }
+
+    @Test
     public void testSearchWithStartswithFunction() {
         AttributeBuilder attrBld = new AttributeBuilder();
         attrBld.setName("firstname");
@@ -195,9 +219,20 @@ public class XMLFilterTranslatorTest {
         StartsWithFilter filter = new StartsWithFilter(attrBld.build());
         IQuery query = ft.createStartsWithExpression(filter, false);
         QueryBuilder builder = new QueryBuilder(query, ObjectClass.ACCOUNT);
-        System.out.println("SEARCHING FOR TWO EXISTING");
         int hits = xmlHandler.search(builder.toString(), ObjectClass.ACCOUNT).size();
         assertEquals(2, hits);
+    }
+
+    @Test
+    public void testDoesntStartsWithFunction() {
+        AttributeBuilder attrBld = new AttributeBuilder();
+        attrBld.setName("firstname");
+        attrBld.addValue("J");
+        StartsWithFilter filter = new StartsWithFilter(attrBld.build());
+        IQuery query = ft.createStartsWithExpression(filter, true);
+        QueryBuilder builder = new QueryBuilder(query, ObjectClass.ACCOUNT);
+        int hits = xmlHandler.search(builder.toString(), ObjectClass.ACCOUNT).size();
+        assertEquals(0, hits);
     }
 
     @Test
@@ -219,7 +254,7 @@ public class XMLFilterTranslatorTest {
     }
 
     @Test
-    public void oneNoneExistantAccountShouldReturnSizeOfOne() {
+    public void searchForUniqueExistingWithEndswithQueryShouldReturnSizeOne() {
         AttributeBuilder attrBld = new AttributeBuilder();
         attrBld.setName("firstname");
         attrBld.addValue("en");
@@ -227,7 +262,6 @@ public class XMLFilterTranslatorTest {
         IQuery query = ft.createEndsWithExpression(filter, true);
         QueryBuilder builder = new QueryBuilder(query, ObjectClass.ACCOUNT);
         int hits = xmlHandler.search(builder.toString(), ObjectClass.ACCOUNT).size();
-        System.out.println(builder.toString());
         assertEquals(1, hits);
     }
 
@@ -260,6 +294,8 @@ public class XMLFilterTranslatorTest {
         results = getResultsFromQuery(orQuery);
         assertEquals(2, results.size());
     }
+
+
 
     private List getResultsFromQuery(IQuery query) {
         return (List) xmlHandler.search(new QueryBuilder(query, ObjectClass.ACCOUNT).toString(), ObjectClass.ACCOUNT);

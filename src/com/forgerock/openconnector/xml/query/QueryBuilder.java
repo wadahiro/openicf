@@ -44,6 +44,7 @@ public class QueryBuilder {
         }
     }
 
+    @Override
     public String toString() {
         if (query == null || query.getParts().isEmpty()) {
             return String.format("%s %s", selectPart, returnPart);
