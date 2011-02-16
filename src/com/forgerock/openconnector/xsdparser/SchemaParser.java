@@ -175,7 +175,7 @@ public class SchemaParser {
         Schema returnSchema = schemaBuilder.build();
 
         log.info("Exit {0}", METHOD);
-        System.out.println(returnSchema.toString());
+        
         return returnSchema;
     }
 
