@@ -110,7 +110,7 @@ public class AttrTypeUtil {
                 stringValue = new String(accessor.getArray());
             }
             else {
-                stringValue = AttributeUtil.getAsStringValue(attr);
+                stringValue = value.toString();
             }
              results.add(stringValue);
         }
