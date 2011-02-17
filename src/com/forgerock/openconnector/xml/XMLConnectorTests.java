@@ -213,6 +213,8 @@ public class XMLConnectorTests {
         return set;
     }
 
+    
+
     private Set<Attribute> createAttributesGroup() {
         Set<Attribute> attributes = new HashSet<Attribute>();
 

@@ -292,6 +292,7 @@ public class XMLHandlerImpl implements XMLHandler {
             element.setPrefix(RI_NAMESPACE_PREFIX);
             //child.setNamespace(getNameSpace(NamespaceType.RI_NAMESPACE));
         }
+        
         element.setTextContent(value);
         return element;
     }

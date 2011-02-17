@@ -21,7 +21,6 @@ import java.util.logging.Logger;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
-import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.junit.After;
@@ -36,7 +35,7 @@ import static org.junit.Assert.*;
 public class XMLHandlerTests {
 
     private XMLHandler xmlHandler;
-    private static final String filePath = "test-values.xml";
+    private static final String filePath = "test/xml_store/filterTranslatorTests.xml";
 
     private File testFile;
     private Collection<ConnectorObject> hits;
