@@ -358,17 +358,20 @@ public class XMLHandlerImpl implements XMLHandler {
                 if (!objAttributes.containsKey(attribute.getName())) {
                     throw new IllegalArgumentException("Data field: " + attribute.getName() + " is not supported.");
                 }
-                
-                // TODO: GuardedString, GuardedByteArray
-//                if (objAttributes.get(attribute.getName()).isRequired() && AttributeUtil.getStringValue(attribute).isEmpty()) {
-//                    throw new IllegalArgumentException(attribute.getName() + " is a required field and cannot be empty.");
-//                }
 
                 AttributeInfo attributeInfo = objAttributes.get(attribute.getName());
                 String attributeName = attribute.getName();
+                
 
+                if (attributeInfo.isRequired()) {
+                    List<String> values = AttrTypeUtil.findAttributeValue(attribute, attributeInfo);
+                    for (String value : values) {
+                        Assertions.blankCheck(value, attributeName);
+                        Assertions.nullCheck(value, attributeName);
+                    }
+                }
 
-                // remove existing nodes from the entry
+                 // remove existing nodes from the entry
                 removeChildsFromElement(entry, prefixAttributeName(attributeName));
 
 
