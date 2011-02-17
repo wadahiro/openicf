@@ -89,6 +89,7 @@ public class AttrTypeUtil {
 
                 Class clazz;
                 try {
+                    //TODO: ????? float caster exception
                     clazz = Class.forName(javaClass);
                     if (!clazz.isInstance(value)) {
                         throw new IllegalArgumentException(attrInfo.getName() + " not valid type. Should be of type " + clazz.getName());
