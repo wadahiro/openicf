@@ -6,6 +6,8 @@ package com.forgerock.openconnector.util;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.identityconnectors.common.security.GuardedByteArray;
@@ -76,39 +78,42 @@ public class AttrTypeUtil {
         }
     }
 
-    public static String findAttributeValue(Attribute attr, AttributeInfo attrInfo) {
+    public static List<String> findAttributeValue(Attribute attr, AttributeInfo attrInfo) {
 
+        List<String> results = new ArrayList<String>();
         String javaClass = attrInfo.getType().getName();
-        String value = null;
+        String stringValue = null;
 
-        Class clazz;
-        try {
-            clazz = Class.forName(javaClass);
-            if (!clazz.isInstance(AttributeUtil.getSingleValue(attr))) {
-                throw new IllegalArgumentException(attrInfo.getName() + " not valid type. Should be of type " + clazz.getName());
+
+        for (Object value : attr.getValue()) {
+            
+             Class clazz;
+            try {
+                clazz = Class.forName(javaClass);
+                if (!clazz.isInstance(value)) {
+                    throw new IllegalArgumentException(attrInfo.getName() + " not valid type. Should be of type " + clazz.getName());
+                }
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(AttrTypeUtil.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(AttrTypeUtil.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        // Get value
 
-        if (javaClass.equals("org.identityconnectors.common.security.GuardedString")) {
-            GuardedStringAccessor accessor = new GuardedStringAccessor();
-            GuardedString gs = AttributeUtil.getGuardedStringValue(attr);
-            gs.access(accessor);
-            value = String.valueOf(accessor.getArray());
+            if (javaClass.equals("org.identityconnectors.common.security.GuardedString")) {
+                GuardedStringAccessor accessor = new GuardedStringAccessor();
+                GuardedString gs = AttributeUtil.getGuardedStringValue(attr);
+                gs.access(accessor);
+                stringValue = String.valueOf(accessor.getArray());
+            }
+            else if (javaClass.equals("org.identityconnectors.common.security.GuardedByteArray")) {
+                GuardedByteArrayAccessor accessor = new GuardedByteArrayAccessor();
+                GuardedByteArray gba = (GuardedByteArray)attr.getValue().get(0);
+                gba.access(accessor);
+                stringValue = new String(accessor.getArray());
+            }
+            else {
+                stringValue = AttributeUtil.getAsStringValue(attr);
+            }
+             results.add(stringValue);
         }
-        else if (javaClass.equals("org.identityconnectors.common.security.GuardedByteArray")) {
-            GuardedByteArrayAccessor accessor = new GuardedByteArrayAccessor();
-            GuardedByteArray gba = (GuardedByteArray)attr.getValue().get(0);
-            gba.access(accessor);
-            value = new String(accessor.getArray());
-        }
-        else {
-            value = AttributeUtil.getAsStringValue(attr);
-        }
-
-        return value;
+        return results;
     }
 }

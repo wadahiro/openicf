@@ -263,7 +263,10 @@ public class XMLHandlerImpl implements XMLHandler {
                 elementText = uidValue;
             }
             else if (attributesMap.containsKey(attrInfo.getName())) {
-                elementText = AttrTypeUtil.findAttributeValue(attributesMap.get(attrInfo.getName()), attrInfo);
+                    // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                // endre til oppdatert attrtypeutil
+
+//                elementText = AttrTypeUtil.findAttributeValue(attributesMap.get(attrInfo.getName()), attrInfo);
             }
 
             Element child = null;
@@ -303,21 +306,20 @@ public class XMLHandlerImpl implements XMLHandler {
         return new Uid(uidValue);
     }
     
-    private Element createDomElementFromAttribute(Attribute attribute) {
+    private Element createDomElement(String elementName, String value) {
         
         Element element = null;
 
-        if (icfSchema.getElementDecls().containsKey(attribute.getName())) {
-            element = document.createElementNS(icfSchema.getTargetNamespace(), attribute.getName());
+        if (icfSchema.getElementDecls().containsKey(elementName)) {
+            element = document.createElementNS(icfSchema.getTargetNamespace(), elementName);
             element.setPrefix(ICF_NAMESPACE_PREFIX);
             //child.setNamespace(getNameSpace(NamespaceType.ICF_NAMESPACE));
         }
         else {
-            element = document.createElementNS(riSchema.getTargetNamespace(), attribute.getName());
+            element = document.createElementNS(riSchema.getTargetNamespace(), elementName);
             element.setPrefix(RI_NAMESPACE_PREFIX);
             //child.setNamespace(getNameSpace(NamespaceType.RI_NAMESPACE));
         }
-
         return element;
     }
 
@@ -349,34 +351,45 @@ public class XMLHandlerImpl implements XMLHandler {
                     throw new IllegalArgumentException(attribute.getName() + " is a required field and cannot be empty.");
                 }
 
-                AttributeInfo info = objAttributes.get(attribute.getName());
+                AttributeInfo attributeInfo = objAttributes.get(attribute.getName());
                 String attributeName = attribute.getName();
+                
 
-                // if multivalued
-                if (info.isMultiValued()) {
+                NodeList oldNodes = entry.getElementsByTagName(attributeName);
 
-                    NodeList oldNodes = entry.getElementsByTagName(attributeName); // use createDomElement
-
-                    // remove existing nodes from entry
-                    for (int i = 0; i < oldNodes.getLength(); i++) {
-                        entry.removeChild(oldNodes.item(i));
-                    }
-
-                    // add new nodes to entry
-                    List<Object> updatedValues = attribute.getValue();
-                    for (Object o : updatedValues) {
-                        Node newNode = document.createElement(attributeName); // correct way do create element
-                        newNode.setTextContent(o.toString()); // guardedstring and bytearray
-                        entry.appendChild(newNode);
-                    }
+                // remove existing nodes from entry
+                for (int i = 0; i < oldNodes.getLength(); i++) {
+                    entry.removeChild(oldNodes.item(i));
                 }
-                // if singlevalued
-                else {
-//                    NodeList oldNodes = entry.getElementsByTagName(attributeName);
-//                    Node oldNode = oldNodes.item(0); // errorchecking
+
+                
+                List<String> values = AttrTypeUtil.findAttributeValue(attribute, attributeInfo);
+                for (String value : values) {
+                    Element updatedElement = createDomElement(attributeName, value);
+                    entry.appendChild(updatedElement);
+                }
+
+
+               // if multivalued
+//                if (info.isMultiValued()) {
+////                    // remove existing nodes from entry
+//                    for (int i = 0; i < oldNodes.getLength(); i++) {
+//                        entry.removeChild(oldNodes.item(i));
+//                    }
 //
-                    
-                }
+//                    // add new nodes to entry
+//                    List<Object> updatedValues = attribute.getValue();
+//                    for (Object value : updatedValues) {
+////                        Node updatedNode = createDomElement(attributeName, value);
+//                        entry.appendChild(updatedNode);
+//                    }
+//                }
+//                // if singlevalued
+//                else {
+////                    NodeList oldNodes = entry.getElementsByTagName(attributeName);
+////                    Node oldNode = oldNodes.item(0); // errorchecking
+////
+//                }
             }
         }
         else {
