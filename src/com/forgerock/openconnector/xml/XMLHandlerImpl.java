@@ -200,11 +200,13 @@ public class XMLHandlerImpl implements XMLHandler {
 
         ObjectClassInfo objInfo = connSchema.findObjectClassInfo(objClass.getObjectClassValue());
         Set<AttributeInfo> objAttributes = objInfo.getAttributeInfo();
-        Map<String, Attribute> attributesMap = new HashMap<String, Attribute>(AttributeUtil.toMap(attributes));
-        Map<String, AttributeInfo> attributeInfoMap = new HashMap<String, AttributeInfo>(AttributeInfoUtil.toMap(objAttributes));
+        Map<String, AttributeInfo> suportedAttributeInfoMap = new HashMap<String, AttributeInfo>(AttributeInfoUtil.toMap(objAttributes));
+
+        Map<String, Attribute> incomingAttributesMap = new HashMap<String, Attribute>(AttributeUtil.toMap(attributes));
+
         String uidValue = null;
 
-        if (!attributesMap.containsKey(Name.NAME) || attributesMap.get(Name.NAME).getValue().isEmpty()) {
+        if (!incomingAttributesMap.containsKey(Name.NAME) || incomingAttributesMap.get(Name.NAME).getValue().isEmpty()) {
             throw new IllegalArgumentException(Name.NAME + " must be defined.");
         }
 
@@ -214,88 +216,58 @@ public class XMLHandlerImpl implements XMLHandler {
             throw new AlreadyExistsException("Could not create entry. An entry with the " + Uid.NAME + " of " + name.getNameValue() + " already exists.");
         }
 
-        if (attributeInfoMap.containsKey(Uid.NAME))
+        if (suportedAttributeInfoMap.containsKey(Uid.NAME)){
             uidValue = UUID.randomUUID().toString();
-        else
+        }else{
             uidValue = name.getNameValue();
+        }
 
         // Create object type element
         Element objElement = document.createElementNS(riSchema.getTargetNamespace(), objClass.getObjectClassValue());
         objElement.setPrefix(RI_NAMESPACE_PREFIX);
 
         // Add child elements
-        for (AttributeInfo attrInfo : objAttributes) {
+        for (AttributeInfo attributeInfo : objAttributes) {
+            
+            String attributeName = attributeInfo.getName();
 
-            if (attrInfo.isRequired()) {
-                if (!attributesMap.containsKey(attrInfo.getName()) || attributesMap.get(attrInfo.getName()).getValue().isEmpty()) {
-                    throw new IllegalArgumentException("Missing required field: " + attrInfo.getName());
+            List<String> values = AttrTypeUtil.findAttributeValue(incomingAttributesMap.get(attributeName), attributeInfo);
+
+            if (attributeInfo.isRequired()) {
+                if(incomingAttributesMap.containsKey(attributeName)){
+                    for (String value : values) {
+                        Assertions.blankCheck(value, attributeName);
+                        Assertions.nullCheck(value, attributeName);
+                    }
+                }else{
+                    throw new IllegalArgumentException("Missing required field: " + attributeName);
                 }
             }
 
-//            if (attributesMap.containsKey(attrInfo.getName())) {
-//
-//                if (attrInfo.isCreateable()) {
-//                    throw new IllegalArgumentException(attrInfo.getName() + " is not creatable.");
-//                }
-//
-//                /*if (attrInfo.isMultiValued() && attributesMap.get(attrInfo.getName()).getValue().size() > 1) {
-//                    for (Object obj : attributesMap.get(attrInfo.getName()).getValue()) {
-//                        objElement.appendChild(createDomElementFromAttribute());
-//                    }
-//                }
-//                else {
-//                    objElement.appendChild(createDomElementFromAttribute());
-//                }*/
+//            if (!incomingAttributesMap.containsKey(attributeName)) {
+//                throw new IllegalArgumentException("Data field: " + attributeName + " is not supported.");
 //            }
 
-            if (!attrInfo.isCreateable() && attributesMap.containsKey(attrInfo.getName())) {
-                throw new IllegalArgumentException(attrInfo.getName() + " is not creatable.");
-            }
-
-            /*if (attrInfo.isMultiValued() && attributesMap.get(attrInfo.getName()).getValue().size() >  1) {
-
-            }*/
-
-            String elementText = "";
-
-            // Add attribute value to field
-            if (attrInfo.getName().equals(Uid.NAME)) {
-                elementText = uidValue;
-            }
-            else if (attributesMap.containsKey(attrInfo.getName())) {
-                    // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                // endre til oppdatert attrtypeutil
-
-//                elementText = AttrTypeUtil.findAttributeValue(attributesMap.get(attrInfo.getName()), attrInfo);
-            }
-
-            Element child = null;
-
-            //Set namespace
-            if (icfSchema.getElementDecls().containsKey(attrInfo.getName())) {
-                child = document.createElementNS(icfSchema.getTargetNamespace(), attrInfo.getName());
-                child.setPrefix(ICF_NAMESPACE_PREFIX);
-            }
-
-                //child.setNamespace(getNameSpace(NamespaceType.ICF_NAMESPACE));
-            else {
-                child = document.createElementNS(riSchema.getTargetNamespace(), attrInfo.getName());
-                child.setPrefix(RI_NAMESPACE_PREFIX);
-                //child.setNamespace(getNameSpace(NamespaceType.RI_NAMESPACE));
+            if(!attributeInfo.isCreateable() && incomingAttributesMap.containsKey(attributeName)){
+                throw  new IllegalArgumentException("Data field: " + attributeName + " is not creatable.");
             }
 
 
-            child.setTextContent(elementText);
-
-            objElement.appendChild(child);
-
-            if (attributesMap.containsKey(attrInfo.getName()))
-                attributesMap.remove(attrInfo.getName());
+            // add updated nodes to the entry
+            if(incomingAttributesMap.containsKey(attributeName)){
+                for (String value : values) {
+                    Element updatedElement = createDomElement(attributeName, value);
+                    objElement.appendChild(updatedElement);
+                }
+            }else{
+                Element updatedElement = createDomElement(attributeName, "");
+                objElement.appendChild(updatedElement);
+            }
         }
 
-        if (attributesMap.size() > 0) {
-            throw new IllegalArgumentException("Entry contains attributes that is not supported: " + attributesMap.toString());
-        }
+//        if (attributesMap.size() > 0) {
+//            throw new IllegalArgumentException("Entry contains attributes that is not supported: " + attributesMap.toString());
+//        }
 
         document.getDocumentElement().appendChild(objElement);
 

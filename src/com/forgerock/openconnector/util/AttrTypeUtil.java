@@ -84,34 +84,36 @@ public class AttrTypeUtil {
         String javaClass = attrInfo.getType().getName();
         String stringValue = null;
 
-        for (Object value : attr.getValue()) {
-            
-             Class clazz;
-            try {
-                clazz = Class.forName(javaClass);
-                if (!clazz.isInstance(value)) {
-                    throw new IllegalArgumentException(attrInfo.getName() + " not valid type. Should be of type " + clazz.getName());
-                }
-            } catch (ClassNotFoundException ex) {
-                Logger.getLogger(AttrTypeUtil.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        if(attr != null && attrInfo != null) {
+            for (Object value : attr.getValue()) {
 
-            if (javaClass.equals("org.identityconnectors.common.security.GuardedString")) {
-                GuardedStringAccessor accessor = new GuardedStringAccessor();
-                GuardedString gs = AttributeUtil.getGuardedStringValue(attr);
-                gs.access(accessor);
-                stringValue = String.valueOf(accessor.getArray());
+                Class clazz;
+                try {
+                    clazz = Class.forName(javaClass);
+                    if (!clazz.isInstance(value)) {
+                        throw new IllegalArgumentException(attrInfo.getName() + " not valid type. Should be of type " + clazz.getName());
+                    }
+                } catch (ClassNotFoundException ex) {
+                    Logger.getLogger(AttrTypeUtil.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                if (javaClass.equals("org.identityconnectors.common.security.GuardedString")) {
+                    GuardedStringAccessor accessor = new GuardedStringAccessor();
+                    GuardedString gs = AttributeUtil.getGuardedStringValue(attr);
+                    gs.access(accessor);
+                    stringValue = String.valueOf(accessor.getArray());
+                }
+                else if (javaClass.equals("org.identityconnectors.common.security.GuardedByteArray")) {
+                    GuardedByteArrayAccessor accessor = new GuardedByteArrayAccessor();
+                    GuardedByteArray gba = (GuardedByteArray)attr.getValue().get(0);
+                    gba.access(accessor);
+                    stringValue = new String(accessor.getArray());
+                }
+                else {
+                    stringValue = value.toString();
+                }
+                 results.add(stringValue);
             }
-            else if (javaClass.equals("org.identityconnectors.common.security.GuardedByteArray")) {
-                GuardedByteArrayAccessor accessor = new GuardedByteArrayAccessor();
-                GuardedByteArray gba = (GuardedByteArray)attr.getValue().get(0);
-                gba.access(accessor);
-                stringValue = new String(accessor.getArray());
-            }
-            else {
-                stringValue = value.toString();
-            }
-             results.add(stringValue);
         }
         return results;
     }
