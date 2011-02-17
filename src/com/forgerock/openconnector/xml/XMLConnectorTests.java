@@ -155,7 +155,7 @@ public class XMLConnectorTests {
         Set<Attribute> attributes = createAttributesAccount();
 
         attributes.add(AttributeBuilder.build("email", "mailadress1@company.org","mailadress2@company.org","mailadress3@company.org"));
-        attributes.add(AttributeBuilder.build("__ENABLE__", true));
+  
 
         Uid uid = xmlConnector.update(ObjectClass.ACCOUNT, new Uid(ACCOUNT_NAME), attributes, null);
 

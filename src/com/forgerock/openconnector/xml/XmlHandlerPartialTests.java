@@ -6,20 +6,13 @@
 package com.forgerock.openconnector.xml;
 
 import com.forgerock.openconnector.xsdparser.SchemaParser;
-import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
-import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
-import org.identityconnectors.framework.common.objects.ObjectClass;
-import org.identityconnectors.framework.common.objects.Schema;
-import org.identityconnectors.framework.common.objects.Uid;
 import org.junit.*;
-import static org.junit.Assert.*;
 
 /**
  *

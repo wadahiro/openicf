@@ -225,9 +225,14 @@ public class XMLHandlerImpl implements XMLHandler {
                 throw  new IllegalArgumentException("Data field: " + attributeName + " is not creatable.");
             }
 
-
             // add provided element 
             if (providedAttributesMap.containsKey(attributeName)) {
+                // check if the provided value is the same as the class defined in schema
+                Class expectedClass = attributeInfo.getType();
+                if (!valuesAreExpectedClass(expectedClass, providedAttributesMap.get(attributeName).getValue())) {
+                    throw new IllegalArgumentException(attributeName + " contains values of illegal type");
+                }
+                // create elements
                 for (String value : values) {
                     Element updatedElement = createDomElement(attributeName, value);
                     objElement.appendChild(updatedElement);
@@ -270,17 +275,14 @@ public class XMLHandlerImpl implements XMLHandler {
 
     private String prefixAttributeName(String name) {
         String result = "";
-        System.out.println("NAME TO PREFIX: " + name);
         if (icfSchema.getElementDecls().containsKey(name)) {
             result = ICF_NAMESPACE_PREFIX + ":" + name;
         } else {
             result =  RI_NAMESPACE_PREFIX + ":" + name;
         }
-        System.out.println("NAME PREFIXED: " + result);
         return result;
     }
 
-    // TODO: Uid
     public Uid update(ObjectClass objClass, Uid uid, Set<Attribute> replaceAttributes) throws UnknownUidException {
         final String method = "update";
         log.info("Entry {0}", method);
@@ -299,6 +301,10 @@ public class XMLHandlerImpl implements XMLHandler {
 
             for (Attribute attribute : replaceAttributes) {
 
+                if (!objAttributes.containsKey(attribute.getName())) {
+                    throw new IllegalArgumentException("Data field: " + attribute.getName() + " is not supported.");
+                }
+
                 AttributeInfo attributeInfo = objAttributes.get(attribute.getName());
                 String attributeName = attribute.getName();
 
@@ -308,30 +314,45 @@ public class XMLHandlerImpl implements XMLHandler {
 
                 if (attributeInfo.isRequired()) {
                     List<String> values = AttrTypeUtil.findAttributeValue(attribute, attributeInfo);
+                    if (values.isEmpty()) {
+                        throw new IllegalArgumentException("No values provided for rqeuired attribute: " + attributeName);
+                    }
                     for (String value : values) {
                         Assertions.blankCheck(value, attributeName);
                         Assertions.nullCheck(value, attributeName);
                     }
                 }
+                
+                // check if the provided value is the same as the class defined in schema
+                Class expectedClass = attributeInfo.getType();
 
-                if (!objAttributes.containsKey(attribute.getName())) {
-                    throw new IllegalArgumentException("Data field: " + attribute.getName() + " is not supported.");
+                System.out.println("CHECKING: " + attributeName + ", expected: " + expectedClass);
+
+                if (attribute.getValue() != null) {
+                    if (!valuesAreExpectedClass(expectedClass, attribute.getValue())) {
+                        throw new IllegalArgumentException(attributeName + " contains values of illegal type");
+                    }
                 }
 
-                 // remove existing nodes from the entry
+                // remove existing nodes from the entry
                 removeChildsFromElement(entry, prefixAttributeName(attributeName));
-
 
                 // add updated nodes to the entry
                 List<String> values = AttrTypeUtil.findAttributeValue(attribute, attributeInfo);
-                for (String value : values) {
-                    Element updatedElement = createDomElement(attributeName, value);
-                    entry.appendChild(updatedElement);
+                // append empty element if no values is provided
+                if (values.isEmpty()) {
+                        Element updatedElement = createDomElement(attributeName, "");
+                        entry.appendChild(updatedElement);
+                } else {
+                    for (String value : values) {
+                        Element updatedElement = createDomElement(attributeName, value);
+                        entry.appendChild(updatedElement);
+                    }
                 }
             }
         }
         else {
-            throw new IllegalArgumentException("Could not update entry. No entry of type " + objClass.getObjectClassValue() + " with the id " + name.getNameValue() + " found.");
+            throw new UnknownUidException("Could not update entry. No entry of type " + objClass.getObjectClassValue() + " with the id " + name.getNameValue() + " found.");
         }
 
         serialize();
@@ -372,8 +393,6 @@ public class XMLHandlerImpl implements XMLHandler {
                 Element element = (Element)results.getItem().getNode();
                 return element;
             }
-            else
-                System.out.println("No results!");
         } catch (XQException ex) {
             log.error(ex.getMessage());
         } 
@@ -574,5 +593,16 @@ public class XMLHandlerImpl implements XMLHandler {
     // see if an attribute-node has text-content
     private boolean isTextNode(Node node) {
         return node != null && node.getNodeType() == Node.TEXT_NODE;
+    }
+
+    private boolean valuesAreExpectedClass(Class expectedClass, List<Object> values) {
+        boolean ok = true;
+        for (Object o : values) {
+            if (expectedClass != o.getClass()) {
+                System.out.println("CRASH: " + expectedClass + " vs " + o.getClass());
+                ok = false;
+            }
+        }
+        return ok;
     }
 }
