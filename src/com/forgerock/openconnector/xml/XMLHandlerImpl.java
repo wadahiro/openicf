@@ -348,9 +348,9 @@ public class XMLHandlerImpl implements XMLHandler {
                 }
                 
                 // TODO: GuardedString, GuardedByteArray
-                if (objAttributes.get(attribute.getName()).isRequired() && AttributeUtil.getStringValue(attribute).isEmpty()) {
-                    throw new IllegalArgumentException(attribute.getName() + " is a required field and cannot be empty.");
-                }
+//                if (objAttributes.get(attribute.getName()).isRequired() && AttributeUtil.getStringValue(attribute).isEmpty()) {
+//                    throw new IllegalArgumentException(attribute.getName() + " is a required field and cannot be empty.");
+//                }
 
                 AttributeInfo attributeInfo = objAttributes.get(attribute.getName());
                 String attributeName = attribute.getName();
