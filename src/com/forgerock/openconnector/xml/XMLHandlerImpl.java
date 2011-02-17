@@ -50,8 +50,6 @@ import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoUtil;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
-import org.w3c.dom.Attr;
-import org.w3c.dom.DOMConfiguration;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -81,7 +79,6 @@ public class XMLHandlerImpl implements XMLHandler {
 
     public static final String ICF_CONTAINER_TAG = "OpenICFContainer";
 
-    // TODO: Use Assertions class for null and blank check
     public XMLHandlerImpl(XMLConfiguration config, Schema connSchema, XSSchemaSet xsdSchemas) {
         Assertions.nullCheck(config.getXmlFilePath(), "filePath");
         Assertions.blankCheck(config.getXmlFilePath(), "filePath");
@@ -96,11 +93,6 @@ public class XMLHandlerImpl implements XMLHandler {
         buildDocument();
     }
 
-    //public String getFilePath() {
-    //    return this.filePath;
-    //}
-
-    // TODO: Add schemalocation
     private void createDocument() {
         final String method = "createDocument";
         log.info("Entry {0}", method);
@@ -130,25 +122,6 @@ public class XMLHandlerImpl implements XMLHandler {
 
         log.info("Exit {0}", method);
     }
-    
-    /*private Namespace getNameSpace(NamespaceType namespaceType) {
-
-        Namespace namespace = null;
-
-        switch (namespaceType) {
-            case XSI_NAMESPACE :
-                namespace = Namespace.getNamespace(XSI_NAMESPACE_PREFIX, XSI_NAMESPACE);
-                break;
-            case ICF_NAMESPACE :
-                namespace = Namespace.getNamespace(ICF_NAMESPACE_PREFIX, icfSchema.getTargetNamespace());
-                break;
-            case RI_NAMESPACE :
-                namespace = Namespace.getNamespace(RI_NAMESPACE_PREFIX, riSchema.getTargetNamespace());
-                break;
-        }
-
-        return namespace;
-    }*/
 
     private void loadDocument(File xmlFile) {
         final String method = "loadDocument";
@@ -187,11 +160,6 @@ public class XMLHandlerImpl implements XMLHandler {
         log.info("Exit {0}", method);
     }
 
-    // TODO: Logging
-    // TODO: Exceptions
-    // TODO: Uid
-    // TODO: Check if types is valid?
-    // TODO: Check if type and fields is creatable
     public Uid create(final ObjectClass objClass, final Set<Attribute> attributes) {
         final String method = "create";
         log.info("Entry {0}", method);
@@ -200,25 +168,29 @@ public class XMLHandlerImpl implements XMLHandler {
 
         ObjectClassInfo objInfo = connSchema.findObjectClassInfo(objClass.getObjectClassValue());
         Set<AttributeInfo> objAttributes = objInfo.getAttributeInfo();
-        Map<String, AttributeInfo> suportedAttributeInfoMap = new HashMap<String, AttributeInfo>(AttributeInfoUtil.toMap(objAttributes));
+        Map<String, AttributeInfo> supportedAttributeInfoMap = new HashMap<String, AttributeInfo>(AttributeInfoUtil.toMap(objAttributes));
 
-        Map<String, Attribute> incomingAttributesMap = new HashMap<String, Attribute>(AttributeUtil.toMap(attributes));
+        Map<String, Attribute> providedAttributesMap = new HashMap<String, Attribute>(AttributeUtil.toMap(attributes));
 
         String uidValue = null;
 
-        if (!incomingAttributesMap.containsKey(Name.NAME) || incomingAttributesMap.get(Name.NAME).getValue().isEmpty()) {
+        // check if __NAME__ is defined
+        if (!providedAttributesMap.containsKey(Name.NAME) || providedAttributesMap.get(Name.NAME).getValue().isEmpty()) {
             throw new IllegalArgumentException(Name.NAME + " must be defined.");
         }
 
         Name name = AttributeUtil.getNameFromAttributes(attributes);
 
+        // check if entry already exists
         if (entryExists(objClass, name)) {
-            throw new AlreadyExistsException("Could not create entry. An entry with the " + Uid.NAME + " of " + name.getNameValue() + " already exists.");
+            throw new AlreadyExistsException("Could not create entry. An entry with the " + Uid.NAME + " of " +
+                    name.getNameValue() + " already exists.");
         }
 
-        if (suportedAttributeInfoMap.containsKey(Uid.NAME)){
+        // create or get UID
+        if (supportedAttributeInfoMap.containsKey(Uid.NAME)) {
             uidValue = UUID.randomUUID().toString();
-        }else{
+        } else {
             uidValue = name.getNameValue();
         }
 
@@ -231,43 +203,42 @@ public class XMLHandlerImpl implements XMLHandler {
             
             String attributeName = attributeInfo.getName();
 
-            List<String> values = AttrTypeUtil.findAttributeValue(incomingAttributesMap.get(attributeName), attributeInfo);
+            List<String> values = AttrTypeUtil.findAttributeValue(providedAttributesMap.get(attributeName), attributeInfo);
 
+            // throw exception if required attribute is not provided
             if (attributeInfo.isRequired()) {
-                if(incomingAttributesMap.containsKey(attributeName)){
+                if (providedAttributesMap.containsKey(attributeName)) {
                     for (String value : values) {
                         Assertions.blankCheck(value, attributeName);
                         Assertions.nullCheck(value, attributeName);
                     }
-                }else{
+                } else {
                     throw new IllegalArgumentException("Missing required field: " + attributeName);
                 }
             }
 
-//            if (!incomingAttributesMap.containsKey(attributeName)) {
-//                throw new IllegalArgumentException("Data field: " + attributeName + " is not supported.");
-//            }
+            if (!supportedAttributeInfoMap.containsKey(attributeName)) {
+                throw new IllegalArgumentException("Data field: " + attributeName + " is not supported.");
+            }
 
-            if(!attributeInfo.isCreateable() && incomingAttributesMap.containsKey(attributeName)){
+            if(!attributeInfo.isCreateable() && providedAttributesMap.containsKey(attributeName)){
                 throw  new IllegalArgumentException("Data field: " + attributeName + " is not creatable.");
             }
 
 
-            // add updated nodes to the entry
-            if(incomingAttributesMap.containsKey(attributeName)){
+            // add provided element 
+            if (providedAttributesMap.containsKey(attributeName)) {
                 for (String value : values) {
                     Element updatedElement = createDomElement(attributeName, value);
                     objElement.appendChild(updatedElement);
                 }
-            }else{
+            }
+            // create empty element if not provided
+            else {
                 Element updatedElement = createDomElement(attributeName, "");
                 objElement.appendChild(updatedElement);
             }
         }
-
-//        if (attributesMap.size() > 0) {
-//            throw new IllegalArgumentException("Entry contains attributes that is not supported: " + attributesMap.toString());
-//        }
 
         document.getDocumentElement().appendChild(objElement);
 
