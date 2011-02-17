@@ -45,6 +45,7 @@ import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.common.Assertions;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoUtil;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
@@ -101,6 +102,8 @@ public class XMLHandlerImpl implements XMLHandler {
 
     // TODO: Add schemalocation
     private void createDocument() {
+        final String method = "createDocument";
+        log.info("Entry {0}", method);
         DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
         builderFactory.setNamespaceAware(true);
         DocumentBuilder builder = null;
@@ -124,6 +127,8 @@ public class XMLHandlerImpl implements XMLHandler {
         }else{
             root.setAttribute(XSI_NAMESPACE_PREFIX + ":schemaLocation", riSchema.getTargetNamespace() + " " + config.getXsdFilePath()  + " " + icfSchema.getTargetNamespace()  + " " + config.getXsdIcfFilePath());
         }
+
+        log.info("Exit {0}", method);
     }
     
     /*private Namespace getNameSpace(NamespaceType namespaceType) {
@@ -344,8 +349,34 @@ public class XMLHandlerImpl implements XMLHandler {
                     throw new IllegalArgumentException(attribute.getName() + " is a required field and cannot be empty.");
                 }
 
-                // TODO: GuardedString, GuardedByteArray
-                //entry.getChild(attribute.getName()).setText(AttributeUtil.getStringValue(attribute));
+                AttributeInfo info = objAttributes.get(attribute.getName());
+                String attributeName = attribute.getName();
+
+                // if multivalued
+                if (info.isMultiValued()) {
+
+                    NodeList oldNodes = entry.getElementsByTagName(attributeName); // use createDomElement
+
+                    // remove existing nodes from entry
+                    for (int i = 0; i < oldNodes.getLength(); i++) {
+                        entry.removeChild(oldNodes.item(i));
+                    }
+
+                    // add new nodes to entry
+                    List<Object> updatedValues = attribute.getValue();
+                    for (Object o : updatedValues) {
+                        Node newNode = document.createElement(attributeName); // correct way do create element
+                        newNode.setTextContent(o.toString()); // guardedstring and bytearray
+                        entry.appendChild(newNode);
+                    }
+                }
+                // if singlevalued
+                else {
+//                    NodeList oldNodes = entry.getElementsByTagName(attributeName);
+//                    Node oldNode = oldNodes.item(0); // errorchecking
+//
+                    
+                }
             }
         }
         else {
@@ -392,7 +423,8 @@ public class XMLHandlerImpl implements XMLHandler {
     }
 
     public void delete(final ObjectClass objClass, final Uid uid) throws UnknownUidException {
-
+        final String method = "delete";
+        log.info("Entry {0}", method);
         Name name = new Name(uid.getUidValue());
 
         if (entryExists(objClass, name)) {
@@ -402,10 +434,13 @@ public class XMLHandlerImpl implements XMLHandler {
         }
         
         serialize();
+        log.info("Exit {0}", method);
     }
 
     @Override
     public Collection<ConnectorObject> search(String query, ObjectClass objClass) {
+        final String method = "delete";
+        log.info("Entry {0}", method);
 
         List<ConnectorObject> results = new ArrayList<ConnectorObject>();
 
@@ -439,13 +474,13 @@ public class XMLHandlerImpl implements XMLHandler {
                     results.add(conObjBuilder.build());
                 }                
             } catch (XQException ex) {
-                ex.printStackTrace();
-            } catch (Exception ex) {
-                ex.printStackTrace();
+                log.error("Error while searching: {0}", ex);
+                throw new ConnectorException(ex);
             } finally {
                 xqHandler.close();
             }
         }
+        log.info("Exit {0}", method);
         return results;
     }
 
