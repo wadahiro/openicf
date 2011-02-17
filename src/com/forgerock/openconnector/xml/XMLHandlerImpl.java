@@ -299,13 +299,12 @@ public class XMLHandlerImpl implements XMLHandler {
 
             for (Attribute attribute : replaceAttributes) {
 
-                if (!objAttributes.containsKey(attribute.getName())) {
-                    throw new IllegalArgumentException("Data field: " + attribute.getName() + " is not supported.");
-                }
-
                 AttributeInfo attributeInfo = objAttributes.get(attribute.getName());
                 String attributeName = attribute.getName();
-                
+
+                if(!attributeInfo.isUpdateable()){
+                    throw new IllegalArgumentException(attributeName + " is not updatable.");
+                }
 
                 if (attributeInfo.isRequired()) {
                     List<String> values = AttrTypeUtil.findAttributeValue(attribute, attributeInfo);
@@ -313,6 +312,10 @@ public class XMLHandlerImpl implements XMLHandler {
                         Assertions.blankCheck(value, attributeName);
                         Assertions.nullCheck(value, attributeName);
                     }
+                }
+
+                if (!objAttributes.containsKey(attribute.getName())) {
+                    throw new IllegalArgumentException("Data field: " + attribute.getName() + " is not supported.");
                 }
 
                  // remove existing nodes from the entry
