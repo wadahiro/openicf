@@ -84,7 +84,6 @@ public class AttrTypeUtil {
         String javaClass = attrInfo.getType().getName();
         String stringValue = null;
 
-
         for (Object value : attr.getValue()) {
             
              Class clazz;

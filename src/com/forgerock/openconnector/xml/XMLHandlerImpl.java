@@ -324,6 +324,18 @@ public class XMLHandlerImpl implements XMLHandler {
         return element;
     }
 
+    private String prefixAttributeName(String name) {
+        String result = "";
+        System.out.println("NAME TO PREFIX: " + name);
+        if (icfSchema.getElementDecls().containsKey(name)) {
+            result = ICF_NAMESPACE_PREFIX + ":" + name;
+        } else {
+            result =  RI_NAMESPACE_PREFIX + ":" + name;
+        }
+        System.out.println("NAME PREFIXED: " + result);
+        return result;
+    }
+
     // TODO: Uid
     public Uid update(ObjectClass objClass, Uid uid, Set<Attribute> replaceAttributes) throws UnknownUidException {
         final String method = "update";
@@ -354,43 +366,18 @@ public class XMLHandlerImpl implements XMLHandler {
 
                 AttributeInfo attributeInfo = objAttributes.get(attribute.getName());
                 String attributeName = attribute.getName();
-                
 
-                NodeList oldNodes = entry.getElementsByTagName(attributeName);
 
-                // remove existing nodes from entry
-                for (int i = 0; i < oldNodes.getLength(); i++) {
-                    entry.removeChild(oldNodes.item(i));
-                }
+                // remove existing nodes from the entry
+                removeChildsFromElement(entry, prefixAttributeName(attributeName));
 
-                
+
+                // add updated nodes to the entry
                 List<String> values = AttrTypeUtil.findAttributeValue(attribute, attributeInfo);
                 for (String value : values) {
                     Element updatedElement = createDomElement(attributeName, value);
                     entry.appendChild(updatedElement);
                 }
-
-
-               // if multivalued
-//                if (info.isMultiValued()) {
-////                    // remove existing nodes from entry
-//                    for (int i = 0; i < oldNodes.getLength(); i++) {
-//                        entry.removeChild(oldNodes.item(i));
-//                    }
-//
-//                    // add new nodes to entry
-//                    List<Object> updatedValues = attribute.getValue();
-//                    for (Object value : updatedValues) {
-////                        Node updatedNode = createDomElement(attributeName, value);
-//                        entry.appendChild(updatedNode);
-//                    }
-//                }
-//                // if singlevalued
-//                else {
-////                    NodeList oldNodes = entry.getElementsByTagName(attributeName);
-////                    Node oldNode = oldNodes.item(0); // errorchecking
-////
-//                }
             }
         }
         else {
@@ -402,6 +389,17 @@ public class XMLHandlerImpl implements XMLHandler {
         log.info("Exit {0}", method);
 
         return uid;
+    }
+
+    private void removeChildsFromElement(Element element, String childName) {
+        NodeList oldNodes = element.getElementsByTagName(childName);
+        List<Element> elementsToRemove = new ArrayList<Element>();
+        for (int i = 0; i < oldNodes.getLength(); i++) {
+            elementsToRemove.add((Element) oldNodes.item(i));
+        }
+        for (Element e : elementsToRemove) {
+            element.removeChild(e);
+        }
     }
 
     public Element getEntry(ObjectClass objClass, Name name) {
