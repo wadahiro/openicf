@@ -16,7 +16,7 @@ import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 
-public class AttrTypeUtil {
+public class AttributeTypeUtil {
 
     public static Object createInstantiatedObject(String attrValue, String javaclass) {
         if (javaclass.equals(XmlHandlerUtil.STRING)) {
@@ -95,7 +95,7 @@ public class AttrTypeUtil {
                         throw new IllegalArgumentException(attrInfo.getName() + " not valid type. Should be of type " + clazz.getName());
                     }
                 } catch (ClassNotFoundException ex) {
-                    Logger.getLogger(AttrTypeUtil.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(AttributeTypeUtil.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
                 if (javaClass.equals("org.identityconnectors.common.security.GuardedString")) {
