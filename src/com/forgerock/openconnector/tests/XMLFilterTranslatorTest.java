@@ -3,8 +3,9 @@
  * and open the template in the editor.
  */
 
-package com.forgerock.openconnector.xml;
+package com.forgerock.openconnector.tests;
 
+import com.forgerock.openconnector.xml.*;
 import com.forgerock.openconnector.xml.query.FunctionQuery;
 import com.forgerock.openconnector.xml.query.IQuery;
 import com.forgerock.openconnector.xml.query.QueryBuilder;

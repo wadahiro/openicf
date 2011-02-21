@@ -1,6 +1,6 @@
 package com.forgerock.openconnector.xml;
 
-import com.forgerock.openconnector.util.AttrTypeUtil;
+import com.forgerock.openconnector.util.AttributeTypeUtil;
 import com.forgerock.openconnector.util.NamespaceLookup;
 import com.forgerock.openconnector.util.XmlHandlerUtil;
 import com.forgerock.openconnector.xml.query.IQuery;
@@ -203,7 +203,7 @@ public class XMLHandlerImpl implements XMLHandler {
             
             String attributeName = attributeInfo.getName();
 
-            List<String> values = AttrTypeUtil.findAttributeValue(providedAttributesMap.get(attributeName), attributeInfo);
+            List<String> values = AttributeTypeUtil.findAttributeValue(providedAttributesMap.get(attributeName), attributeInfo);
 
             // throw exception if required attribute is not provided
             if (attributeInfo.isRequired()) {
@@ -313,7 +313,7 @@ public class XMLHandlerImpl implements XMLHandler {
                 }
 
                 if (attributeInfo.isRequired()) {
-                    List<String> values = AttrTypeUtil.findAttributeValue(attribute, attributeInfo);
+                    List<String> values = AttributeTypeUtil.findAttributeValue(attribute, attributeInfo);
                     if (values.isEmpty()) {
                         throw new IllegalArgumentException("No values provided for rqeuired attribute: " + attributeName);
                     }
@@ -338,7 +338,7 @@ public class XMLHandlerImpl implements XMLHandler {
                 removeChildsFromElement(entry, prefixAttributeName(attributeName));
 
                 // add updated nodes to the entry
-                List<String> values = AttrTypeUtil.findAttributeValue(attribute, attributeInfo);
+                List<String> values = AttributeTypeUtil.findAttributeValue(attribute, attributeInfo);
                 // append empty element if no values is provided
                 if (values.isEmpty()) {
                         Element updatedElement = createDomElement(attributeName, "");
@@ -566,7 +566,7 @@ public class XMLHandlerImpl implements XMLHandler {
         // check if attrInfo has the attributes object-type
         if (classes.containsKey(attrName)) {
             String javaclass = classes.get(attrName);
-            Object value = AttrTypeUtil.createInstantiatedObject(attrValue, javaclass);
+            Object value = AttributeTypeUtil.createInstantiatedObject(attrValue, javaclass);
             attrBuilder.addValue(value);
             Attribute result = attrBuilder.build();
             return result;
@@ -581,7 +581,7 @@ public class XMLHandlerImpl implements XMLHandler {
         if (classes.containsKey(attrName)) {
             String javaclass = classes.get(attrName);
             for (String eachValue : attrValues) {
-                Object valueObj = AttrTypeUtil.createInstantiatedObject(eachValue, javaclass);
+                Object valueObj = AttributeTypeUtil.createInstantiatedObject(eachValue, javaclass);
                 attrBuilder.addValue(valueObj);
             }
             Attribute result = attrBuilder.build();

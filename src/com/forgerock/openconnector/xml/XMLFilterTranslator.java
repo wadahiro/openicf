@@ -50,7 +50,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      */
     //return createComparisonQuery(attrName, not ? "!=" : "=", value);
     @Override
-    protected IQuery createEndsWithExpression(EndsWithFilter filter, boolean not) {
+    public IQuery createEndsWithExpression(EndsWithFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
@@ -60,7 +60,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
 
     // TODO
     @Override
-    protected IQuery createContainsAllValuesExpression(ContainsAllValuesFilter filter, boolean not) {
+    public IQuery createContainsAllValuesExpression(ContainsAllValuesFilter filter, boolean not) {
         return null;
     }
 
@@ -68,7 +68,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      * {@inheritDoc}
      */
     @Override
-    protected IQuery createStartsWithExpression(StartsWithFilter filter, boolean not) {
+    public IQuery createStartsWithExpression(StartsWithFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
@@ -80,7 +80,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      * {@inheritDoc}
      */
     @Override
-    protected IQuery createContainsExpression(ContainsFilter filter, boolean not) {
+    public IQuery createContainsExpression(ContainsFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
@@ -92,7 +92,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      * {@inheritDoc}
      */
     @Override
-    protected IQuery createEqualsExpression(EqualsFilter filter, boolean not) {
+    public IQuery createEqualsExpression(EqualsFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
@@ -104,7 +104,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      * {@inheritDoc}
      */
     @Override
-    protected IQuery createGreaterThanExpression(GreaterThanFilter filter, boolean not) {
+    public IQuery createGreaterThanExpression(GreaterThanFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
@@ -116,7 +116,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      * {@inheritDoc}
      */
     @Override
-    protected IQuery createGreaterThanOrEqualExpression(GreaterThanOrEqualFilter filter, boolean not) {
+    public IQuery createGreaterThanOrEqualExpression(GreaterThanOrEqualFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
@@ -128,7 +128,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      * {@inheritDoc}
      */
     @Override
-    protected IQuery createAndExpression(IQuery leftExpression, IQuery rightExpression) {
+    public IQuery createAndExpression(IQuery leftExpression, IQuery rightExpression) {
         leftExpression.and(rightExpression);
         return leftExpression;
     }
@@ -137,7 +137,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      * {@inheritDoc}
      */
     @Override
-    protected IQuery createOrExpression(IQuery leftExpression, IQuery rightExpression) {
+    public IQuery createOrExpression(IQuery leftExpression, IQuery rightExpression) {
         leftExpression.or(rightExpression);
         return leftExpression;
     }
@@ -146,7 +146,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      * {@inheritDoc}
      */
     @Override
-    protected IQuery createLessThanExpression(LessThanFilter filter, boolean not) {
+    public IQuery createLessThanExpression(LessThanFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();
@@ -158,7 +158,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
      * {@inheritDoc}
      */
     @Override
-    protected IQuery createLessThanOrEqualExpression(LessThanOrEqualFilter filter, boolean not) {
+    public IQuery createLessThanOrEqualExpression(LessThanOrEqualFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
         Object obj = filter.getAttribute().getValue();

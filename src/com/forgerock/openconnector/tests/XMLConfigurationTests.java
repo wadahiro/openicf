@@ -1,6 +1,7 @@
 
-package com.forgerock.openconnector.xml;
+package com.forgerock.openconnector.tests;
 
+import com.forgerock.openconnector.xml.*;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;

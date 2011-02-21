@@ -1,5 +1,6 @@
-package com.forgerock.openconnector.xml;
+package com.forgerock.openconnector.tests;
 
+import com.forgerock.openconnector.xml.*;
 import java.util.HashSet;
 import java.util.Set;
 import org.identityconnectors.common.security.GuardedString;
