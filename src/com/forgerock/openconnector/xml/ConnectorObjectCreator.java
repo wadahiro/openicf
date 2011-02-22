@@ -1,6 +1,6 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Method-object for creating ConnectorObjects based on the values
+ * in a nodelist
  */
 
 package com.forgerock.openconnector.xml;
