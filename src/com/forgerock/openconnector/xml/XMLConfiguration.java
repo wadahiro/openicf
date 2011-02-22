@@ -52,7 +52,7 @@ public class XMLConfiguration extends AbstractConfiguration {
         this.xmlFilePath = xmlFilePath;
     }
 
-    @ConfigurationProperty(displayMessageKey="XSD_FILEPATH_PROPERTY_DISPLAY", helpMessageKey="XSD_ICF_FILEPATH_PROPERTY_HELP", confidential=false)
+    @ConfigurationProperty(displayMessageKey="XSD_FILEPATH_PROPERTY_DISPLAY", helpMessageKey="XSD_FILEPATH_PROPERTY_HELP", confidential=false)
     public String getXsdFilePath() {
         return this.xsdFilePath;
     }
