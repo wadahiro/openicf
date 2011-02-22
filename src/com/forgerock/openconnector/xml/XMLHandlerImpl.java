@@ -440,12 +440,13 @@ public class XMLHandlerImpl implements XMLHandler {
             Set<AttributeInfo> objAttributes = objInfo.getAttributeInfo();
 
             // map with the attribute-names and what class they are
-            HashMap<String, String> attrClasses = new HashMap<String, String>();
+            HashMap<String, String> attributeClassMap = new HashMap<String, String>();
             for (AttributeInfo info : objAttributes) {
-                attrClasses.put(info.getName(), info.getType().getSimpleName());
+                attributeClassMap.put(info.getName(), info.getType().getSimpleName());
             }
 
-            HashMap<String, AttributeInfo> attrInfos =
+            // map with the AttributeInfo for each attribute
+            HashMap<String, AttributeInfo> attributeInfoMap =
                     new HashMap<String, AttributeInfo>(AttributeInfoUtil.toMap(objInfo.getAttributeInfo()));
 
             XQueryHandler xqHandler = null;
@@ -453,15 +454,14 @@ public class XMLHandlerImpl implements XMLHandler {
                 xqHandler = new XQueryHandler(query, document);
                 XQResultSequence queryResult = xqHandler.getResultSequence();
 
-                while (queryResult.next()) {
-                    
-                    NodeList nodes = createNodeList(queryResult.getItem());
-                    
-                    ConnectorObjectBuilder conObjBuilder = new ConnectorObjectBuilder();
-                    conObjBuilder.setObjectClass(objClass);
-                    addAllAttributesToBuilder(nodes, conObjBuilder, attrClasses, attrInfos);
 
-                    results.add(conObjBuilder.build());
+                ConnectorObjectCreator conObjCreator =
+                    new ConnectorObjectCreator(attributeClassMap, attributeInfoMap, objClass);
+
+                while (queryResult.next()) {           
+                    NodeList nodes = createNodeList(queryResult.getItem());
+                    ConnectorObject conObj = conObjCreator.createConnectorObject(nodes);
+                    results.add(conObj);
                 }                
             } catch (XQException ex) {
                 log.error("Error while searching: {0}", ex);
@@ -472,6 +472,11 @@ public class XMLHandlerImpl implements XMLHandler {
         }
         log.info("Exit {0}", method);
         return results;
+    }
+
+    private NodeList createNodeList(XQItem xqItem) throws XQException {
+        Node node = xqItem.getNode();
+        return node.getChildNodes();
     }
 
     private boolean entryExists(ObjectClass objClass, Name name) {
@@ -493,115 +498,6 @@ public class XMLHandlerImpl implements XMLHandler {
         } catch (TransformerException ex) {
             Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    private NodeList createNodeList(XQItem xqItem) throws XQException {
-        Node node = xqItem.getNode();
-        return node.getChildNodes();
-    }
-
-    // Add all the attributes to the connectorbuilder-object
-    private void addAllAttributesToBuilder(NodeList nodeList, ConnectorObjectBuilder coBuilder,
-            Map<String, String> classes, Map<String, AttributeInfo> infos) {
-        
-        boolean hasUid = false;
-        // map for storing multivalued attributes
-        HashMap<String, ArrayList<String>> multivalues = new HashMap<String, ArrayList<String>>();
-        String nameTmp = "";
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            Node attributeNode = nodeList.item(i);
-            if (attributeNode.getNodeType() == Node.ELEMENT_NODE) {
-
-                Node textNode = attributeNode.getFirstChild();
-                
-                if (isTextNode(textNode)) {
-                    String attrName = attributeNode.getLocalName();
-
-                    String attrValue = textNode.getNodeValue();
-
-
-                    if (attrName.equals(Uid.NAME)) {
-                        coBuilder.setUid(attrValue);
-                        hasUid = true;
-                    }
-                    if (!hasUid && attrName.equals(Name.NAME)) {
-                        nameTmp = attrValue;
-                    }
-
-                    Attribute attribute = null;
-                    AttributeInfo info = infos.get(attrName);
-                    
-                    if (info.isReadable()) {
-                        if (!info.isMultiValued()) {
-                            attribute = createAttribute(attrName, attrValue, classes);
-                        }
-                        else {
-                            if (multivalues.containsKey(attrName)) {
-                                multivalues.get(attrName).add(attrValue);
-                            }
-                            else {
-                                ArrayList<String> values = new ArrayList<String>();
-                                values.add(attrValue);
-                                multivalues.put(attrName, values);
-                            }
-                        }
-                    }
-                    if (attribute != null) {
-                        coBuilder.addAttribute(attribute);
-                    }
-                }
-            }
-        }
-        
-        // set __NAME__ attribute as UID if no UID was wound
-        if (!hasUid) {
-            coBuilder.setUid(nameTmp);
-        }
-
-        //add multivalued attributes
-        for (String s : multivalues.keySet()) {
-            Attribute result = createMultivaluedAttribute(s, multivalues.get(s), classes);
-            if (result != null)
-                coBuilder.addAttribute(result);
-        }
-    }
-    
-    private Attribute createAttribute(String attrName, String attrValue,
-            Map<String, String> classes) {
-        
-        AttributeBuilder attrBuilder = new AttributeBuilder();
-        attrBuilder.setName(attrName);
-
-        // check if attrInfo has the attributes object-type
-        if (classes.containsKey(attrName)) {
-            String javaclass = classes.get(attrName);
-            Object value = AttributeTypeUtil.createInstantiatedObject(attrValue, javaclass);
-            attrBuilder.addValue(value);
-            Attribute result = attrBuilder.build();
-            return result;
-        }
-        return null;
-    }
-    
-    private Attribute createMultivaluedAttribute(String attrName, ArrayList<String> attrValues, Map<String, String> classes) {
-        AttributeBuilder attrBuilder = new AttributeBuilder();
-        attrBuilder.setName(attrName);
-        
-        if (classes.containsKey(attrName)) {
-            String javaclass = classes.get(attrName);
-            for (String eachValue : attrValues) {
-                Object valueObj = AttributeTypeUtil.createInstantiatedObject(eachValue, javaclass);
-                attrBuilder.addValue(valueObj);
-            }
-            Attribute result = attrBuilder.build();
-            return result;
-        }
-        return null;
-    }
-
-    // see if an attribute-node has text-content
-    private boolean isTextNode(Node node) {
-        return node != null && node.getNodeType() == Node.TEXT_NODE;
     }
 
     private boolean valuesAreExpectedClass(Class expectedClass, List<Object> values) {
