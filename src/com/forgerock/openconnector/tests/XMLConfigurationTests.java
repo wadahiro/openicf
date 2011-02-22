@@ -36,13 +36,13 @@ public class XMLConfigurationTests {
     }
 
     @Test(expected=IllegalArgumentException.class)
-    public void shouldThrowExceptionWhenValidatingWithNullFilepath() {
+    public void shouldThrowIllegalArguemntExceptionWhenValidatingWithNullFilepath() {
         config.setXmlFilePath(null);
         config.validate();
     }
 
     @Test(expected=IllegalArgumentException.class)
-    public void shouldThrowExceptionWhenValidatingWithBlankFilepath() {
+    public void shouldThrowIllegalArgumentExceptionWhenValidatingWithBlankFilepath() {
         config.setXmlFilePath("");
         config.validate();
     }
