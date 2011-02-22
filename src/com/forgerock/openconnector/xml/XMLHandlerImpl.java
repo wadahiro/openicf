@@ -217,6 +217,10 @@ public class XMLHandlerImpl implements XMLHandler {
                 }
             }
 
+            if(!attributeInfo.isMultiValued() && values.size() > 1){
+               throw new IllegalArgumentException("Data field: " + attributeName + " is not multivalued and can not have more than one value");
+            }
+
             if (!supportedAttributeInfoMap.containsKey(attributeName)) {
                 throw new IllegalArgumentException("Data field: " + attributeName + " is not supported.");
             }
