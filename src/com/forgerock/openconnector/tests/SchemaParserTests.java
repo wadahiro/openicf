@@ -1,7 +1,8 @@
 
-package com.forgerock.openconnector.xsdparser;
+package com.forgerock.openconnector.tests;
 
 
+import com.forgerock.openconnector.xsdparser.*;
 import com.forgerock.openconnector.xml.XMLConnector;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.junit.After;
