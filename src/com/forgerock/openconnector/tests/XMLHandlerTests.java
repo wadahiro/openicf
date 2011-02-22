@@ -35,7 +35,8 @@ import static org.junit.Assert.*;
 public class XMLHandlerTests {
 
     private XMLHandler xmlHandler;
-    private static final String filePath = "test/xml_store/filterTranslatorTests.xml";
+    private static final String XML_FILE_PATH = "test/xml_store/filterTranslatorTests.xml";
+    private static final String XSD_FILE_PATH = "test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd";
     private File testFile;
     private Collection<ConnectorObject> hits;
     private ConnectorObject existingUsrConObj;
@@ -47,8 +48,8 @@ public class XMLHandlerTests {
     public void setUp() {
 
         XMLConfiguration config = new XMLConfiguration();
-        config.setXmlFilePath(filePath);
-        config.setXsdFilePath("test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
+        config.setXmlFilePath(XML_FILE_PATH);
+        config.setXsdFilePath(XSD_FILE_PATH);
         SchemaParser parser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
 
         xmlHandler = new XMLHandlerImpl(config, parser.parseSchema(), parser.getXsdSchema());

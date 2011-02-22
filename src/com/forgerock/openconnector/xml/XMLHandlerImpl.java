@@ -166,16 +166,21 @@ public class XMLHandlerImpl implements XMLHandler {
 
         XmlHandlerUtil.checkObjectType(objClass, riSchema);
 
+
         ObjectClassInfo objInfo = connSchema.findObjectClassInfo(objClass.getObjectClassValue());
-        Set<AttributeInfo> objAttributes = objInfo.getAttributeInfo();
-        Map<String, AttributeInfo> supportedAttributeInfoMap = new HashMap<String, AttributeInfo>(AttributeInfoUtil.toMap(objAttributes));
-
-        Map<String, Attribute> providedAttributesMap = new HashMap<String, Attribute>(AttributeUtil.toMap(attributes));
-
+        Set<AttributeInfo> objAttributes = null; //objInfo.getAttributeInfo();
+        Map<String, AttributeInfo> supportedAttributeInfoMap = null; //new HashMap<String, AttributeInfo>(AttributeInfoUtil.toMap(objAttributes));
+        Map<String, Attribute> providedAttributesMap = null;
         String uidValue = null;
 
+        if (attributes != null) {
+            objAttributes = objInfo.getAttributeInfo();
+            supportedAttributeInfoMap = new HashMap<String, AttributeInfo>(AttributeInfoUtil.toMap(objAttributes));
+            providedAttributesMap = new HashMap<String, Attribute>(AttributeUtil.toMap(attributes));
+        }
+
         // check if __NAME__ is defined
-        if (!providedAttributesMap.containsKey(Name.NAME) || providedAttributesMap.get(Name.NAME).getValue().isEmpty()) {
+        if (providedAttributesMap == null || !providedAttributesMap.containsKey(Name.NAME) || providedAttributesMap.get(Name.NAME).getValue().isEmpty()) {
             throw new IllegalArgumentException(Name.NAME + " must be defined.");
         }
 
@@ -207,10 +212,9 @@ public class XMLHandlerImpl implements XMLHandler {
 
             // throw exception if required attribute is not provided
             if (attributeInfo.isRequired()) {
-                if (providedAttributesMap.containsKey(attributeName)) {
+                if (providedAttributesMap.containsKey(attributeName) && !values.isEmpty()) {
                     for (String value : values) {
                         Assertions.blankCheck(value, attributeName);
-                        Assertions.nullCheck(value, attributeName);
                     }
                 } else {
                     throw new IllegalArgumentException("Missing required field: " + attributeName);
@@ -222,11 +226,12 @@ public class XMLHandlerImpl implements XMLHandler {
             }
 
             if (!supportedAttributeInfoMap.containsKey(attributeName)) {
-                throw new IllegalArgumentException("Data field: " + attributeName + " is not supported.");
+               continue;
+                // throw new IllegalArgumentException("Data field: " + attributeName + " is not supported.");
             }
 
             if(!attributeInfo.isCreateable() && providedAttributesMap.containsKey(attributeName)){
-                throw  new IllegalArgumentException("Data field: " + attributeName + " is not creatable.");
+                throw  new IllegalArgumentException(attributeName + " is not a creatable field.");
             }
 
             // add provided element 
@@ -502,12 +507,36 @@ public class XMLHandlerImpl implements XMLHandler {
 
     private boolean valuesAreExpectedClass(Class expectedClass, List<Object> values) {
         boolean ok = true;
-        for (Object o : values) {
+
+        if (expectedClass.isPrimitive())
+            expectedClass = convertToWrapper(expectedClass.getName());
+
+        for (Object o : values) {            
             if (expectedClass != o.getClass()) {
+
                 System.out.println("CRASH: " + expectedClass + " vs " + o.getClass());
                 ok = false;
             }
         }
         return ok;
     }
+
+    public static final Map<String, Class<?>> primitiveMap = new HashMap<String, Class<?>>();
+    static {
+        primitiveMap.put("boolean", Boolean.class);
+        primitiveMap.put("byte", Byte.class);
+        primitiveMap.put("short", Short.class);
+        primitiveMap.put("char", Character.class);
+        primitiveMap.put("int", Integer.class);
+        primitiveMap.put("long", Long.class);
+        primitiveMap.put("float", Float.class);
+        primitiveMap.put("double", Double.class);
+    }
+
+    public static Class convertToWrapper(String name) {
+
+        return primitiveMap.get(name);
+    }
+
+    
 }
