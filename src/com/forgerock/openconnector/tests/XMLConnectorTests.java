@@ -50,29 +50,29 @@ public class XMLConnectorTests {
     }
 
     @Test
-    public void initShouldNotCastException() {
+    public void initShouldNotCastExceptionWhenInitiatedWithValidXmlConfig() {
         xmlConnector.init(xmlConfig);
     }
 
     @Test(expected=NullPointerException.class)
-    public void initShouldCastNullPointerException(){
+    public void initShouldCastNullPointerExceptionWhenInitiatedWithNull(){
         XMLConnector xmlCon = new XMLConnector();
         xmlCon.init(null);
     }
 
     @Test
-    public void testShouldNotCastException() {
+    public void testShouldNotCastExceptionWhenEverithingIsOK() {
         xmlConnector.test();
     }
 
     @Test(expected = NullPointerException.class)
-    public void testShouldCastNullPointerException() {
+    public void testShouldCastNullPointerExceptionWhenRequiredFiledsAreNotSet() {
         XMLConnector xmlCon = new XMLConnector();
         xmlCon.test();
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testShouldCastIllegalArgumentException() {
+    public void testShouldCastIllegalArgumentExceptionWhenGivenFilpathsIsWrong() {
         XMLConfiguration conf = new XMLConfiguration();
 
         conf.setXmlFilePath("404.xml");
@@ -91,7 +91,7 @@ public class XMLConnectorTests {
     }
 
     @Test
-    public void creatFilterTranslatorShouldReturnNewXmlFilterTranslator() {
+    public void creatFilterTranslatorShouldReturnNewXmlFilterTranslatorWhenGivenValidParameters() {
         assertNotNull(xmlConnector.createFilterTranslator(ObjectClass.ACCOUNT, null));
     }
 
@@ -101,14 +101,14 @@ public class XMLConnectorTests {
     }
 
     @Test
-    public void executeNullQueryShouldReturnOne() {
+    public void executeNullQueryShouldReturnOneResult() {
         TestResultsHandler r = new TestResultsHandler();
         queryXmlConnector.executeQuery(ObjectClass.ACCOUNT, null, r, null);
         assertEquals(1, r.getSumResults());
     }
 
     @Test
-    public void executeLastNameQueryShouldReturnOne() {
+    public void executeLastNameQueryShouldReturnOneResult() {
         XMLFilterTranslator f = (XMLFilterTranslator) queryXmlConnector.createFilterTranslator(ObjectClass.ACCOUNT, null);
         
         EqualsFilter ef = new EqualsFilter(AttributeBuilder.build("lastname", LAST_NAME));
@@ -125,7 +125,7 @@ public class XMLConnectorTests {
     }
 
     @Test
-    public void createAccountShouldReturnUid() {
+    public void createAccountShouldReturnUidWhenGivedValidParameters() {
         Uid uid = xmlConnector.create(ObjectClass.ACCOUNT, createAttributesAccount(), null);
         assertNotNull(uid);
     }
@@ -136,7 +136,7 @@ public class XMLConnectorTests {
     }
 
     @Test
-    public void createGroupShouldReturnUid() {
+    public void createGroupShouldReturnUidWhenGivenValidParameters() {
         Uid uid = xmlConnector.create(ObjectClass.GROUP, createAttributesGroup(), null);
         assertNotNull(uid);
     }
@@ -152,7 +152,7 @@ public class XMLConnectorTests {
     }
 
     @Test
-    public void updateAccountShouldReturnUid() {
+    public void updateAccountShouldReturnUidWhenGivenValidParameters() {
         Set<Attribute> attributes = createAttributesAccount();
 
         attributes.add(AttributeBuilder.build("email", "mailadress1@company.org","mailadress2@company.org","mailadress3@company.org"));
@@ -164,7 +164,7 @@ public class XMLConnectorTests {
     }
 
     @Test
-    public void updateGroupShouldReturnUid() {
+    public void updateGroupShouldReturnUidWhenGivedValidParameters() {
         Set<Attribute> attributes = new HashSet<Attribute>();
 
         attributes.add(AttributeBuilder.build("__DESCRIPTION__", "this is description updated"));
