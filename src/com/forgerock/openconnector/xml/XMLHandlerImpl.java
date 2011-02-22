@@ -343,6 +343,11 @@ public class XMLHandlerImpl implements XMLHandler {
 
                 // add updated nodes to the entry
                 List<String> values = AttributeTypeUtil.findAttributeValue(attribute, attributeInfo);
+
+                if(!attributeInfo.isMultiValued() && values.size() > 1){
+                    throw new IllegalArgumentException("Data field: " + attributeName + " is not multivalued  can not have more than one value");
+                }
+
                 // append empty element if no values is provided
                 if (values.isEmpty()) {
                         Element updatedElement = createDomElement(attributeName, "");
