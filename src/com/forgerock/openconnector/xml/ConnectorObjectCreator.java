@@ -31,7 +31,7 @@ class ConnectorObjectCreator {
     private ConnectorObjectBuilder conObjBuilder;
 
 
-    public ConnectorObjectCreator(HashMap<String, String> attrClasses,
+    protected ConnectorObjectCreator(HashMap<String, String> attrClasses,
             HashMap<String, AttributeInfo> attrInfos, ObjectClass objClass) {
 
         this.attributeClassMap = attrClasses;

@@ -42,6 +42,8 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
     private XMLConfiguration config;
     private SchemaParser schemaParser;
 
+    private static volatile int invokers = 0;
+
     public Configuration getConfiguration() {
         return this.config;
     }

@@ -6,10 +6,6 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-/**
- *
- * @author slogum
- */
 public class XMLConfigurationTests {
     
     private XMLConfiguration config;
@@ -20,17 +16,17 @@ public class XMLConfigurationTests {
     }
 
     @Test
-    public void shouldGetXmlFilepathFromConfiguration() {
+    public void getXmlFilepathFromConfiguration() {
         config.setXmlFilePath("users.xml");
         assertEquals("users.xml", config.getXmlFilePath());
     }
     @Test
-    public void shouldGetXsdRIFilepathFromConfiguration() {
+    public void getXsdRIFilepathFromConfiguration() {
         config.setXsdIcfFilePath("xsdRi.xsd");
         assertEquals("xsdRi.xsd", config.getXsdIcfFilePath());
     }
     @Test
-    public void shouldGetXsdFilepathFromConfiguration() {
+    public void getXsdFilepathFromConfiguration() {
         config.setXsdFilePath("xsdTest.xsd");
         assertEquals("xsdTest.xsd", config.getXsdFilePath());
     }
