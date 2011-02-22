@@ -19,7 +19,7 @@ import org.junit.*;
 import static org.junit.Assert.*;
 import org.junit.rules.ExpectedException;
 
-public class CreateEntry {
+public class CreateEntryTests {
 
     // Object types
     public static final String ACCOUNT_TYPE = "__ACCOUNT__";
@@ -69,7 +69,7 @@ public class CreateEntry {
     public ExpectedException thrown = ExpectedException.none();
 
     // Test filepaths
-    private static final String XML_FILE_PATH = "test.xml";
+    private static final String XML_FILE_PATH = "test/xml_store/test.xml";
     private static final String XSD_FILE_PATH = "test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd";
 
     private static XMLHandler handler;

@@ -388,6 +388,9 @@ public class XMLHandlerImpl implements XMLHandler {
     }
 
     public Element getEntry(ObjectClass objClass, Name name) {
+        final String method = "getEntry";
+        log.info("Entry {0}", method);
+
         XMLFilterTranslator translator = new XMLFilterTranslator();
         AttributeBuilder builder = new AttributeBuilder();
         builder.setName(Name.NAME);
@@ -398,8 +401,6 @@ public class XMLHandlerImpl implements XMLHandler {
 
         XQueryHandler xqHandler = null;
         try {
-
-            
             xqHandler = new XQueryHandler(queryBuilder.toString(), document);
             XQResultSequence results = xqHandler.getResultSequence();
 
@@ -414,12 +415,15 @@ public class XMLHandlerImpl implements XMLHandler {
                 xqHandler.close();
         }
 
+        log.info("Exit {0}", method);
+
         return null;
     }
 
     public void delete(final ObjectClass objClass, final Uid uid) throws UnknownUidException {
         final String method = "delete";
         log.info("Entry {0}", method);
+
         Name name = new Name(uid.getUidValue());
 
         if (entryExists(objClass, name)) {
@@ -429,6 +433,7 @@ public class XMLHandlerImpl implements XMLHandler {
         }
         
         serialize();
+
         log.info("Exit {0}", method);
     }
 
