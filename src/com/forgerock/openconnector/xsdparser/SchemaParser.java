@@ -90,11 +90,11 @@ public class SchemaParser {
                 XSParticle particle = xsContType.asParticle();
 
                 if (particle != null) {
-                    XSTerm term = particle.getTerm();
+                    XSTerm xsTerm = particle.getTerm();
 
-                    if (term.isModelGroup()) {
-                        XSModelGroup grp = term.asModelGroup();
-                        XSParticle[] particles = grp.getChildren();
+                    if (xsTerm.isModelGroup()) {
+                        XSModelGroup xsModelGroup = xsTerm.asModelGroup();
+                        XSParticle[] particles = xsModelGroup.getChildren();
 
                         for (XSParticle childParticle : particles) {
                             XSTerm childParticleTerm = childParticle.getTerm();
