@@ -1,6 +1,7 @@
 package com.forgerock.openconnector.xml;
 
 import com.forgerock.openconnector.util.AttributeTypeUtil;
+import com.forgerock.openconnector.util.GuardedStringAccessor;
 import com.forgerock.openconnector.util.NamespaceLookup;
 import com.forgerock.openconnector.util.XmlHandlerUtil;
 import com.forgerock.openconnector.xml.query.IQuery;
@@ -32,6 +33,7 @@ import javax.xml.xquery.XQException;
 import javax.xml.xquery.XQItem;
 import javax.xml.xquery.XQResultSequence; 
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -47,6 +49,7 @@ import org.identityconnectors.common.Assertions;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoUtil;
+import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -565,6 +568,38 @@ Transformer t = tf.newTransformer();
     public static Class convertToWrapper(String name) {
 
         return primitiveMap.get(name);
+    }
+
+    public Uid authenticate(String username, GuardedString password) {
+
+        Uid uid = null;
+
+        Element entry = getEntry(ObjectClass.ACCOUNT, new Uid(username), ElementFieldType.BY_NAME);
+        NodeList passwordElements = entry.getElementsByTagName(ICF_NAMESPACE_PREFIX + ":__PASSWORD__");
+  
+        String xmlPassword = passwordElements.item(0).getTextContent();
+
+        GuardedStringAccessor accessor = new GuardedStringAccessor();
+
+        password.access(accessor);
+
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(accessor.getArray());
+
+        String userPassword = stringBuilder.toString();
+
+        if(xmlPassword.equals(userPassword)){
+            NodeList uidElements = entry.getElementsByTagName(ICF_NAMESPACE_PREFIX + ":__UID__");
+
+            if(uidElements.getLength() >= 1){
+                uid = new Uid(uidElements.item(0).getTextContent());
+            }else{
+                NodeList nameElements = entry.getElementsByTagName(ICF_NAMESPACE_PREFIX + ":__NAME__");
+                uid = new Uid(nameElements.item(0).getTextContent());
+            }
+        }
+
+        return uid;
     }
   
     // TODO: Refactor name of enum

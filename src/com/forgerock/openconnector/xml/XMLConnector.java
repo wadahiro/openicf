@@ -82,9 +82,7 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         
         Assertions.blankCheck(username, "username");
 
-        Name name = new Name(username);
-
-        Uid uid = xmlHandler.authenticate(objectClass, name);
+        Uid uid = xmlHandler.authenticate(username, password);
 
         if(uid == null){
             throw new InvalidPasswordException("Invalid password for user: " + username);

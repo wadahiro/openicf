@@ -7,6 +7,7 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
+import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
@@ -19,9 +20,10 @@ public class XMLConnectorTests {
 
     private static XMLConnector xmlConnector, queryXmlConnector;
     private static XMLConfiguration xmlConfig, queryXmlConfig;
-    private final static String ACCOUNT_NAME = "Erwita";
+    private final static String ACCOUNT_FIRST_NAME = "Erwita";
     private final static String GROUP_NAME = "Admin";
     private final static String LAST_NAME = "Lastnamerson";
+    private final static String ACCOUNT_NAME = "username";
 
     @BeforeClass
     public static void setUp() {
@@ -158,7 +160,7 @@ public class XMLConnectorTests {
         attributes.add(AttributeBuilder.build("email", "mailadress1@company.org","mailadress2@company.org","mailadress3@company.org"));
   
 
-        Uid uid = xmlConnector.update(ObjectClass.ACCOUNT, new Uid(ACCOUNT_NAME), attributes, null);
+        Uid uid = xmlConnector.update(ObjectClass.ACCOUNT, new Uid(ACCOUNT_FIRST_NAME), attributes, null);
 
         assertNotNull(uid);
     }
@@ -181,7 +183,7 @@ public class XMLConnectorTests {
 
     @Test
     public void deleteAccountQueryShouldReturnZero() {
-        xmlConnector.delete(ObjectClass.ACCOUNT, new Uid(ACCOUNT_NAME), null);
+        xmlConnector.delete(ObjectClass.ACCOUNT, new Uid(ACCOUNT_FIRST_NAME), null);
 
         TestResultsHandler r = new TestResultsHandler();
         xmlConnector.executeQuery(ObjectClass.ACCOUNT, null, r, null);
@@ -202,10 +204,19 @@ public class XMLConnectorTests {
         xmlConnector.delete(null, null, null);
     }
 
+    @Test
+    public void authenticateShouldReturnUid(){
+        char[] chars = {'A', 'B', 'C', 'D'};
+        Uid uid = queryXmlConnector.authenticate(ObjectClass.ACCOUNT, ACCOUNT_NAME , new GuardedString(chars), null);
+
+        assertEquals("e1c0a42b-5c6e-4fe9-b319-4c3aea94a5ee", uid.getUidValue());
+        
+    }
+
     private Set<Attribute> createAttributesAccount() {
         Set<Attribute> set = new HashSet<Attribute>();
 
-        set.add(AttributeBuilder.build("__NAME__", ACCOUNT_NAME));
+        set.add(AttributeBuilder.build("__NAME__", ACCOUNT_FIRST_NAME));
         set.add(AttributeBuilder.build("lastname", LAST_NAME));
 
         char[] chars = {'A', 'B', 'C', 'D'};
