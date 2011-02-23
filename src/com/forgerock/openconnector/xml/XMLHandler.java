@@ -7,6 +7,7 @@ package com.forgerock.openconnector.xml;
 
 import java.util.Collection;
 import java.util.Set;
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -25,7 +26,7 @@ public interface XMLHandler {
 
     public Collection<ConnectorObject> search(String query, ObjectClass objectClass);
 
-    public Uid authenticate(ObjectClass objectClass, Uid uid);
+    public Uid authenticate(String username, GuardedString password);
 
     public void serialize();
 }
