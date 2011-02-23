@@ -82,7 +82,6 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         
         Assertions.blankCheck(username, "username");
 
-
         Name name = new Name(username);
 
         Uid uid = xmlHandler.authenticate(objectClass, name);
