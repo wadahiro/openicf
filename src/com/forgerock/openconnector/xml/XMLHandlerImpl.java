@@ -23,7 +23,6 @@ import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -48,7 +47,6 @@ import org.identityconnectors.common.Assertions;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoUtil;
-import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -568,11 +566,7 @@ Transformer t = tf.newTransformer();
 
         return primitiveMap.get(name);
     }
-
-    public Uid authenticate(ObjectClass objectClass, Name name) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
+  
     // TODO: Refactor name of enum
     private enum ElementFieldType { 
         AUTO,
