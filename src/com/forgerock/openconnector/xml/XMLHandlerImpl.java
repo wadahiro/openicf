@@ -66,7 +66,7 @@ public class XMLHandlerImpl implements XMLHandler {
 
     private XMLConfiguration config;
     private Document document;
-    private Schema connSchema; // TODO: Move to config class
+    private Schema connSchema;
 
     private XSSchema icfSchema;
     private XSSchema riSchema;
@@ -187,7 +187,7 @@ public class XMLHandlerImpl implements XMLHandler {
         Name name = AttributeUtil.getNameFromAttributes(attributes);
 
         // check if entry already exists
-        if (entryExists(objClass, name)) {
+        if (entryExists(objClass, new Uid(name.getNameValue()), ElementFieldType.BY_NAME)) {
             throw new AlreadyExistsException("Could not create entry. An entry with the " + Uid.NAME + " of " +
                     name.getNameValue() + " already exists.");
         }
@@ -302,11 +302,9 @@ public class XMLHandlerImpl implements XMLHandler {
         ObjectClassInfo objInfo = connSchema.findObjectClassInfo(objClass.getObjectClassValue());
         Map<String, AttributeInfo> objAttributes = AttributeInfoUtil.toMap(objInfo.getAttributeInfo());
 
-        Name name = new Name(uid.getUidValue());
+        if (entryExists(objClass, uid, ElementFieldType.AUTO)) {
 
-        if (entryExists(objClass, name)) {
-
-            Element entry = getEntry(objClass, name);
+            Element entry = getEntry(objClass, uid, ElementFieldType.AUTO);
 
             for (Attribute attribute : replaceAttributes) {
 
@@ -364,7 +362,7 @@ public class XMLHandlerImpl implements XMLHandler {
             }
         }
         else {
-            throw new UnknownUidException("Could not update entry. No entry of type " + objClass.getObjectClassValue() + " with the id " + name.getNameValue() + " found.");
+            throw new UnknownUidException("Could not update entry. No entry of type " + objClass.getObjectClassValue() + " with the id " + uid.getUidValue() + " found.");
         }
 
         serialize();
@@ -385,19 +383,44 @@ public class XMLHandlerImpl implements XMLHandler {
         }
     }
 
-    public Element getEntry(ObjectClass objClass, Name name) {
+    // TODO: Refactor name of method
+    private String getElementFieldTypeName(ObjectClass objClass, ElementFieldType getByFieldType) {
+        String elementField = "";
+
+        if (getByFieldType == ElementFieldType.BY_NAME)
+            elementField = Name.NAME;
+        else if (getByFieldType == ElementFieldType.BY_UID)
+            elementField = Uid.NAME;
+        else {
+           Map<String, AttributeInfo> attrInfoMap = AttributeInfoUtil.toMap(connSchema.findObjectClassInfo(objClass.getObjectClassValue()).getAttributeInfo());
+               
+            if (attrInfoMap.containsKey(Uid.NAME))
+                elementField = Uid.NAME;
+            else
+                elementField = Name.NAME;
+        }
+
+        return elementField;
+    }
+
+    private Element getEntry(ObjectClass objClass, Uid uid, ElementFieldType elementIdField) {
         final String method = "getEntry";
         log.info("Entry {0}", method);
 
         XMLFilterTranslator translator = new XMLFilterTranslator();
         AttributeBuilder builder = new AttributeBuilder();
-        builder.setName(Name.NAME);
-        builder.addValue(name.getNameValue());
+
+        String idField = getElementFieldTypeName(objClass, elementIdField);
+
+        builder.setName(idField);
+        builder.addValue(uid.getUidValue());
+
         EqualsFilter equals = new EqualsFilter(builder.build());
         IQuery query = translator.createEqualsExpression(equals, false);
         QueryBuilder queryBuilder = new QueryBuilder(query, objClass);
 
         XQueryHandler xqHandler = null;
+
         try {
             xqHandler = new XQueryHandler(queryBuilder.toString(), document);
             XQResultSequence results = xqHandler.getResultSequence();
@@ -418,16 +441,24 @@ public class XMLHandlerImpl implements XMLHandler {
         return null;
     }
 
+    private boolean entryExists(ObjectClass objClass, Uid uid, ElementFieldType elementIdField) {
+        if (getEntry(objClass, uid, elementIdField) != null) {
+            return true;
+        }
+        
+        return false;
+    }
+
     public void delete(final ObjectClass objClass, final Uid uid) throws UnknownUidException {
         final String method = "delete";
         log.info("Entry {0}", method);
 
-        Name name = new Name(uid.getUidValue());
+        XmlHandlerUtil.checkObjectType(objClass, riSchema);
 
-        if (entryExists(objClass, name)) {
-            document.getDocumentElement().removeChild(getEntry(objClass, name));
+        if (entryExists(objClass, uid, ElementFieldType.AUTO)) {
+            document.getDocumentElement().removeChild(getEntry(objClass, uid, ElementFieldType.AUTO));
         } else {
-            throw new UnknownUidException("Deleting entry failed. Could not find an entry of type " + objClass.getObjectClassValue() + " with the uid " + name.getNameValue());
+            throw new UnknownUidException("Deleting entry failed. Could not find an entry of type " + objClass.getObjectClassValue() + " with the uid " + uid.getUidValue());
         }
         
         serialize();
@@ -487,13 +518,6 @@ public class XMLHandlerImpl implements XMLHandler {
         return node.getChildNodes();
     }
 
-    private boolean entryExists(ObjectClass objClass, Name name) {
-        if (getEntry(objClass, name) != null) {
-            return true;
-        }
-        return false;
-    }
-
     /*
      * TransformerFactory tf = TransformerFactory.newInstance();
 tf.setAttribute("indent-number", new Integer(2));
@@ -545,5 +569,14 @@ Transformer t = tf.newTransformer();
         return primitiveMap.get(name);
     }
 
-    
+    public Uid authenticate(ObjectClass objectClass, Name name) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    // TODO: Refactor name of enum
+    private enum ElementFieldType { 
+        AUTO,
+        BY_UID,
+        BY_NAME
+    }
 }
