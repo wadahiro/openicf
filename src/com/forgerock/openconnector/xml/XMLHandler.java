@@ -26,5 +26,7 @@ public interface XMLHandler {
 
     public Collection<ConnectorObject> search(String query, ObjectClass objectClass);
 
+    public Uid authenticate(String username, GuardedString password);
+
     public void serialize();
 }
