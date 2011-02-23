@@ -28,90 +28,17 @@
       <ri:address/>
       <icf:__ENABLE_DATE__/>
       <ri:max-storage/>
-    
-      <ri:yearly-wage/>
-      <ri:avg-wage/>
+  	  <ri:yearly-wage/>
       <ri:password-secret-answer/>
-      <icf:__UID__/>
+      <icf:__UID__>JANEIRIK</icf:__UID__>
       <ri:employee-number/>
       <ri:gender/>
       <icf:__NAME__>JANEIRIK</icf:__NAME__>
       <ri:office-square-feet/>
       <icf:__LAST_LOGIN_DATE__/>
       <ri:lastname>Hallstensen</ri:lastname>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      <ri:employee-type/>
+      <ri:avg-wage>100.0</ri:avg-wage>
+	  <ri:employee-type/>
    </ri:__ACCOUNT__>
     <ri:__ACCOUNT__>
       <ri:ms-employed>999999</ri:ms-employed>
