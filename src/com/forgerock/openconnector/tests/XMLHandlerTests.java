@@ -123,38 +123,11 @@ public class XMLHandlerTests {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void updatingNotSupportedAttributeShouldThrowException() {
-        Set<Attribute> newAttributes = new HashSet();
-        newAttributes.add(AttributeBuilder.build("notSupported", "arg"));
-        xmlHandler.update(ObjectClass.ACCOUNT, new Uid("JANEIRIK"), newAttributes);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void updatingNotUpdatableFieldShouldThrowException() {
-        Set<Attribute> newAttributes = new HashSet();
-        newAttributes.add(AttributeBuilder.build("is-deleted", "true"));
-        xmlHandler.update(ObjectClass.ACCOUNT, new Uid("JANEIRIK"), newAttributes);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
     public void createNotCreatableFieldShouldThrowException() {
         Set<Attribute> requiredAttributes = createRequiredAttributesAccount();
         requiredAttributes.add(AttributeBuilder.build("last-logoff", new BigInteger("123")));
         xmlHandler.create (ObjectClass.ACCOUNT, requiredAttributes);
     }
-
-//    @Test
-//    public void updatingWithNotValidTypeShouldThrowException() {
-//        Set<Attribute> newAttributes = new HashSet();
-//        float f = 10;
-//
-//        int i = 1;
-//       Object o = i;
-//        System.out.println("TYPE OF LIST OBJECT: " + o.getClass());
-//
-//        newAttributes.add(AttributeBuilder.build("avg-wage", f));
-//        xmlHandler.update(ObjectClass.ACCOUNT, new Uid("JANEIRIK"), newAttributes);
-//    }
 
     @Test
     public void shouldNotGetNotReadableField() {
@@ -163,52 +136,10 @@ public class XMLHandlerTests {
     }
 
     @Test(expected=IllegalArgumentException.class)
-    public void updateWithBlankValueForRequiredShouldThrowException() {
-        Set<Attribute> newAttributes = new HashSet();
-        newAttributes.add(AttributeBuilder.build("lastname", ""));
-        xmlHandler.update(ObjectClass.ACCOUNT, new Uid("JANEIRIK"), newAttributes);
-    }
-
-    @Test(expected=IllegalArgumentException.class)
-    public void updateWithNullValueForRequiredShouldThrowException() {
-        Set<Attribute> newAttributes = new HashSet();
-        newAttributes.add(AttributeBuilder.build("lastname"));
-        xmlHandler.update(ObjectClass.ACCOUNT, new Uid("JANEIRIK"), newAttributes);
-    }
-
-    @Test(expected=IllegalArgumentException.class)
-    public void updateRequiredFieldWithNoValuesShouldThrowException() {
-        Set<Attribute> newAttributes = new HashSet();
-        newAttributes.add(AttributeBuilder.build("lastname"));
-        xmlHandler.update(ObjectClass.ACCOUNT, new Uid("JANEIRIK"), newAttributes);
-    }
-
-    @Test
-    public void updatingExistingAttributeWithNoValuesShouldNotThrowException() {
-        Set<Attribute> newAttributes = new HashSet();
-        newAttributes.add(AttributeBuilder.build("employee-type"));
-        xmlHandler.update(ObjectClass.ACCOUNT, new Uid("JANEIRIK"), newAttributes);
-    }
-
-    @Test(expected=IllegalArgumentException.class)
-    public void updateAttributeWithWrongObjectTypeShouldThrowException() {
-        Set<Attribute> newAttributes = new HashSet();
-        newAttributes.add(AttributeBuilder.build("ms-employed", "1234"));
-        xmlHandler.update(ObjectClass.ACCOUNT, new Uid("JANEIRIK"), newAttributes);
-    }
-
-    @Test(expected=IllegalArgumentException.class)
     public void createAttributeWithWrongObjectTypeShouldThrowException() {
         Set<Attribute> requiredAttributes = createRequiredAttributesAccount();
         requiredAttributes.add(AttributeBuilder.build("ms-employed", "1234"));
         xmlHandler.create (ObjectClass.ACCOUNT, requiredAttributes);
-    }
-
-    @Test(expected=UnknownUidException.class)
-    public void updateNoneExistingShouldThrowException() {
-        Set<Attribute> newAttributes = new HashSet();
-        newAttributes.add(AttributeBuilder.build("ms-employed", "1234"));
-        xmlHandler.update(ObjectClass.ACCOUNT, new Uid("nonexisting"), newAttributes);
     }
 
     @Test(expected=UnknownUidException.class)

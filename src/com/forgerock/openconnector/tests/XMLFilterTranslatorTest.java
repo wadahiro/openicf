@@ -30,10 +30,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-/**
- *
- * @author slogum
- */
 public class XMLFilterTranslatorTest {
 
     private XMLHandlerImpl xmlHandler;
@@ -112,14 +108,12 @@ public class XMLFilterTranslatorTest {
         attrBld.addValue("99999999");
         LessThanFilter ltFilter = new LessThanFilter(attrBld.build());
         ltQueryMs = ft.createLessThanExpression(ltFilter, false);
-
-
+        
         attrBld = new AttributeBuilder();
         attrBld.setName("years-employed");
         attrBld.addValue("200");
         LessThanOrEqualFilter ltoreqFilter = new LessThanOrEqualFilter(attrBld.build());
         ltoreqQueryYearsEmployed = ft.createLessThanOrEqualExpression(ltoreqFilter, false);
-
 
         attrBld = new AttributeBuilder();
         attrBld.setName("years-employed");
