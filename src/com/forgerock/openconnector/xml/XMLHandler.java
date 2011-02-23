@@ -10,6 +10,7 @@ import java.util.Set;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
+import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.Uid;
 
@@ -23,6 +24,8 @@ public interface XMLHandler {
     public void delete(final ObjectClass objClass, final Uid uid) throws UnknownUidException;
 
     public Collection<ConnectorObject> search(String query, ObjectClass objectClass);
+
+    public Uid authenticate(ObjectClass objectClass, Name name);
 
     public void serialize();
 }
