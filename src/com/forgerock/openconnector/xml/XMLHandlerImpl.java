@@ -324,7 +324,7 @@ public class XMLHandlerImpl implements XMLHandler {
                 if (attributeInfo.isRequired()) {
                     List<String> values = AttributeTypeUtil.findAttributeValue(attribute, attributeInfo);
                     if (values.isEmpty()) {
-                        throw new IllegalArgumentException("No values provided for rqeuired attribute: " + attributeName);
+                        throw new IllegalArgumentException("No values provided for required attribute: " + attributeName);
                     }
                     for (String value : values) {
                         Assertions.blankCheck(value, attributeName);
@@ -334,8 +334,6 @@ public class XMLHandlerImpl implements XMLHandler {
                 
                 // check if the provided value is the same as the class defined in schema
                 Class expectedClass = attributeInfo.getType();
-
-                System.out.println("CHECKING: " + attributeName + ", expected: " + expectedClass);
 
                 if (attribute.getValue() != null) {
                     if (!valuesAreExpectedClass(expectedClass, attribute.getValue())) {
@@ -495,16 +493,22 @@ public class XMLHandlerImpl implements XMLHandler {
         }
         return false;
     }
-    
+
+    /*
+     * TransformerFactory tf = TransformerFactory.newInstance();
+tf.setAttribute("indent-number", new Integer(2));
+Transformer t = tf.newTransformer();
+     *
+     * */
+
 
     public void serialize() {
         try {
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer t = tf.newTransformer();
             DOMSource source = new DOMSource(document);
             StreamResult result = new StreamResult(new File(config.getXmlFilePath()));
-            transformer.transform(source, result);
-
+            t.transform(source, result);
         } catch (TransformerException ex) {
             Logger.getLogger(XMLHandlerImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -518,8 +522,6 @@ public class XMLHandlerImpl implements XMLHandler {
 
         for (Object o : values) {            
             if (expectedClass != o.getClass()) {
-
-                System.out.println("CRASH: " + expectedClass + " vs " + o.getClass());
                 ok = false;
             }
         }
