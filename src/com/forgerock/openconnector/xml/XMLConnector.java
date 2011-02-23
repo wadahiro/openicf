@@ -33,6 +33,8 @@ import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.InvalidPasswordException;
+import org.w3c.dom.Element;
 
 @ConnectorClass(displayNameKey = "XML", configurationClass = XMLConfiguration.class)
 public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp, DeleteOp, SearchOp<IQuery>, SchemaOp, TestOp, UpdateOp {
@@ -51,10 +53,13 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
     public void init(Configuration cfg) {
         final String method = "init";
         log.info("Entry {0}", method);
+
         Assertions.nullCheck(cfg, "cfg");
+        
         this.config = (XMLConfiguration) cfg;
         this.schemaParser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
         this.xmlHandler = new XMLHandlerImpl(config, schema(), schemaParser.getXsdSchema());
+
         log.info("XMLConnector initialized");
         log.info("Exit {0}", method);
     }
@@ -67,7 +72,28 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
 
     @Override
     public Uid authenticate(final ObjectClass objectClass, final String username, final GuardedString password, final OperationOptions options) {
-        throw new UnsupportedOperationException();
+
+        final String method = "authenticate";
+        log.info("Entry {0}", method);
+
+        Assertions.nullCheck(objectClass, "objectClass");
+        Assertions.nullCheck(username, "username");
+        Assertions.nullCheck(password, "password");
+        
+        Assertions.blankCheck(username, "username");
+
+
+        Name name = new Name(username);
+
+        Uid uid = xmlHandler.authenticate(objectClass, name);
+
+        if(uid == null){
+            throw new InvalidPasswordException("Invalid password for user: " + username);
+        }
+
+
+        log.info("Exit {0}", method);
+        return uid;
     }
 
     @Override
