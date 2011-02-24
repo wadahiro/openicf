@@ -2,7 +2,6 @@ package com.forgerock.openconnector.tests;
 
 import com.forgerock.openconnector.xml.*;
 import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import org.identityconnectors.common.security.GuardedString;
