@@ -1,6 +1,8 @@
 package com.forgerock.openconnector.tests;
 
 import com.forgerock.openconnector.xml.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import org.identityconnectors.common.security.GuardedString;
@@ -17,42 +19,74 @@ import static org.junit.Assert.*;
 
 public class XMLConnectorTests {
 
-    private static XMLConnector xmlConnector, queryXmlConnector;
-    private static XMLConfiguration xmlConfig, queryXmlConfig;
+    private static XMLConnector createXmlConnector, updateXmlConnector, deleteXmlConnector, queryXmlConnector;
+    private static XMLConfiguration createXmlConfig, updateXmlConfig, deleteXmlConfig, queryXmlConfig;
     private final static String ACCOUNT_FIRST_NAME = "Erwita";
     private final static String GROUP_NAME = "Admin";
     private final static String LAST_NAME = "Lastnamerson";
     private final static String ACCOUNT_NAME = "username";
 
+    private final static String XML_CREATE_FILEPATH = "test/xml_store/testCreateConnector.xml";
+    private final static String XML_UPDATE_FILEPATH = "test/xml_store/testUpdateConnector.xml";
+    private final static String XML_DELETE_FILEPATH = "test/xml_store/testDeleteConnector.xml";
+    private final static String XML_QUERY_FILEPATH = "test/xml_store/testQueryConnector.xml";
+
+    private final static String XSD_SCHEMA_FILEPATH = "test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd";
+
+
     @BeforeClass
     public static void setUp() {
-        xmlConfig = new XMLConfiguration();
-        xmlConfig.setXmlFilePath("test/xml_store/testXmlConnector.xml");
-        xmlConfig.setXsdFilePath("test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
 
-        xmlConnector = new XMLConnector();
+        createXmlConfig = new XMLConfiguration();
+        createXmlConfig.setXmlFilePath(XML_CREATE_FILEPATH);
+        createXmlConfig.setXsdFilePath(XSD_SCHEMA_FILEPATH);
+
+        createXmlConnector = new XMLConnector();
+        createXmlConnector.init(createXmlConfig);
+
+        updateXmlConfig = new XMLConfiguration();
+        updateXmlConfig.setXmlFilePath(XML_UPDATE_FILEPATH);
+        updateXmlConfig.setXsdFilePath(XSD_SCHEMA_FILEPATH);
+
+        updateXmlConnector = new XMLConnector();
+        updateXmlConnector.init(updateXmlConfig);
+
+        deleteXmlConfig = new XMLConfiguration();
+        deleteXmlConfig.setXmlFilePath(XML_DELETE_FILEPATH);
+        deleteXmlConfig.setXsdFilePath(XSD_SCHEMA_FILEPATH);
+
+        deleteXmlConnector = new XMLConnector();
+        deleteXmlConnector.init(deleteXmlConfig);
 
         queryXmlConfig = new XMLConfiguration();
-        queryXmlConfig.setXmlFilePath("test/xml_store/testQueryXmlConnector.xml");
-        queryXmlConfig.setXsdFilePath("test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd");
+        queryXmlConfig.setXmlFilePath(XML_QUERY_FILEPATH);
+        queryXmlConfig.setXsdFilePath(XSD_SCHEMA_FILEPATH);
 
         queryXmlConnector = new XMLConnector();
-        queryXmlConnector.init(queryXmlConfig);
 
     }
 
     @AfterClass
     public static void tearDown() {
-        xmlConfig = null;
-        xmlConnector = null;
-
-        queryXmlConfig = null;
-        queryXmlConnector = null;
+        File create = new File(XML_CREATE_FILEPATH);
+        File update = new File(XML_UPDATE_FILEPATH);
+        File delete = new File(XML_DELETE_FILEPATH);
+        
+        if(create.exists()){
+            create.delete();
+        }
+        if(update.exists()){
+             update.delete();
+         }
+        if(delete.exists()){
+            delete.delete();
+        }
+         
     }
 
     @Test
     public void initShouldNotCastExceptionWhenInitiatedWithValidXmlConfig() {
-        xmlConnector.init(xmlConfig);
+        queryXmlConnector.init(queryXmlConfig);
     }
 
     @Test(expected=NullPointerException.class)
@@ -63,7 +97,7 @@ public class XMLConnectorTests {
 
     @Test
     public void testShouldNotCastExceptionWhenEverithingIsOK() {
-        xmlConnector.test();
+        queryXmlConnector.test();
     }
 
     @Test(expected = NullPointerException.class)
@@ -88,17 +122,17 @@ public class XMLConnectorTests {
 
     @Test
     public void schemaShouldReturnSchema() {
-        assertNotNull(xmlConnector.schema());
+        assertNotNull(queryXmlConnector.schema());
     }
 
     @Test
     public void creatFilterTranslatorShouldReturnNewXmlFilterTranslatorWhenGivenValidParameters() {
-        assertNotNull(xmlConnector.createFilterTranslator(ObjectClass.ACCOUNT, null));
+        assertNotNull(queryXmlConnector.createFilterTranslator(ObjectClass.ACCOUNT, null));
     }
 
     @Test
     public void getConfigurationShouldReturnConfiguration() {
-        assertNotNull(xmlConnector.getConfiguration());
+        assertNotNull(queryXmlConnector.getConfiguration());
     }
 
     @Test
@@ -127,80 +161,87 @@ public class XMLConnectorTests {
 
     @Test
     public void createAccountShouldReturnUidWhenGivedValidParameters() {
-        Uid uid = xmlConnector.create(ObjectClass.ACCOUNT, createAttributesAccount(), null);
+        Uid uid = createXmlConnector.create(ObjectClass.ACCOUNT, createAttributesAccount(), null);
         assertNotNull(uid);
     }
 
     @Test(expected = AlreadyExistsException.class)
     public void createAccountWithSameNameShouldCastAlreadyExistsException() {
-        xmlConnector.create(ObjectClass.ACCOUNT, createAttributesAccount(), null);
+        createXmlConnector.create(ObjectClass.ACCOUNT, createAttributesAccount(), null);
     }
 
     @Test
     public void createGroupShouldReturnUidWhenGivenValidParameters() {
-        Uid uid = xmlConnector.create(ObjectClass.GROUP, createAttributesGroup(), null);
+        Uid uid = createXmlConnector.create(ObjectClass.GROUP, createAttributesGroup(), null);
         assertNotNull(uid);
     }
 
     @Test(expected = AlreadyExistsException.class)
     public void createGroupWithSameNameShouldCastAlreadyExistsException() {
-        xmlConnector.create(ObjectClass.GROUP, createAttributesGroup(), null);
+        createXmlConnector.create(ObjectClass.GROUP, createAttributesGroup(), null);
     }
 
     @Test(expected = NullPointerException.class)
     public void createEntityWithNullAttributesShouldCastNullPointerException() {
-        xmlConnector.create(null, null, null);
+        createXmlConnector.create(null, null, null);
     }
 
     @Test
     public void updateAccountShouldReturnUidWhenGivenValidParameters() {
+        updateXmlConnector.create(ObjectClass.ACCOUNT, createAttributesAccount(), null);
+
         Set<Attribute> attributes = createAttributesAccount();
 
         attributes.add(AttributeBuilder.build("email", "mailadress1@company.org","mailadress2@company.org","mailadress3@company.org"));
   
 
-        Uid uid = xmlConnector.update(ObjectClass.ACCOUNT, new Uid(ACCOUNT_FIRST_NAME), attributes, null);
+        Uid uid = updateXmlConnector.update(ObjectClass.ACCOUNT, new Uid(ACCOUNT_FIRST_NAME), attributes, null);
 
         assertNotNull(uid);
     }
 
     @Test
     public void updateGroupShouldReturnUidWhenGivedValidParameters() {
+        updateXmlConnector.create(ObjectClass.GROUP, createAttributesGroup(), null);
         Set<Attribute> attributes = new HashSet<Attribute>();
 
         attributes.add(AttributeBuilder.build("__DESCRIPTION__", "this is description updated"));
         attributes.add(AttributeBuilder.build("__SHORT_NAME__", "tidu"));
 
-        Uid uid = xmlConnector.update(ObjectClass.GROUP, new Uid(GROUP_NAME), attributes, null);
+        Uid uid = updateXmlConnector.update(ObjectClass.GROUP, new Uid(GROUP_NAME), attributes, null);
         assertNotNull(uid);
     }
 
     @Test(expected = NullPointerException.class)
     public void updateEntryWithNullShouldCastNullPointerException() {
-        xmlConnector.update(null, null, null, null);
+        updateXmlConnector.update(null, null, null, null);
     }
 
     @Test
     public void deleteAccountQueryShouldReturnZero() {
-        xmlConnector.delete(ObjectClass.ACCOUNT, new Uid(ACCOUNT_FIRST_NAME), null);
+        deleteXmlConnector.create(ObjectClass.ACCOUNT, createAttributesAccount(), null);
+
+        deleteXmlConnector.delete(ObjectClass.ACCOUNT, new Uid(ACCOUNT_FIRST_NAME), null);
 
         TestResultsHandler r = new TestResultsHandler();
-        xmlConnector.executeQuery(ObjectClass.ACCOUNT, null, r, null);
+        deleteXmlConnector.executeQuery(ObjectClass.ACCOUNT, null, r, null);
         assertEquals(0, r.getSumResults());
     }
 
     @Test
     public void deleteGroupQueryShouldReturnZero() {
-        xmlConnector.delete(ObjectClass.GROUP, new Uid(GROUP_NAME), null);
+        deleteXmlConnector.create(ObjectClass.GROUP, createAttributesGroup(), null);
+
+        deleteXmlConnector.delete(ObjectClass.GROUP, new Uid(GROUP_NAME), null);
 
         TestResultsHandler r = new TestResultsHandler();
-        xmlConnector.executeQuery(ObjectClass.GROUP, null, r, null);
+        deleteXmlConnector.executeQuery(ObjectClass.GROUP, null, r, null);
         assertEquals(0, r.getSumResults());
     }
 
     @Test(expected = NullPointerException.class)
     public void deleteAccountWithNullShouldCastNullPointerException() {
-        xmlConnector.delete(null, null, null);
+        deleteXmlConnector.delete(null, null, null);
     }
 
     @Test
@@ -232,7 +273,6 @@ public class XMLConnectorTests {
         attributes.add(AttributeBuilder.build("__NAME__", GROUP_NAME));
         attributes.add(AttributeBuilder.build("__DESCRIPTION__", "The almighty"));
         attributes.add(AttributeBuilder.build("__SHORT_NAME__", "tid"));
-        attributes.add(AttributeBuilder.build("email","email@1.com", "email@2.com"));
 
         return attributes;
     }
