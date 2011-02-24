@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -235,8 +236,15 @@ public class XMLHandlerImpl implements XMLHandler {
                 throw  new IllegalArgumentException(attributeName + " is not a creatable field.");
             }
 
+
+            Element childElement = null;
+
+            if (attributeName.equals(Uid.NAME)) {
+                childElement = createDomElement(attributeName, uidValue);
+                objElement.appendChild(childElement);
+            }
             // add provided element 
-            if (providedAttributesMap.containsKey(attributeName)) {
+            else if (providedAttributesMap.containsKey(attributeName)) {
                 // check if the provided value is the same as the class defined in schema
                 Class expectedClass = attributeInfo.getType();
                 if (!valuesAreExpectedClass(expectedClass, providedAttributesMap.get(attributeName).getValue())) {
@@ -244,14 +252,14 @@ public class XMLHandlerImpl implements XMLHandler {
                 }
                 // create elements
                 for (String value : values) {
-                    Element updatedElement = createDomElement(attributeName, value);
-                    objElement.appendChild(updatedElement);
+                    childElement = createDomElement(attributeName, value);
+                    objElement.appendChild(childElement);
                 }
             }
             // create empty element if not provided
             else {
-                Element updatedElement = createDomElement(attributeName, "");
-                objElement.appendChild(updatedElement);
+                childElement = createDomElement(attributeName, "");
+                objElement.appendChild(childElement);
             }
         }
 
@@ -522,8 +530,8 @@ public class XMLHandlerImpl implements XMLHandler {
     public void serialize() {
         try {
             TransformerFactory tf = TransformerFactory.newInstance();
-            tf.setAttribute("indent-number", 2);
             Transformer t = tf.newTransformer();
+            t.setOutputProperty(OutputKeys.INDENT, "yes");
             DOMSource source = new DOMSource(document);
             StreamResult result = new StreamResult(new File(config.getXmlFilePath()));
             t.transform(source, result);

@@ -69,7 +69,7 @@ public class CreateEntryTests {
     public ExpectedException thrown = ExpectedException.none();
 
     // Test filepaths
-    private static final String XML_FILE_PATH = "test/xml_store/test.xml";
+    private static final String XML_FILE_PATH = "test/xml_store/test2.xml";
     private static final String XSD_FILE_PATH = "test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd";
 
     private static XMLHandler handler;
@@ -85,10 +85,10 @@ public class CreateEntryTests {
 
     @After
     public void destroy() {
-        File xmlFile = new File(XML_FILE_PATH);
+        /*File xmlFile = new File(XML_FILE_PATH);
 
         if (xmlFile.exists())
-            xmlFile.delete();
+            xmlFile.delete();*/
     }
 
     @Test
