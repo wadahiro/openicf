@@ -519,17 +519,10 @@ public class XMLHandlerImpl implements XMLHandler {
         return node.getChildNodes();
     }
 
-    /*
-     * TransformerFactory tf = TransformerFactory.newInstance();
-tf.setAttribute("indent-number", new Integer(2));
-Transformer t = tf.newTransformer();
-     *
-     * */
-
-
     public void serialize() {
         try {
             TransformerFactory tf = TransformerFactory.newInstance();
+            tf.setAttribute("indent-number", 2);
             Transformer t = tf.newTransformer();
             DOMSource source = new DOMSource(document);
             StreamResult result = new StreamResult(new File(config.getXmlFilePath()));
