@@ -85,10 +85,10 @@ public class CreateEntryTests {
 
     @After
     public void destroy() {
-        /*File xmlFile = new File(XML_FILE_PATH);
+        File xmlFile = new File(XML_FILE_PATH);
 
         if (xmlFile.exists())
-            xmlFile.delete();*/
+            xmlFile.delete();
     }
 
     @Test

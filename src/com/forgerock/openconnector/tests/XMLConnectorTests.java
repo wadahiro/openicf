@@ -187,14 +187,14 @@ public class XMLConnectorTests {
 
     @Test
     public void updateAccountShouldReturnUidWhenGivenValidParameters() {
-        updateXmlConnector.create(ObjectClass.ACCOUNT, createAttributesAccount(), null);
+        Uid uidInsert = updateXmlConnector.create(ObjectClass.ACCOUNT, createAttributesAccount(), null);
 
         Set<Attribute> attributes = createAttributesAccount();
 
         attributes.add(AttributeBuilder.build("email", "mailadress1@company.org","mailadress2@company.org","mailadress3@company.org"));
   
 
-        Uid uid = updateXmlConnector.update(ObjectClass.ACCOUNT, new Uid(ACCOUNT_FIRST_NAME), attributes, null);
+        Uid uid = updateXmlConnector.update(ObjectClass.ACCOUNT, uidInsert, attributes, null);
 
         assertNotNull(uid);
     }
@@ -218,9 +218,9 @@ public class XMLConnectorTests {
 
     @Test
     public void deleteAccountQueryShouldReturnZero() {
-        deleteXmlConnector.create(ObjectClass.ACCOUNT, createAttributesAccount(), null);
+        Uid uid = deleteXmlConnector.create(ObjectClass.ACCOUNT, createAttributesAccount(), null);
 
-        deleteXmlConnector.delete(ObjectClass.ACCOUNT, new Uid(ACCOUNT_FIRST_NAME), null);
+        deleteXmlConnector.delete(ObjectClass.ACCOUNT, uid, null);
 
         TestResultsHandler r = new TestResultsHandler();
         deleteXmlConnector.executeQuery(ObjectClass.ACCOUNT, null, r, null);
