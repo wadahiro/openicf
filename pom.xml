@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.forgerock.openicf.bundles</groupId>
+        <artifactId>bundles-parent</artifactId>
+        <version>1.1.0-SNAPSHOT</version>
+        <relativePath>../../maven/bundles-parent</relativePath>
+    </parent>
+    <artifactId>tam</artifactId>
+    <packaging>jar</packaging>
+    <name>Tivoli Access Manager 6.1 Connector</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.tivoli</groupId>
+            <artifactId>admin-api</artifactId>
+            <version>6.1</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/PD.jar</systemPath>
+        </dependency>
+	<!-- Test dependencies -->
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>3.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <!-- Build settings -->
+    <description>Connector for Tivoli Access Manager 6.1</description>
+    <build>
+        <!--plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.tivoli</groupId>
+                                    <artifactId>admin-api</artifactId>
+                                    <version>6.1</version>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${project.build.directory}/classes/lib</outputDirectory>
+                            <overWriteReleases>false</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                            <includeScope>system</includeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+        </plugins-->
+    </build>
+</project>
