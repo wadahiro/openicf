@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.forgerock.openicf</groupId>
+        <artifactId>OpenICF-parent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../../maven/OpenICF-parent</relativePath>
+    </parent>
+    <artifactId>framework-parent</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>OpenICF Framework parent</name>
+
+    <properties>
+	<!--Properties for dependencies to framework -->
+        <framework.groupId>${project.groupId}</framework.groupId>
+        <framework.artifactId>connector-framework</framework.artifactId>
+        <framework.version>${project.version}</framework.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>${identityconnectors.groupId}</groupId>
+            <artifactId>OpenICF-license</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>jar</goal>
+                                <goal>test-jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <!-- Copy license to jars -->
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-license</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>${identityconnectors.groupId}</groupId>
+                                    <artifactId>OpenICF-license</artifactId>
+                                </artifactItem>
+                            </artifactItems>
+                            <excludes>META-INF/**</excludes>
+                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </reporting>
+
+    <modules>
+        <module>framework</module>
+        <module>test-common</module>
+        <module>testbundles/testcommonv1</module>
+        <module>testbundles/testcommonv2</module>
+        <module>testbundles/testbundlev1</module>
+        <module>testbundles/testbundlev2</module>
+        <module>framework-internal</module>
+        <module>test-contract</module>
+        <module>framework-package</module>
+        <module>../../maven/bundles-parent</module>
+    </modules>
+</project>

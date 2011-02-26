@@ -55,7 +55,7 @@ import org.junit.Test;
 public class GroovyDataProviderTest {
     private static final String NON_EXISTING_PROPERTY = "abcdefghi123asiosfjds";
     private static GroovyDataProvider gdp;
-    public static final String CONFIG_FILE_NAME = "configfileTest.groovy";
+    public static final String CONFIG_FILE_NAME = "/configfileTest.groovy";
 
     private static URL getConfigFileUrl() {
         return GroovyDataProviderTest.class.getResource(CONFIG_FILE_NAME);
