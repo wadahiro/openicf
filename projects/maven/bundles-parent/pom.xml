@@ -10,7 +10,6 @@
     </parent>
     <groupId>com.forgerock.openicf.bundles</groupId>
     <artifactId>bundles-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>OpenICF Bundles parent</name>
     
@@ -19,7 +18,6 @@
     </description>
 
     <properties>
-        <license.version>1.0-SNAPSHOT</license.version>
     <!--
       These are the properties needed in manifest file of the bundle,
       but now hardcoded in tests
@@ -48,7 +46,6 @@
                     <version>${license.version}</version>
                     <scope>provided</scope>
                 </dependency>
-
                 <dependency>
                     <groupId>${framework.groupId}</groupId>
                     <artifactId>${framework.artifactId}</artifactId>

@@ -15,16 +15,17 @@
 
     <properties>
 	<!--Properties for dependencies to framework -->
-        <framework.groupId>${project.groupId}</framework.groupId>
+        <license.version>1.0-SNAPSHOT</license.version>
+        <framework.groupId>com.forgerock.openicf</framework.groupId>
         <framework.artifactId>connector-framework</framework.artifactId>
-        <framework.version>${project.version}</framework.version>
+        <framework.version>1.1.0-SNAPSHOT</framework.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>${identityconnectors.groupId}</groupId>
             <artifactId>OpenICF-license</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${license.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
