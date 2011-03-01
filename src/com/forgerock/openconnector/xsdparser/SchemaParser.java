@@ -1,6 +1,33 @@
+/*
+ *
+ * Copyright (c) 2010 ForgeRock Inc. All Rights Reserved
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1.php or
+ * OpenIDM/legal/CDDLv1.0.txt
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * Header Notice in each file and include the License file
+ * at OpenIDM/legal/CDDLv1.0.txt.
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted 2010 [name of copyright owner]"
+ *
+ * $Id$
+ */
+
 package com.forgerock.openconnector.xsdparser;
 
 import com.forgerock.openconnector.util.SchemaParserUtil;
+import com.sun.xml.xsom.XSAnnotation;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -50,10 +77,7 @@ public class SchemaParser {
         this.schemaSet = SchemaParserUtil.parseXSDSchema(filePath);
     }
 
-    /*
-     * Takes the xsd-schema and parses it to icf-schema
-     */
-
+    //Takes the xsd-schema and parses it to icf-schema
     public Schema parseSchema() {
         final String METHOD = "parseSchema";
         log.info("Entry {0}", METHOD);
@@ -100,9 +124,9 @@ public class SchemaParser {
                             XSTerm childParticleTerm = childParticle.getTerm();
 
                             if (childParticleTerm.isElementDecl()) {
-                                XSElementDecl elementTerm = childParticleTerm.asElementDecl();
+                                XSElementDecl childElementTerm = childParticleTerm.asElementDecl();
                                 Set<Flags> flags = new HashSet<Flags>();
-                                Class<?> attrType = null;
+                                Class<?> attributeClassType = null;
 
                                 if (childParticle.getMinOccurs() == 1) {
                                     flags.add(Flags.REQUIRED);
@@ -111,8 +135,9 @@ public class SchemaParser {
                                     flags.add(Flags.MULTIVALUED);
                                 }
 
-                                if (elementTerm.getAnnotation() != null) {
-                                    String annotations = elementTerm.getAnnotation().getAnnotation().toString();
+                                if (childElementTerm.getAnnotation() != null) {
+                                    XSAnnotation childElementTermAnnotaion = childElementTerm.getAnnotation();
+                                    String annotations = childElementTermAnnotaion.getAnnotation().toString();
 
                                     String[] annotationsSplit = annotations.split(" |\n");
                                     List<String> annotationList = Arrays.asList(annotationsSplit);
@@ -123,31 +148,31 @@ public class SchemaParser {
                                         flags.addAll(flagList);
                                     }
                                     
-                                    attrType = SchemaParserUtil.getJavaClassType(annotationList);
+                                    attributeClassType = SchemaParserUtil.getJavaClassType(annotationList);
 
                                 }
-                                if (attrType == null) {
-                                    XSType typeNotFlagedJavaclass = elementTerm.getType();
+                                if (attributeClassType == null) {
+                                    XSType typeNotFlagedJavaclass = childElementTerm.getType();
+                                    
                                     if(typeNotFlagedJavaclass.getName() != null){
-                                        attrType = SchemaParserUtil.findJavaClassType(typeNotFlagedJavaclass.getName());
-                                        
+                                        attributeClassType = SchemaParserUtil.findJavaClassType(typeNotFlagedJavaclass.getName());
                                     }
                                 }
 
                                 try {
                                     AttributeInfo attributeInfo = null;
 
-                                    if (attrType != null) {
-                                        attributeInfo = AttributeInfoBuilder.build(elementTerm.getName(), attrType, flags);
+                                    if (attributeClassType != null) {
+                                        attributeInfo = AttributeInfoBuilder.build(childElementTerm.getName(), attributeClassType, flags);
                                     } else {
-                                        attributeInfo = AttributeInfoBuilder.build(elementTerm.getName());
+                                        attributeInfo = AttributeInfoBuilder.build(childElementTerm.getName());
                                     }
 
                                     if(attributeInfo != null){
                                         attributes.add(attributeInfo);
                                     }
                                 } catch (Exception e) {
-                                    log.error(e, "Failed to build Attribute {0}", elementTerm.getName());
+                                    log.error(e, "Failed to build Attribute {0}", childElementTerm.getName());
                                 }
                             }
                         }
