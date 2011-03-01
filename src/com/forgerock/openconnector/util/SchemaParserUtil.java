@@ -1,3 +1,29 @@
+/*
+ *
+ * Copyright (c) 2010 ForgeRock Inc. All Rights Reserved
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1.php or
+ * OpenIDM/legal/CDDLv1.0.txt
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * Header Notice in each file and include the License file
+ * at OpenIDM/legal/CDDLv1.0.txt.
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted 2010 [name of copyright owner]"
+ *
+ * $Id$
+ */
+
 package com.forgerock.openconnector.util;
 
 import com.forgerock.openconnector.xsdparser.XSDAnnotationFactory;
@@ -101,6 +127,7 @@ public class SchemaParserUtil {
     }
 
     public static Class<?> getJavaClassType(List<String> list) {
+        
         for (int i = 0; i < list.size(); i++) {
             String fileString = list.get(i);
 
@@ -119,6 +146,7 @@ public class SchemaParserUtil {
     }
 
     public static Class<?> findJavaClassType(String s) {
+        
         if (s != null) {
             if (s.equalsIgnoreCase(XmlHandlerUtil.BOOLEAN_PRIMITIVE)) {
                 return boolean.class;
@@ -165,7 +193,6 @@ public class SchemaParserUtil {
 
             } else if (s.equals(XmlHandlerUtil.NOT_RETURNED_BY_DEFAULT)) {
                 flags.add(Flags.NOT_RETURNED_BY_DEFAULT);
-
             }
         }
         return flags;
