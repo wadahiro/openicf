@@ -11,6 +11,13 @@
     <artifactId>tam</artifactId>
     <packaging>jar</packaging>
     <name>Tivoli Access Manager 6.1 Connector</name>
+    <description>Connector for Tivoli Access Manager 6.1</description>
+
+    <properties>
+        <skipTests>true</skipTests>
+        <embedded.dependencies>admin-api</embedded.dependencies>
+        <connectorName>com.forgerock.openicf.tam.TAMConnector</connectorName>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -20,52 +27,6 @@
             <scope>system</scope>
             <systemPath>${basedir}/lib/PD.jar</systemPath>
         </dependency>
-	<!-- Test dependencies -->
-        <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymock</artifactId>
-            <version>3.0</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
-    <!-- Build settings -->
-    <description>Connector for Tivoli Access Manager 6.1</description>
-    <build>
-        <!--plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-dependencies</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.tivoli</groupId>
-                                    <artifactId>admin-api</artifactId>
-                                    <version>6.1</version>
-                                </artifactItem>
-                            </artifactItems>
-                            <outputDirectory>${project.build.directory}/classes/lib</outputDirectory>
-                            <overWriteReleases>false</overWriteReleases>
-                            <overWriteSnapshots>true</overWriteSnapshots>
-                            <includeScope>system</includeScope>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <skipTests>true</skipTests>
-                </configuration>
-            </plugin>
-        </plugins-->
-    </build>
 </project>
