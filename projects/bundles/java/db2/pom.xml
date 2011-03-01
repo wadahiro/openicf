@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.forgerock.openicf.bundles</groupId>
+        <artifactId>bundles-parent</artifactId>
+        <version>1.1.0-SNAPSHOT</version>
+        <relativePath>../../maven/bundles-parent</relativePath>
+    </parent>
+    <artifactId>db2</artifactId>
+    <packaging>jar</packaging>
+    <name>DB2 Connector</name>
+    <description>Uses plain JDBC calls to execute provisioning operations on DB2 resource. Tested with type4 and type2 JCC driver and with older type2 CLI driver.</description>
+
+    <properties>
+        <skipTests>true</skipTests>
+        <contracts.skip>true</contracts.skip>
+        <embedded.dependencies>dbcommon</embedded.dependencies>
+        <connectorName>org.identityconnectors.db2.SpmlConnector</connectorName>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.forgerock.openicf.bundles</groupId>
+            <artifactId>dbcommon</artifactId>
+            <version>1.1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+</project>
