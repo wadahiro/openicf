@@ -576,27 +576,29 @@ public class XMLHandlerImpl implements XMLHandler {
         Uid uid = null;
 
         Element entry = getEntry(ObjectClass.ACCOUNT, new Uid(username), ElementFieldType.BY_NAME);
-        NodeList passwordElements = entry.getElementsByTagName(ICF_NAMESPACE_PREFIX + ":__PASSWORD__");
-  
-        String xmlPassword = passwordElements.item(0).getTextContent();
+        if(entry != null){
+            NodeList passwordElements = entry.getElementsByTagName(ICF_NAMESPACE_PREFIX + ":__PASSWORD__");
 
-        GuardedStringAccessor accessor = new GuardedStringAccessor();
+            String xmlPassword = passwordElements.item(0).getTextContent();
 
-        password.access(accessor);
+            GuardedStringAccessor accessor = new GuardedStringAccessor();
 
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(accessor.getArray());
+            password.access(accessor);
 
-        String userPassword = stringBuilder.toString();
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(accessor.getArray());
 
-        if(xmlPassword.equals(userPassword)){
-            NodeList uidElements = entry.getElementsByTagName(ICF_NAMESPACE_PREFIX + ":__UID__");
+            String userPassword = stringBuilder.toString();
 
-            if(uidElements.getLength() >= 1){
-                uid = new Uid(uidElements.item(0).getTextContent());
-            }else{
-                NodeList nameElements = entry.getElementsByTagName(ICF_NAMESPACE_PREFIX + ":__NAME__");
-                uid = new Uid(nameElements.item(0).getTextContent());
+            if(xmlPassword.equals(userPassword)){
+                NodeList uidElements = entry.getElementsByTagName(ICF_NAMESPACE_PREFIX + ":__UID__");
+
+                if(uidElements.getLength() >= 1){
+                    uid = new Uid(uidElements.item(0).getTextContent());
+                }else{
+                    NodeList nameElements = entry.getElementsByTagName(ICF_NAMESPACE_PREFIX + ":__NAME__");
+                    uid = new Uid(nameElements.item(0).getTextContent());
+                }
             }
         }
 

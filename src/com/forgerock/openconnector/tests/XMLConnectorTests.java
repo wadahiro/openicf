@@ -18,17 +18,17 @@ import static org.junit.Assert.*;
 
 public class XMLConnectorTests {
 
-    private static XMLConnector createXmlConnector, updateXmlConnector, deleteXmlConnector, queryXmlConnector;
-    private static XMLConfiguration createXmlConfig, updateXmlConfig, deleteXmlConfig, queryXmlConfig;
+    private static XMLConnector createXmlConnector, updateXmlConnector, deleteXmlConnector, queryXmlConnector, authenticateXmlConnector;
+    private static XMLConfiguration createXmlConfig, updateXmlConfig, deleteXmlConfig, queryXmlConfig, authenticateXmlConfig;
     private final static String ACCOUNT_FIRST_NAME = "Erwita";
     private final static String GROUP_NAME = "Admin";
     private final static String LAST_NAME = "Lastnamerson";
-    private final static String ACCOUNT_NAME = "username";
 
     private final static String XML_CREATE_FILEPATH = "test/xml_store/testCreateConnector.xml";
     private final static String XML_UPDATE_FILEPATH = "test/xml_store/testUpdateConnector.xml";
     private final static String XML_DELETE_FILEPATH = "test/xml_store/testDeleteConnector.xml";
     private final static String XML_QUERY_FILEPATH = "test/xml_store/testQueryConnector.xml";
+    private final static String XML_AUTHENTICATE_FILEPATH = "test/xml_store/testAuthenticateConnector.xml";
 
     private final static String XSD_SCHEMA_FILEPATH = "test/xml_store/ef2bc95b-76e0-48e2-86d6-4d4f44d4e4a4.xsd";
 
@@ -63,6 +63,13 @@ public class XMLConnectorTests {
 
         queryXmlConnector = new XMLConnector();
 
+        authenticateXmlConfig = new XMLConfiguration();
+        authenticateXmlConfig.setXmlFilePath(XML_AUTHENTICATE_FILEPATH);
+        authenticateXmlConfig.setXsdFilePath(XSD_SCHEMA_FILEPATH);
+        
+        authenticateXmlConnector = new XMLConnector();
+        authenticateXmlConnector.init(authenticateXmlConfig);
+
     }
 
     @AfterClass
@@ -70,6 +77,8 @@ public class XMLConnectorTests {
         File create = new File(XML_CREATE_FILEPATH);
         File update = new File(XML_UPDATE_FILEPATH);
         File delete = new File(XML_DELETE_FILEPATH);
+        File query = new File(XML_QUERY_FILEPATH);
+        File authenticate = new File(XML_AUTHENTICATE_FILEPATH);
         
         if(create.exists()){
             create.delete();
@@ -79,6 +88,12 @@ public class XMLConnectorTests {
          }
         if(delete.exists()){
             delete.delete();
+        }
+        if(query.exists()){
+            query.delete();
+        }
+        if(authenticate.exists()){
+            authenticate.delete();
         }
          
     }
@@ -96,6 +111,7 @@ public class XMLConnectorTests {
 
     @Test
     public void testShouldNotCastExceptionWhenEverithingIsOK() {
+        queryXmlConnector.create(ObjectClass.ACCOUNT, createAttributesAccount(), null);
         queryXmlConnector.test();
     }
 
@@ -106,7 +122,7 @@ public class XMLConnectorTests {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testShouldCastIllegalArgumentExceptionWhenGivenFilpathsIsWrong() {
+    public void testShouldCastIllegalArgumentExceptionWhenGivenFilpathsAreWrong() {
         XMLConfiguration conf = new XMLConfiguration();
 
         conf.setXmlFilePath("404.xml");
@@ -143,6 +159,7 @@ public class XMLConnectorTests {
 
     @Test
     public void executeLastNameQueryShouldReturnOneResult() {
+
         XMLFilterTranslator f = (XMLFilterTranslator) queryXmlConnector.createFilterTranslator(ObjectClass.ACCOUNT, null);
         
         EqualsFilter ef = new EqualsFilter(AttributeBuilder.build("lastname", LAST_NAME));
@@ -245,10 +262,13 @@ public class XMLConnectorTests {
 
     @Test
     public void authenticateShouldReturnUid(){
-        char[] chars = {'A', 'B', 'C', 'D'};
-        Uid uid = queryXmlConnector.authenticate(ObjectClass.ACCOUNT, ACCOUNT_NAME , new GuardedString(chars), null);
+        Uid authenticateUid = authenticateXmlConnector.create(ObjectClass.ACCOUNT, createAttributesAccount(), null);
 
-        assertEquals("e1c0a42b-5c6e-4fe9-b319-4c3aea94a5ee", uid.getUidValue());
+        char[] chars = {'A', 'B', 'C', 'D'};
+
+        Uid uid = authenticateXmlConnector.authenticate(ObjectClass.ACCOUNT, ACCOUNT_FIRST_NAME , new GuardedString(chars), null);
+
+        assertEquals(authenticateUid.getUidValue(), uid.getUidValue());
         
     }
 
