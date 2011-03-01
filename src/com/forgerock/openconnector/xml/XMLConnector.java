@@ -1,23 +1,29 @@
 /*
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
- * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.     
- * 
- * The contents of this file are subject to the terms of the Common Development 
- * and Distribution License("CDDL") (the "License").  You may not use this file 
- * except in compliance with the License.
- * 
- * You can obtain a copy of the License at 
- * http://IdentityConnectors.dev.java.net/legal/license.txt
- * See the License for the specific language governing permissions and limitations 
- * under the License. 
- * 
- * When distributing the Covered Code, include this CDDL Header Notice in each file
- * and include the License file at identityconnectors/legal/license.txt.
- * If applicable, add the following below this CDDL Header, with the fields 
- * enclosed by brackets [] replaced by your own identifying information: 
- * "Portions Copyrighted [year] [name of copyright owner]"
+ *
+ * Copyright (c) 2010 ForgeRock Inc. All Rights Reserved
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1.php or
+ * OpenIDM/legal/CDDLv1.0.txt
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL
+ * Header Notice in each file and include the License file
+ * at OpenIDM/legal/CDDLv1.0.txt.
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted 2010 [name of copyright owner]"
+ *
+ * $Id$
  */
+
 package com.forgerock.openconnector.xml;
 
 import com.forgerock.openconnector.xml.query.IQuery;
@@ -34,7 +40,6 @@ import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.InvalidPasswordException;
-import org.w3c.dom.Element;
 
 @ConnectorClass(displayNameKey = "XML", configurationClass = XMLConfiguration.class)
 public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp, DeleteOp, SearchOp<IQuery>, SchemaOp, TestOp, UpdateOp {
@@ -50,13 +55,13 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         return this.config;
     }
 
-    public void init(Configuration cfg) {
+    public void init(Configuration configuration) {
         final String method = "init";
         log.info("Entry {0}", method);
 
-        Assertions.nullCheck(cfg, "cfg");
+        Assertions.nullCheck(configuration, "cfg");
         
-        this.config = (XMLConfiguration) cfg;
+        this.config = (XMLConfiguration) configuration;
         this.schemaParser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
         this.xmlHandler = new XMLHandlerImpl(config, schema(), schemaParser.getXsdSchema());
 
@@ -64,15 +69,14 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
         log.info("Exit {0}", method);
     }
 
-    public void dispose() {
-    }
+    public void dispose() {}
 
     public void checkAlive() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Uid authenticate(final ObjectClass objectClass, final String username, final GuardedString password, final OperationOptions options) {
-
         final String method = "authenticate";
         log.info("Entry {0}", method);
 
@@ -88,14 +92,12 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
             throw new InvalidPasswordException("Invalid password for user: " + username);
         }
 
-
         log.info("Exit {0}", method);
         return uid;
     }
 
     @Override
     public Uid create(final ObjectClass objClass, final Set<Attribute> attributes, final OperationOptions options) {
-
         final String method = "create";
         log.info("Entry {0}", method);
 
@@ -126,7 +128,6 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
 
     @Override
     public void delete(final ObjectClass objClass, final Uid uid, final OperationOptions options) {
-
         final String method = "delete";
         log.info("Entry {0}", method);
 
@@ -152,19 +153,10 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
     public void executeQuery(ObjectClass objClass, IQuery query, ResultsHandler handler, OperationOptions options) {
         final String method = "executeQuery";
         log.info("Entry {0}", method);
+        
         QueryBuilder queryBuilder = new QueryBuilder(query, objClass);
-        
-        if (log.isInfo()) {
-            log.info("Performing query: {0}", queryBuilder.toString());
-        }
-        
+                
         Collection<ConnectorObject> hits = xmlHandler.search(queryBuilder.toString(), objClass);
-
-        if (log.isInfo()) {
-            log.info("Number of hits: {0}", hits.size());
-            log.info("ConnectionObjects found: {0}", hits.toString());
-        }
-        
 
         for (ConnectorObject hit : hits) {
             handler.handle(hit);
@@ -175,6 +167,7 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
 
     @Override
     public void test() {
+        final String startErrorMessage = "File does not exists at filepath " ;
         final String method = "test";
         log.info("Entry {0}", method);
 
@@ -184,22 +177,20 @@ public class XMLConnector implements PoolableConnector, AuthenticateOp, CreateOp
 
         File fileXml = new File(config.getXmlFilePath());
         if (!fileXml.exists()) {
-            throw new IllegalArgumentException("File at filepath " + config.getXmlFilePath() + " does not exists");
+            throw new IllegalArgumentException(startErrorMessage + config.getXmlFilePath() );
         }
 
         File fileXsd = new File(config.getXsdFilePath());
         if (!fileXsd.exists()) {
-            throw new IllegalArgumentException("File at filepath " + config.getXsdFilePath() + " does not exists");
+            throw new IllegalArgumentException(startErrorMessage + config.getXsdFilePath());
         }
 
         if (config.getXsdIcfFilePath() != null) {
             File fileXsdIcf = new File(config.getXsdFilePath());
             if (!fileXsdIcf.exists()) {
-                throw new IllegalArgumentException("File at filepath " + config.getXsdIcfFilePath() + " does not exists");
+                throw new IllegalArgumentException(startErrorMessage + config.getXsdIcfFilePath());
             }
         }
-
-
         log.info("Exit {0}", method);
     }
 }
