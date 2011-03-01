@@ -1,47 +1,42 @@
 /*
- * ====================
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2010 ForgeRock Inc. All Rights Reserved
  *
- * The contents of this file are subject to the terms of the Common Development
- * and Distribution License("CDDL") (the "License").  You may not use this file
- * except in compliance with the License.
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
  *
  * You can obtain a copy of the License at
- * http://IdentityConnectors.dev.java.net/legal/license.txt
- * See the License for the specific language governing permissions and limitations
- * under the License.
+ * http://www.opensource.org/licenses/cddl1.php or
+ * OpenIDM/legal/CDDLv1.0.txt
+ * See the License for the specific language governing
+ * permission and limitations under the License.
  *
- * When distributing the Covered Code, include this CDDL Header Notice in each file
- * and include the License file at identityconnectors/legal/license.txt.
- * If applicable, add the following below this CDDL Header, with the fields
- * enclosed by brackets [] replaced by your own identifying information:
- * "Portions Copyrighted [year] [name of copyright owner]"
- * ====================
+ * When distributing Covered Code, include this CDDL
+ * Header Notice in each file and include the License file
+ * at OpenIDM/legal/CDDLv1.0.txt.
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted 2010 [name of copyright owner]"
+ *
+ * $Id$
  */
+
 package com.forgerock.openconnector.xml;
 
 import org.identityconnectors.common.Assertions;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
 import org.identityconnectors.framework.spi.ConfigurationProperty;
 
-/**
- * Extends the {@link AbstractConfiguration} class to provide all the necessary
- * parameters to initialize the XML Connector.
- *
- */
 public class XMLConfiguration extends AbstractConfiguration {
 
     private String xmlFilePath = null;
-
     private String xsdFilePath = null;
-
     private String xsdIcfFilePath = null;
 
-    public XMLConfiguration() {
-
-    }
+    public XMLConfiguration() {}
 
     @ConfigurationProperty(displayMessageKey="XML_FILEPATH_PROPERTY_DISPLAY", helpMessageKey="XML_FILEPATH_PROPERTY_HELP", confidential=false)
     public String getXmlFilePath() {
