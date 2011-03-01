@@ -45,7 +45,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
     public IQuery createEndsWithExpression(EndsWithFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
-        String value = getAttributeValue(filter.getAttribute());
+        String value = AttributeUtil.getSingleValue(filter.getAttribute()).toString();
         String [] args = createFunctionArgs(attrName, value);
         return createFunctionQuery(args, "ends-with", not);
     }
@@ -55,9 +55,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
         String tmpName = filter.getAttribute().getName();
         List<Object> values = filter.getAttribute().getValue();
 
-        
-
-        if (values.size() == 0) {
+         if (values.size() == 0) {
             return null;
         } else if (values.size() == 1) {
             ContainsFilter cf = new ContainsFilter(AttributeBuilder.build(tmpName, values.get(0)));
@@ -76,6 +74,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
             IQuery orQuery = null;
             IQuery leftSide = equalsQueries.get(0);
 
+            // creates and returns chained or-expression with all values
             for (int i = 1; i < equalsQueries.size(); i++) {
                 IQuery rightSide = equalsQueries.get(i);
                 orQuery = createOrExpression(leftSide, rightSide);
@@ -91,7 +90,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
     public IQuery createStartsWithExpression(StartsWithFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
-        String value = getAttributeValue(filter.getAttribute());
+        String value = AttributeUtil.getSingleValue(filter.getAttribute()).toString();
         String [] args = createFunctionArgs(attrName, value);
         return createFunctionQuery(args, "starts-with", not);
     }
@@ -100,7 +99,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
     public IQuery createContainsExpression(ContainsFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
-        String value = getAttributeValue(filter.getAttribute());
+        String value = AttributeUtil.getSingleValue(filter.getAttribute()).toString();
         String [] args = createFunctionArgs(attrName, value);
         return createFunctionQuery(args, "matches", not);
     }
@@ -109,7 +108,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
     public IQuery createEqualsExpression(EqualsFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
-        String value = getAttributeValue(filter.getAttribute());
+        String value = AttributeUtil.getSingleValue(filter.getAttribute()).toString();
         String [] args = createFunctionArgs(attrName, value);
         return createComparisonQuery(attrName, not ? "!=" : "=", value);
     }
@@ -118,7 +117,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
     public IQuery createGreaterThanExpression(GreaterThanFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
-        String value = getAttributeValue(filter.getAttribute());
+        String value = AttributeUtil.getSingleValue(filter.getAttribute()).toString();
         String [] args = createFunctionArgs(attrName, value);
         return createComparisonQuery(attrName, not ? "<" : ">", value);
     }
@@ -127,7 +126,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
     public IQuery createGreaterThanOrEqualExpression(GreaterThanOrEqualFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
-        String value = getAttributeValue(filter.getAttribute());
+        String value = AttributeUtil.getSingleValue(filter.getAttribute()).toString();
         String [] args = createFunctionArgs(attrName, value);
         return createComparisonQuery(attrName, not ? "<=" : ">=", value);
     }
@@ -148,7 +147,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
     public IQuery createLessThanExpression(LessThanFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
-        String value = getAttributeValue(filter.getAttribute());
+        String value = AttributeUtil.getSingleValue(filter.getAttribute()).toString();
         String [] args = createFunctionArgs(attrName, value);
         return createComparisonQuery(attrName, not ? ">" : "<", value);
     }
@@ -157,7 +156,7 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
     public IQuery createLessThanOrEqualExpression(LessThanOrEqualFilter filter, boolean not) {
         String tmpName = filter.getAttribute().getName();
         String attrName = createNameWithNamespace(tmpName);
-        String value = getAttributeValue(filter.getAttribute());
+        String value = AttributeUtil.getSingleValue(filter.getAttribute()).toString();
         String [] args = createFunctionArgs(attrName, value);
         return createComparisonQuery(attrName, not ? ">=" : "<=", value);
     }
@@ -184,14 +183,5 @@ public class XMLFilterTranslator extends AbstractFilterTranslator<IQuery> {
         if (ns == null)
             ns = XMLHandlerImpl.RI_NAMESPACE_PREFIX;
         return ns + ":" + attrName;
-    }
-
-    private String getAttributeValue(Attribute attribute) {
-        List<Object> values = attribute.getValue();
-        if (!values.isEmpty()) {
-            return values.get(0).toString();
-        } else {
-            return "";
-        }
     }
 }
