@@ -4,10 +4,7 @@
  */
 package com.forgerock.openconnector.xml.query;
 
-/**
- *
- * @author slogum
- */
+
 public class ComparisonQuery implements IPart {
 
     private String name;
@@ -21,6 +18,7 @@ public class ComparisonQuery implements IPart {
         this.value = value;
     }
 
+    @Override
     public String getExpression() {
         return String.format("%s %s %s", this.name, this.operator, this.value);
     }

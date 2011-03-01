@@ -15,6 +15,7 @@ import java.util.List;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
 import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
 import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
@@ -288,6 +289,41 @@ public class XMLFilterTranslatorTest {
         IQuery orQuery = ft.createOrExpression(andQuery, andQuery2);
         results = getResultsFromQuery(orQuery);
         assertEquals(2, results.size());
+    }
+
+    @Test
+    public void testContainsAllValuesExpressionWithMultipleValues() {
+
+        ContainsAllValuesFilter filter = new ContainsAllValuesFilter(AttributeBuilder.build("firstname", "Jørgen", "Jan Eirik"));
+        IQuery query = ft.createContainsAllValuesExpression(filter, false);
+        QueryBuilder qb = new QueryBuilder(query, ObjectClass.ACCOUNT);
+        List results = getResultsFromQuery(query);
+        assertEquals(2, results.size());
+    }
+
+    @Test
+    public void testContainsAllValuesExpressionWithSingleValue() {
+        ContainsAllValuesFilter filter = new ContainsAllValuesFilter(AttributeBuilder.build("firstname", "Jan Eirik"));
+        IQuery query = ft.createContainsAllValuesExpression(filter, false);
+        QueryBuilder qb = new QueryBuilder(query, ObjectClass.ACCOUNT);
+        List results = getResultsFromQuery(query);
+        assertEquals(1, results.size());
+    }
+
+    @Test
+    public void testContainsAllValuesExpressionWithMultipleValuesChainedWithAnd() {
+
+        ContainsAllValuesFilter filter = new ContainsAllValuesFilter(AttributeBuilder.build("firstname", "Jan Eirik", "Jørgen"));
+        IQuery query = ft.createContainsAllValuesExpression(filter, false);
+
+
+        IQuery andQuery = ft.createAndExpression(query, equalsQueryLnHallstensen);
+
+        QueryBuilder qb = new QueryBuilder(andQuery, ObjectClass.ACCOUNT);
+        System.out.println("QUERY: " + qb.toString());
+        List results = getResultsFromQuery(andQuery);
+        System.out.println("RESULTS: " + results);
+        assertEquals(1, results.size());
     }
 
 

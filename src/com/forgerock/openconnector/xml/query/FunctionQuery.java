@@ -17,6 +17,7 @@ public class FunctionQuery implements IPart {
 
     // creates function-expression.
     // all args have to be prefixed with $x/, '', etc
+    @Override
     public String getExpression() {
         if (not) {
             return createFalseExpression();
