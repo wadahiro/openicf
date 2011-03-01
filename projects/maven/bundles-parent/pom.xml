@@ -18,13 +18,21 @@
     </description>
 
     <properties>
-    <!--
-      These are the properties needed in manifest file of the bundle,
-      but now hardcoded in tests
-    -->
+        <!--
+            These are the properties needed in manifest file of the bundle,
+            but now hardcoded in tests
+        -->
         <ConnectorBundle-FrameworkVersion>1.0</ConnectorBundle-FrameworkVersion>
-        <ConnectorBundle-Name>${project.artifactId}</ConnectorBundle-Name>
-        <ConnectorBundle-Version>${project.version}</ConnectorBundle-Version>
+        <ConnectorBundle-Name>${project.groupId}.${project.artifactId}</ConnectorBundle-Name>
+        <ConnectorBundle-Version>${ConnectorBundle-FrameworkVersion}.${Subversion-Revision}</ConnectorBundle-Version>
+        <!-- 
+            These are the variables needs to define in order to a proper test coverage.
+        -->
+        <connectorGroupId>${project.groupId}</connectorGroupId>
+        <connectorArtifactId>${project.artifactId}</connectorArtifactId>
+        <connectorVersion>${ConnectorBundle-Version}</connectorVersion>
+        <junitsConfigurations>default</junitsConfigurations>
+        <contractsConfigurations>default</contractsConfigurations>
         <contract.suiteName>org.identityconnectors.contract.test.ContractTestSuite</contract.suiteName>
         <junits.skip>${skipTests}</junits.skip>
         <contracts.skip>${skipTests}</contracts.skip>
@@ -163,10 +171,10 @@
                     <plugin>
                         <artifactId>maven-jar-plugin</artifactId>
                         <executions>
-              <!--
-                Connector bundles need special manifest entries to be
-                identified by framework, so configure here jar plugin
-              -->
+                            <!--
+                                Connector bundles need special manifest entries to be
+                                identified by framework, so configure here jar plugin
+                            -->
                             <execution>
                                 <id>default-jar</id>
                                 <phase>package</phase>
@@ -316,10 +324,12 @@
                                         <property>
                                             <name>bundleName</name>
                                             <value>${project.artifactId}</value>
+                                            <!--value>${ConnectorBundle-Name}</value-->
                                         </property>
                                         <property>
                                             <name>bundleVersion</name>
                                             <value>${project.version}</value>
+                                            <!--value>${ConnectorBundle-Version}</value-->
                                         </property>
                                     </systemProperties>
                                     <testExecutionsPropertyValues>
