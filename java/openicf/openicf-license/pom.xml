@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.forgerock.openicf</groupId>
+        <artifactId>openicf</artifactId>
+        <version>${CI_framework.version}</version>
+    </parent>
+    <artifactId>openicf-license</artifactId>
+    <version>${CI_framework.version}</version>
+    <packaging>jar</packaging>
+    <name>OpenICF License</name>
+    <description>This modules is the container of license files used in connectors project. Framework and java.net connectors can depend on this artifact to include the license files in jars</description>
+</project>

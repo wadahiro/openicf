@@ -1,0 +1,351 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.forgerock.openicf</groupId>
+        <artifactId>openicf</artifactId>
+        <version>${CI_framework.version}</version>
+    </parent>
+    <groupId>com.forgerock.openicf.bundles</groupId>
+    <artifactId>bundles-parent</artifactId>
+    <version>${CI_framework.version}</version>
+    <packaging>pom</packaging>
+    <name>OpenICF Bundles parent</name>
+    
+    <description>This pom module is the parent for all connector bundles. It defines the dependencies on framework, building the connector bundle and common reporting for connectors.
+        This is not multimodule project, it does not aggregate the connectors, it is just common parent.
+    </description>
+
+    <properties>
+        <connectorFamily>misc</connectorFamily>
+        <defaultConnectorGroupId>com.forgerock.openicf.bundles.${connectorFamily}</defaultConnectorGroupId>
+        <!--
+            These are the properties needed in manifest file of the bundle,
+            but now hardcoded in tests
+        -->
+        <ConnectorBundle-FrameworkVersion>${framework.compatibilityVersion}</ConnectorBundle-FrameworkVersion>
+        <ConnectorBundle-Name>${project.groupId}.${project.artifactId}</ConnectorBundle-Name>
+        <ConnectorBundle-Version>${framework.compatibilityVersion}.0.${Subversion-Revision}</ConnectorBundle-Version>
+        <!-- 
+            These are the variables needs to define in order to a proper test coverage.
+        -->
+        <connectorGroupId>${project.groupId}</connectorGroupId>
+        <connectorArtifactId>${project.artifactId}</connectorArtifactId>
+        <connectorVersion>${project.version}</connectorVersion>
+        <!--connectorVersion>${ConnectorBundle-Version}</connectorVersion-->
+        <junitsConfigurations>default</junitsConfigurations>
+        <contractsConfigurations>default</contractsConfigurations>
+        <contract.suiteName>org.identityconnectors.contract.test.ContractTestSuite</contract.suiteName>
+        <junits.skip>${skipTests}</junits.skip>
+        <contracts.skip>${skipTests}</contracts.skip>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>bundle-impl</id>
+            <activation>
+                <file>
+                    <missing>./bundles-parent</missing>
+                </file>
+            </activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>com.forgerock.openicf</groupId>
+                    <artifactId>OpenICF-license</artifactId>
+                    <version>${framework.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.forgerock.openicf.framework</groupId>
+                    <artifactId>connector-framework</artifactId>
+                    <version>${framework.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.forgerock.openicf.framework</groupId>
+                    <artifactId>connector-test-common</artifactId>
+                    <version>${framework.version}</version>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.forgerock.openicf.framework</groupId>
+                    <artifactId>connector-framework-internal</artifactId>
+                    <version>${framework.version}</version>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.forgerock.openicf.framework</groupId>
+                    <artifactId>connector-framework-contract</artifactId>
+                    <version>${framework.version}</version>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                    <scope>test</scope>
+                </dependency>
+
+            </dependencies>
+
+            <build>
+                <testResources>
+                    <testResource>
+                        <directory>${project.basedir}/src/test/config</directory>
+                    </testResource>
+                    <testResource>
+                        <directory>${privateConfigPath}</directory>
+                        <excludes>
+                            <exclude>lib/**</exclude>
+                            <exclude>**/target/**</exclude>
+                        </excludes>
+                    </testResource>
+                    <testResource>
+                        <directory>src/test/java</directory>
+                        <excludes>
+                            <exclude>**/*.java</exclude>
+                        </excludes>
+                    </testResource>
+                    <testResource>
+                        <directory>src/test/resources</directory>
+                    </testResource>
+                </testResources>
+
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <!-- Copy license files -->
+                            <execution>
+                                <id>copy-license</id>
+                                <phase>process-classes</phase>
+                                <goals>
+                                    <goal>unpack</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>com.forgerock.openicf</groupId>
+                                            <artifactId>OpenICF-license</artifactId>
+                                        </artifactItem>
+                                    </artifactItems>
+                                    <excludes>META-INF/**</excludes>
+                                    <outputDirectory>${project.build.directory}/classes</outputDirectory>
+                                </configuration>
+                            </execution>
+                            <!-- Copy dependencies to lib -->
+                            <execution>
+                                <id>copy-dependencies</id>
+                                <phase>process-classes</phase>
+                                <goals>
+                                    <goal>copy-dependencies</goal>
+                                </goals>
+                                <configuration>
+                                    <includeArtifactIds>${embedded.dependencies}</includeArtifactIds>
+                                    <outputDirectory>${project.build.directory}/classes/lib</outputDirectory>
+                                </configuration>
+                            </execution>
+                            <!-- Copy classes from contract tests -->
+                            <execution>
+                                <id>copy-contractclasses</id>
+                                <phase>generate-test-sources</phase>
+                                <goals>
+                                    <goal>unpack</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>com.forgerock.openicf.framework</groupId>
+                                            <artifactId>connector-framework-contract</artifactId>
+                                            <outputDirectory>${project.build.directory}/contractClasses</outputDirectory>
+                                        </artifactItem>
+                                        <artifactItem>
+                                            <groupId>com.forgerock.openicf.framework</groupId>
+                                            <artifactId>connector-framework-contract</artifactId>
+                                            <classifier>sources</classifier>
+                                            <outputDirectory>${project.build.directory}/contractSources</outputDirectory>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <executions>
+                            <!--
+                                Connector bundles need special manifest entries to be
+                                identified by framework, so configure here jar plugin
+                            -->
+                            <execution>
+                                <id>default-jar</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <archive>
+                                        <manifest>
+                                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                                        </manifest>
+                                        <manifestEntries>
+                                            <ConnectorBundle-FrameworkVersion>${ConnectorBundle-FrameworkVersion}</ConnectorBundle-FrameworkVersion>
+                                            <ConnectorBundle-Name>${ConnectorBundle-Name}</ConnectorBundle-Name>
+                                            <ConnectorBundle-Version>${ConnectorBundle-Version}</ConnectorBundle-Version>
+                                            <Subversion-Revision>${Subversion-Revision}</Subversion-Revision>
+                                        </manifestEntries>
+                                    </archive>
+                                </configuration>
+                            </execution>
+
+                            <!-- Attach also test-jar -->
+                            <execution>
+                                <id>package-test</id>
+                                <configuration>
+                                    <excludes>
+                                        <exclude>${connectorName}/**</exclude>
+                                    </excludes>
+                                </configuration>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>test-jar</goal>
+                                </goals>
+                            </execution>
+
+                            <!-- Attach public test config -->
+                            <execution>
+                                <id>package-publictestconfig</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <classesDirectory>${project.build.testOutputDirectory}</classesDirectory>
+                                    <classifier>publictestconfig</classifier>
+                                    <includes>
+                                        <include>${connectorName}/**</include>
+                                    </includes>
+                                    <excludes>
+                                        <exclude>**/config-private/**</exclude>
+                                    </excludes>
+                                </configuration>
+                            </execution>
+
+                            <!-- Attach private test config -->
+                            <execution>
+                                <id>package-privatetestconfig</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <classesDirectory>${project.build.testOutputDirectory}</classesDirectory>
+                                    <classifier>privatetestconfig</classifier>
+                                    <includes>
+                                        <include>${connectorName}/config-private/**</include>
+                                    </includes>
+                                </configuration>
+                            </execution>
+
+                        </executions>
+
+                    </plugin>
+
+                    <!-- And attach  sources -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- Skip default test execution -->
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>default-test</id>
+                                <configuration>
+                                    <skipTests>true</skipTests>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- Instead run surefire-execs plugin -->
+                    <plugin>
+                        <groupId>com.forgerock.openicf</groupId>
+                        <artifactId>maven-surefire-execs-plugin</artifactId>
+                        <executions>
+                            <!-- Run junits with configuration -->
+                            <execution>
+                                <id>test-junits</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <skipTests>${junits.skip}</skipTests>
+                                    <testExecutionsPropertyValues>
+                                        <propertyName>testConfig</propertyName>
+                                        <propertyValues>${junitsConfigurations}</propertyValues>
+                                    </testExecutionsPropertyValues>
+                                </configuration>
+                            </execution>
+                            <!-- Run contract tests -->
+                            <execution>
+                                <id>test-contracts</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <bundleJar>${project.build.directory}/${project.build.finalName}.jar</bundleJar>
+                                    <skipTests>${contracts.skip}</skipTests>
+                                    <testSourceDirectory>${project.build.directory}/contractSources</testSourceDirectory>
+                                    <testClassesDirectory>${project.build.directory}/contractClasses</testClassesDirectory>
+                                    <additionalClasspathElements>
+                                        <additionalClasspathElement>${project.build.testOutputDirectory}</additionalClasspathElement>
+                                    </additionalClasspathElements>
+                                    <test>${contract.suiteName}</test>
+                                    <systemProperties>
+                                        <property>
+                                            <name>connectorName</name>
+                                            <value>${connectorName}</value>
+                                        </property>
+                                        <property>
+                                            <name>bundleJar</name>
+                                            <value>${project.build.directory}/${project.build.finalName}.jar</value>
+                                        </property>
+                                        <property>
+                                            <name>bundleName</name>
+                                            <!--value>${project.artifactId}</value-->
+                                            <value>${ConnectorBundle-Name}</value>
+                                        </property>
+                                        <property>
+                                            <name>bundleVersion</name>
+                                            <!--value>${project.version}</value-->
+                                            <value>${ConnectorBundle-Version}</value>
+                                        </property>
+                                    </systemProperties>
+                                    <testExecutionsPropertyValues>
+                                        <propertyName>testConfig</propertyName>
+                                        <propertyValues>${contractsConfigurations}</propertyValues>
+                                    </testExecutionsPropertyValues>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.forgerock.openicf.framework</groupId>
+        <artifactId>framework</artifactId>
+        <version>${CI_framework.version}</version>
+        <relativePath>../..</relativePath>
+    </parent>
+
+    <artifactId>testbundlev2</artifactId>
+    <version>${CI_framework.version}</version>
+    <name>testbundlev2</name>
+    <packaging>jar</packaging>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>com.forgerock.openicf.framework</groupId>
+            <artifactId>connector-framework</artifactId>
+            <version>${framework.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.forgerock.openicf.framework</groupId>
+            <artifactId>testcommonv2</artifactId>
+            <version>${framework.version}</version>
+        </dependency>
+    </dependencies>
+
+    <!-- Tests are hardcoded to read the bundles from following directory by following final name -->
+    <build>
+        <!--directory>${project.basedir}/dist</directory-->
+        <finalName>org.identityconnectors.testbundle-2.0.0.0</finalName>
+        <plugins>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <finalName>${project.build.finalName}</finalName>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <ConnectorBundle-FrameworkVersion>1.0</ConnectorBundle-FrameworkVersion>
+                            <ConnectorBundle-Name>${project.artifactId}</ConnectorBundle-Name>
+                            <ConnectorBundle-Version>2.0.0.0</ConnectorBundle-Version>
+                            <Subversion-Revision>1</Subversion-Revision>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.forgerock.openicf.framework</groupId>
+                                    <artifactId>testcommonv2</artifactId>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${project.build.outputDirectory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+    </build>
+</project>

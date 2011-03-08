@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.forgerock.openicf.framework</groupId>
+        <artifactId>framework</artifactId>
+        <version>${CI_framework.version}</version>
+    </parent>
+    <artifactId>connector-framework-contract</artifactId>
+    <version>${CI_framework.version}</version>
+    <name>OpenICF Contract Tests</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>${framework.groupId}</groupId>
+            <artifactId>${framework.artifactId}</artifactId>
+            <version>${framework.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${framework.groupId}</groupId>
+            <artifactId>connector-test-common</artifactId>
+            <version>${framework.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+        </dependency>
+
+	<!-- We need here compile dependency for junits -->	
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${framework.groupId}</groupId>
+            <artifactId>connector-framework-internal</artifactId>
+            <version>${framework.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
+

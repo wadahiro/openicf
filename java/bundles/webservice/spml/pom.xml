@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+	        <groupId>com.forgerock.openicf.bundles</groupId>
+	        <artifactId>bundles-parent</artifactId>
+	        <version>${CI_framework.version}</version>
+	        <relativePath>../../../openicf/bundles-parent</relativePath>
+	    </parent>
+    <artifactId>spml</artifactId>
+    <packaging>jar</packaging>
+    <name>SPML Connector</name>
+    <description>Connector for SPML</description>
+
+    <properties>
+        <skipTests>true</skipTests>
+        <embedded.dependencies>openspml</embedded.dependencies>
+        <connectorName>org.identityconnectors.spml.SpmlConnector</connectorName>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.openspml</groupId>
+            <artifactId>openspml</artifactId>
+            <version>2.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/openspml2-toolkit.jar</systemPath>
+        </dependency>
+    </dependencies>
+
+</project>

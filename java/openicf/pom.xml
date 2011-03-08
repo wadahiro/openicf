@@ -2,6 +2,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>6</version>
+    </parent>
     <groupId>com.forgerock.openicf</groupId>
     <artifactId>openicf</artifactId>
     <version>${CI_framework.version}</version>
@@ -110,7 +115,7 @@
         <deployRepoUrl>${releaseRepoUrl}</deployRepoUrl>
         <performRelease>true</performRelease>
 
-        <framework.compatibilityVersion>1.2</framework.compatibilityVersion>
+        <framework.compatibilityVersion>1.1</framework.compatibilityVersion>
         <!--CI_framework.compatibilityVersion>${framework.compatibilityVersion}</CI_framework.compatibilityVersion-->
 
         <RELEASE_VERSION>0.0-SNAPSHOT</RELEASE_VERSION>
@@ -151,10 +156,11 @@
     </developers>
 
     <modules>
-        <module>../OpenICF-license</module>
-        <module>../compatibility-tests-parent</module>
-        <module>../maven-surefire-execs-plugin</module>
-        <module>../../framework/java</module>
+        <module>openicf-license</module>
+        <module>compatibility-tests-parent</module>
+        <module>maven-surefire-execs-plugin</module>
+        <module>framework</module>
+        <module>bundles-parent</module>
     </modules>
 
     <dependencyManagement>
@@ -407,7 +413,7 @@
                 <executions>
                     <execution>
                         <id>replace-pom-placeholder</id>
-                        <phase>prepare-package</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
@@ -422,7 +428,7 @@
                                 </resource>
                             </resources>
                             <delimiters>
-                                <delimiter>${RP_*}</delimiter>
+                                <delimiter>${CI_*}</delimiter>
                             </delimiters>
                             <useDefaultDelimiters>false</useDefaultDelimiters>
                             <outputDirectory>${project.build.directory}/pom-install-deploy-fix</outputDirectory>
