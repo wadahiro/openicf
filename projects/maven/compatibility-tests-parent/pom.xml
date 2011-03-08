@@ -3,12 +3,12 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.forgerock.openicf</groupId>
-    <artifactId>OpenICF-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <relativePath>../OpenICF-parent</relativePath>
+      <groupId>com.forgerock.openicf</groupId>
+      <artifactId>openicf</artifactId>
+      <version>${CI_framework.version}</version>
   </parent>
   <artifactId>compatibility-tests-parent</artifactId>
+  <version>${CI_framework.version}</version>
   <packaging>pom</packaging>
   <name>OpenICF Compatibility Tests parent</name>
 
@@ -179,29 +179,29 @@
                   <goal>test</goal>
                 </goals>
                 <configuration>
-                  <skipTests>${contracts.skip}</skipTests>
-                  <testSourceDirectory>${project.build.directory}/contractSources</testSourceDirectory>
-                  <testClassesDirectory>${project.build.directory}/contractClasses</testClassesDirectory>
+                  <skipTests>\${contracts.skip}</skipTests>
+                  <testSourceDirectory>\${project.build.directory}/contractSources</testSourceDirectory>
+                  <testClassesDirectory>\${project.build.directory}/contractClasses</testClassesDirectory>
                   <additionalClasspathElements>
-                    <additionalClasspathElement>${project.build.testOutputDirectory}</additionalClasspathElement>
+                    <additionalClasspathElement>\${project.build.testOutputDirectory}</additionalClasspathElement>
                   </additionalClasspathElements>
                   <test>${contract.suiteName}</test>
                   <systemProperties>
                     <property>
                       <name>connectorName</name>
-                      <value>${connectorName}</value>
+                      <value>\${connectorName}</value>
                     </property>
                     <property>
                       <name>bundleJar</name>
-                      <value>${project.build.directory}/${connectorArtifactId}-${connectorVersion}.jar</value>
+                      <value>\${project.build.directory}/\${connectorArtifactId}-\${connectorVersion}.jar</value>
                     </property>
                     <property>
                       <name>bundleName</name>
-                      <value>${connectorArtifactId}</value>
+                      <value>\${connectorArtifactId}</value>
                     </property>
                     <property>
                       <name>bundleVersion</name>
-                      <value>${connectorVersion}</value>
+                      <value>\${connectorVersion}</value>
                     </property>
                   </systemProperties>
                   <testExecutionsPropertyValues>

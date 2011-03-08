@@ -4,10 +4,11 @@
     <parent>
         <groupId>com.forgerock.openicf</groupId>
         <artifactId>framework-parent</artifactId>
-        <version>1.1.0-SNAPSHOT</version>
+        <version>${VERSION_NUMBER}</version>
     </parent>
 
     <artifactId>connector-framework-package</artifactId>
+    <version>${VERSION_NUMBER}</version>
     <name>OpenICF Framework - Package</name>
     <description>Copies the dependencies to dist. This should be just temporary solution to make connector ant build script to work</description>
     <packaging>pom</packaging>

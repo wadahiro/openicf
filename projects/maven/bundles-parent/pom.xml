@@ -4,12 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.forgerock.openicf</groupId>
-        <artifactId>framework-parent</artifactId>
-        <version>1.1.0-SNAPSHOT</version>
-        <relativePath>../framework/java</relativePath>
+        <artifactId>openicf</artifactId>
+        <version>${CI_framework.version}</version>
     </parent>
     <groupId>com.forgerock.openicf.bundles</groupId>
     <artifactId>bundles-parent</artifactId>
+    <version>${CI_framework.version}</version>
     <packaging>pom</packaging>
     <name>OpenICF Bundles parent</name>
     
@@ -22,7 +22,7 @@
             These are the properties needed in manifest file of the bundle,
             but now hardcoded in tests
         -->
-        <ConnectorBundle-FrameworkVersion>1.0</ConnectorBundle-FrameworkVersion>
+        <ConnectorBundle-FrameworkVersion>1.2</ConnectorBundle-FrameworkVersion>
         <ConnectorBundle-Name>${project.groupId}.${project.artifactId}</ConnectorBundle-Name>
         <ConnectorBundle-Version>${ConnectorBundle-FrameworkVersion}.${Subversion-Revision}</ConnectorBundle-Version>
         <!-- 
@@ -31,6 +31,7 @@
         <connectorGroupId>${project.groupId}</connectorGroupId>
         <connectorArtifactId>${project.artifactId}</connectorArtifactId>
         <connectorVersion>${ConnectorBundle-Version}</connectorVersion>
+
         <junitsConfigurations>default</junitsConfigurations>
         <contractsConfigurations>default</contractsConfigurations>
         <contract.suiteName>org.identityconnectors.contract.test.ContractTestSuite</contract.suiteName>
@@ -51,7 +52,7 @@
                 <dependency>
                     <groupId>${identityconnectors.groupId}</groupId>
                     <artifactId>OpenICF-license</artifactId>
-                    <version>${license.version}</version>
+                    <version>${framework.version}</version>
                     <scope>provided</scope>
                 </dependency>
                 <dependency>
@@ -279,6 +280,7 @@
                     </plugin>
                     <!-- Instead run surefire-execs plugin -->
                     <plugin>
+                        <groupId>com.forgerock.openicf</groupId>
                         <artifactId>maven-surefire-execs-plugin</artifactId>
                         <executions>
                             <!-- Run junits with configuration -->
@@ -319,17 +321,17 @@
                                         </property>
                                         <property>
                                             <name>bundleJar</name>
-                                            <value>${project.build.directory}/${project.build.finalName}-${Subversion-Revision}.jar</value>
+                                            <value>${project.build.directory}/${project.build.finalName}.jar</value>
                                         </property>
                                         <property>
                                             <name>bundleName</name>
-                                            <value>${project.artifactId}</value>
-                                            <!--value>${ConnectorBundle-Name}</value-->
+                                            <!--value>${project.artifactId}</value-->
+                                            <value>${ConnectorBundle-Name}</value>
                                         </property>
                                         <property>
                                             <name>bundleVersion</name>
-                                            <value>${project.version}</value>
-                                            <!--value>${ConnectorBundle-Version}</value-->
+                                            <!--value>${project.version}</value-->
+                                            <value>${ConnectorBundle-Version}</value>
                                         </property>
                                     </systemProperties>
                                     <testExecutionsPropertyValues>

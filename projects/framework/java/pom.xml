@@ -4,28 +4,27 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.forgerock.openicf</groupId>
-        <artifactId>OpenICF-parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
-        <relativePath>../../maven/OpenICF-parent</relativePath>
+        <artifactId>openicf</artifactId>
+        <version>${CI_framework.version}</version>
     </parent>
-    <artifactId>framework-parent</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <groupId>com.forgerock.openicf.framework</groupId>
+    <artifactId>framework</artifactId>
+    <version>${CI_framework.version}</version>
     <packaging>pom</packaging>
     <name>OpenICF Framework parent</name>
 
     <properties>
 	<!--Properties for dependencies to framework -->
-        <license.version>1.0-SNAPSHOT</license.version>
-        <framework.groupId>com.forgerock.openicf</framework.groupId>
+        <framework.groupId>com.forgerock.openicf.framework</framework.groupId>
         <framework.artifactId>connector-framework</framework.artifactId>
-        <framework.version>1.1.0-SNAPSHOT</framework.version>
+        <framework.version>${CI_framework.version}</framework.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>${identityconnectors.groupId}</groupId>
+            <groupId>com.forgerock.openicf</groupId>
             <artifactId>OpenICF-license</artifactId>
-            <version>${license.version}</version>
+            <version>${CI_framework.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -67,26 +66,13 @@
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>${identityconnectors.groupId}</groupId>
+                                    <groupId>com.forgerock.openicf</groupId>
                                     <artifactId>OpenICF-license</artifactId>
                                 </artifactItem>
                             </artifactItems>
                             <excludes>META-INF/**</excludes>
                             <outputDirectory>${project.build.outputDirectory}</outputDirectory>
                         </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -115,7 +101,5 @@
         <module>testbundles/testbundlev2</module>
         <module>framework-internal</module>
         <module>test-contract</module>
-        <module>framework-package</module>
-        <module>../../maven/bundles-parent</module>
     </modules>
 </project>
