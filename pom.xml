@@ -26,11 +26,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.forgerock.openicf.bundles</groupId>
+        <groupId>org.forgerock.openicf.bundles</groupId>
         <artifactId>bundles-parent</artifactId>
         <version>1.1.0.0-SNAPSHOT</version>
     </parent>
-    <groupId>com.forgerock.openicf.bundles.sso</groupId>
+    <groupId>org.forgerock.openicf.bundles.sso</groupId>
     <artifactId>tam</artifactId>
     <packaging>bundle</packaging>
     <name>Tivoli Access Manager 6.1 Connector</name>
@@ -50,7 +50,7 @@
         <contracts.skip>true</contracts.skip>
         <privateConfigPath>${user.home}/.connectors/connector-tam/config</privateConfigPath>
         <embedded.dependencies>admin-api</embedded.dependencies>
-        <connectorPackage>com.forgerock.openicf.tam</connectorPackage>
+        <connectorPackage>org.forgerock.openicf.tam</connectorPackage>
         <connectorClass>TAMConnector</connectorClass>
     </properties>
 
