@@ -22,6 +22,8 @@
  */
 package org.identityconnectors.patternparser;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,11 +32,8 @@ import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import junit.framework.Assert;
-
 import org.identityconnectors.patternparser.MapTransform.PatternNode;
 import org.identityconnectors.patternparser.test.SubstringTransform;
-import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -171,26 +170,26 @@ public class PatternParserTest {
     @Test
     public void testBooleanTransform() throws Exception {
     	Transform transform = new BooleanTransform();
-    	Assert.assertEquals(Boolean.TRUE, transform.transform("true"));
-    	Assert.assertEquals(Boolean.TRUE, transform.transform("True"));
-    	Assert.assertEquals(Boolean.TRUE, transform.transform("TRUE"));
-    	Assert.assertEquals(Boolean.FALSE, transform.transform("false"));
-    	Assert.assertEquals(Boolean.FALSE, transform.transform("False"));
-    	Assert.assertEquals(Boolean.FALSE, transform.transform("FALSE"));
-    	Assert.assertEquals("Hi", transform.transform("Hi"));
+    	AssertJUnit.assertEquals(Boolean.TRUE, transform.transform("true"));
+    	AssertJUnit.assertEquals(Boolean.TRUE, transform.transform("True"));
+    	AssertJUnit.assertEquals(Boolean.TRUE, transform.transform("TRUE"));
+    	AssertJUnit.assertEquals(Boolean.FALSE, transform.transform("false"));
+    	AssertJUnit.assertEquals(Boolean.FALSE, transform.transform("False"));
+    	AssertJUnit.assertEquals(Boolean.FALSE, transform.transform("FALSE"));
+    	AssertJUnit.assertEquals("Hi", transform.transform("Hi"));
     }
 
     @Test
     public void testClassTransform() throws Exception {
     	Transform transform = new ClassTransform(SampleTransform.class);
     	SampleTransform test = (SampleTransform)transform.transform("Okay");
-    	Assert.assertEquals(test.getData(), "Okay");
+    	AssertJUnit.assertEquals(test.getData(), "Okay");
     	String xml = transform.toXml(0);
     	transform = (ClassTransform)getTransform(xml);
         test = (SampleTransform)transform.transform("Okay");
-        Assert.assertEquals(test.getData(), "Okay");
+        AssertJUnit.assertEquals(test.getData(), "Okay");
         test = (SampleTransform)transform.transform("Okay");
-        Assert.assertEquals(test.getData(), "Okay");
+        AssertJUnit.assertEquals(test.getData(), "Okay");
     }
     
     public static class SampleTransform {
@@ -213,16 +212,16 @@ public class PatternParserTest {
         Document document = parser.parse(new InputSource(new StringReader(string)));
         NodeList elements = document.getChildNodes();
         Transform newTransform = Transform.newTransform((Element)elements.item(0));
-        Assert.assertEquals("bc", newTransform.transform("abcde"));
+        AssertJUnit.assertEquals("bc", newTransform.transform("abcde"));
     }
 
     @Test
     public void testPatternFormatting() throws Exception {
         _parser = (MapTransform)getTransform(pattern);
         String formatted = _parser.toXml(0);
-        Assert.assertEquals(formatted, pattern);
+        AssertJUnit.assertEquals(formatted, pattern);
         formatted = _parser.toXml(2);
-        Assert.assertEquals(formatted.replaceAll("\n  ", "\n").substring(2), pattern);
+        AssertJUnit.assertEquals(formatted.replaceAll("\n  ", "\n").substring(2), pattern);
     }
 
     @Test
