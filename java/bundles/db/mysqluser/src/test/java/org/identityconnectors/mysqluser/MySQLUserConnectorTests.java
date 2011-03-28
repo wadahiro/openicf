@@ -22,20 +22,18 @@
  */
 package org.identityconnectors.mysqluser;
 
-import static org.junit.Assert.*;
-
-
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.AssertJUnit;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.dbcommon.DatabaseConnection;
 import org.identityconnectors.framework.api.ConnectorFacadeFactory;
 import org.identityconnectors.test.common.PropertyBag;
 import org.identityconnectors.test.common.TestHelpers;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 
 /**
@@ -57,25 +55,25 @@ public class MySQLUserConnectorTests extends MySQLTestBase {
         PropertyBag testProps = TestHelpers.getProperties(MySQLUserConnector.class);
 
         idmHost = testProps.getStringProperty(HOST);
-        assertNotNull(HOST + MSG, idmHost);
+        AssertJUnit.assertNotNull(HOST + MSG, idmHost);
 
         idmUser = testProps.getStringProperty(USER);
-        assertNotNull(USER + MSG, idmUser);
+        AssertJUnit.assertNotNull(USER + MSG, idmUser);
 
         idmPassword = new GuardedString(testProps.getProperty(PASSWD, String.class, "").toCharArray());
-        assertNotNull(PASSWD + MSG, idmPassword);
+        AssertJUnit.assertNotNull(PASSWD + MSG, idmPassword);
 
         idmPort = testProps.getStringProperty(PORT);
-        assertNotNull(PORT + MSG, idmPort);
+        AssertJUnit.assertNotNull(PORT + MSG, idmPort);
 
         idmDriver = testProps.getStringProperty(DRIVER);
-        assertNotNull(DRIVER + MSG, idmDriver);
+        AssertJUnit.assertNotNull(DRIVER + MSG, idmDriver);
 
         idmModelUser = testProps.getStringProperty(USER_MODEL);
-        assertNotNull(USER_MODEL + MSG, idmModelUser);
+        AssertJUnit.assertNotNull(USER_MODEL + MSG, idmModelUser);
 
         final String passwd = testProps.getStringProperty(TEST_PASSWD);
-        assertNotNull(TEST_PASSWD + MSG, passwd);
+        AssertJUnit.assertNotNull(TEST_PASSWD + MSG, passwd);
         testPassword = new GuardedString(passwd.toCharArray());       
     }
 
@@ -92,8 +90,8 @@ public class MySQLUserConnectorTests extends MySQLTestBase {
      * Setup  the test
      * @throws Exception
      */
-    @Before
-    public void setup() throws Exception {
+    @BeforeMethod
+	public void setup() throws Exception {
         // attempt to create the database in the directory..
         config = newConfiguration();
         facade = getFacade();
@@ -108,8 +106,8 @@ public class MySQLUserConnectorTests extends MySQLTestBase {
     /**
      * @throws Exception
      */
-    @After
-    public void teardown() throws Exception {     
+    @AfterMethod
+	public void teardown() throws Exception {     
         config = null;
     }
 
@@ -136,19 +134,19 @@ public class MySQLUserConnectorTests extends MySQLTestBase {
     @Test()
     public void testConfiguration() throws Exception {
     
-        assertNotNull("tstDriver", config.getDriver());
-        assertNotNull("tstHost", config.getHost());
-        assertNotNull("tstLogin", config.getUser());
-        assertNotNull("tstPassword", config.getPassword());
-        assertNotNull("tstPort", config.getPort());
-        assertNotNull("usermodel", config.getUsermodel());
+        AssertJUnit.assertNotNull("tstDriver", config.getDriver());
+        AssertJUnit.assertNotNull("tstHost", config.getHost());
+        AssertJUnit.assertNotNull("tstLogin", config.getUser());
+        AssertJUnit.assertNotNull("tstPassword", config.getPassword());
+        AssertJUnit.assertNotNull("tstPort", config.getPort());
+        AssertJUnit.assertNotNull("usermodel", config.getUsermodel());
     
-        assertEquals("tstDriver", idmDriver, config.getDriver());
-        assertEquals("tstHost", idmHost, config.getHost());
-        assertEquals("tstLogin", idmUser, config.getUser());
-        assertEquals("tstPassword", idmPassword, config.getPassword());
-        assertEquals("tstPort", idmPort, config.getPort());
-        assertEquals("usermodel", idmModelUser, config.getUsermodel());
+        AssertJUnit.assertEquals("tstDriver", idmDriver, config.getDriver());
+        AssertJUnit.assertEquals("tstHost", idmHost, config.getHost());
+        AssertJUnit.assertEquals("tstLogin", idmUser, config.getUser());
+        AssertJUnit.assertEquals("tstPassword", idmPassword, config.getPassword());
+        AssertJUnit.assertEquals("tstPort", idmPort, config.getPort());
+        AssertJUnit.assertEquals("usermodel", idmModelUser, config.getUsermodel());
     
     }
     
@@ -157,7 +155,7 @@ public class MySQLUserConnectorTests extends MySQLTestBase {
      * Test method 
      * @throws Exception
      */
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void testInvalidConfigurationHost() throws Exception {
         config.setHost("");
         config.validate();
@@ -168,7 +166,7 @@ public class MySQLUserConnectorTests extends MySQLTestBase {
      * Test method 
      * @throws Exception
      */
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void testInvalidConfigurationDriver() throws Exception {
         config.setDriver("");
         config.validate();
@@ -179,7 +177,7 @@ public class MySQLUserConnectorTests extends MySQLTestBase {
      * Test method 
      * @throws Exception
      */
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void testInvalidConfigurationLogin() throws Exception {
         config.setUser("");
         config.validate();
@@ -190,7 +188,7 @@ public class MySQLUserConnectorTests extends MySQLTestBase {
      * Test method 
      * @throws Exception
      */
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void testInvalidConfigurationPort() throws Exception {
         config.setPort("");
         config.validate();

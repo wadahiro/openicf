@@ -22,12 +22,11 @@
  */
 package org.identityconnectors.db2;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.fail;
-
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotSame;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.Test;
+import org.testng.Assert;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -45,8 +44,6 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.test.common.PropertyBag;
 import org.identityconnectors.test.common.TestHelpers;
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * Tests for {@link DB2Configuration}
@@ -196,7 +193,7 @@ public class DB2ConfigurationTest {
 	private void assertValidateFail(DB2Configuration conf,String failMsg){
         try{
             conf.validate();
-            fail(failMsg);
+            Assert.fail(failMsg);
         }
         catch(RuntimeException e){
         }
@@ -206,7 +203,7 @@ public class DB2ConfigurationTest {
         conf.validate();
         try{
             conf.createAdminConnection();
-            fail(failMsg);
+            Assert.fail(failMsg);
         }
         catch(RuntimeException e){
         }
@@ -387,7 +384,7 @@ public class DB2ConfigurationTest {
 		DB2Configuration conf = createDataSourceConfiguration();
 		//set to thread local
 		cfg.set(conf);
-		assertArrayEquals(conf.getDsJNDIEnv(), dsJNDIEnv);
+		Assert.assertEquals(conf.getDsJNDIEnv(), dsJNDIEnv, "dsJNDIEnv Not equal!");
 		conf.validate();
 		Connection conn = conf.createAdminConnection();
 		conf.setAdminAccount(null);
@@ -453,10 +450,10 @@ public class DB2ConfigurationTest {
 		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 			if(method.getName().equals("getConnection")){
 				if(cfg.get().getAdminAccount() == null){
-					Assert.assertEquals("getConnection must be called without user and password",0,method.getParameterTypes().length);
+					assertEquals("getConnection must be called without user and password",0,method.getParameterTypes().length);
 				}
 				else{
-					Assert.assertEquals("getConnection must be called with user and password",2,method.getParameterTypes().length);
+					assertEquals("getConnection must be called with user and password",2,method.getParameterTypes().length);
 				}
 				return Proxy.newProxyInstance(getClass().getClassLoader(),new Class[]{Connection.class}, new ConnectionIH());
 			}

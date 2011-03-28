@@ -22,9 +22,9 @@
  */
 package org.identityconnectors.oracleerp;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import static org.identityconnectors.oracleerp.OracleERPUtil.getAttributeInfos;
-import static org.junit.Assert.*;
-
 import java.util.List;
 import java.util.Set;
 
@@ -37,7 +37,6 @@ import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.test.common.TestHelpers;
-import org.junit.Test;
 
 
 
@@ -61,10 +60,10 @@ public class AccountOperationDeleteTests extends OracleERPTestsBase {
         final Set<Attribute> attrs = getAttributeSet(ACCOUNT_REQUIRED_ATTRS);
         replaceNameByRandom(attrs);
         final Uid uid = c.create(ObjectClass.ACCOUNT, attrs, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         List<ConnectorObject> r1 = TestHelpers
         .searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid), null);
-        assertTrue("expect 1 connector object", r1.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", r1.size() == 1);
 
         c.delete(ObjectClass.ACCOUNT, uid, null);
 
@@ -73,7 +72,7 @@ public class AccountOperationDeleteTests extends OracleERPTestsBase {
         List<ConnectorObject> r2 = TestHelpers
         .searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid), oob.build());
         //it is deleted, when active_accounts_only .. set up in CONFIG_TST
-        assertTrue("expect 0 connector object", r2.size() == 0);
+        AssertJUnit.assertTrue("expect 0 connector object", r2.size() == 0);
     }
     
     /**
@@ -86,10 +85,10 @@ public class AccountOperationDeleteTests extends OracleERPTestsBase {
         final Set<Attribute> attrs = getAttributeSet(ACCOUNT_REQUIRED_ATTRS);
         replaceNameByRandom(attrs);
         final Uid uid = c.create(ObjectClass.ACCOUNT, attrs, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         List<ConnectorObject> r1 = TestHelpers
         .searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid), null);
-        assertTrue("expect 1 connector object", r1.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", r1.size() == 1);
 
         c.delete(ObjectClass.ACCOUNT, uid, null);
 
@@ -98,9 +97,9 @@ public class AccountOperationDeleteTests extends OracleERPTestsBase {
         List<ConnectorObject> r2 = TestHelpers
         .searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid), oob.build());
         //it is deleted, when no active_accounts_only .. set up in CONFIG_SYSADM
-        assertTrue("expect 1 connector object", r2.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", r2.size() == 1);
         Set<Attribute> returned = r2.get(0).getAttributes();
-        assertFalse("Should not be enabled", AttributeUtil.getBooleanValue(AttributeUtil.find(OperationalAttributes.ENABLE_NAME, returned)));
+        AssertJUnit.assertFalse("Should not be enabled", AttributeUtil.getBooleanValue(AttributeUtil.find(OperationalAttributes.ENABLE_NAME, returned)));
     }
     
  }

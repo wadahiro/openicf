@@ -22,9 +22,9 @@
  */
 package org.identityconnectors.oracleerp;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import static org.identityconnectors.oracleerp.OracleERPUtil.*;
-import static org.junit.Assert.*;
-
 import java.util.List;
 import java.util.Set;
 
@@ -36,7 +36,6 @@ import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.test.common.TestHelpers;
-import org.junit.Test;
 
 
 
@@ -64,10 +63,10 @@ public class AccountOperationSearchTests extends OracleERPTestsBase {
         addAllAttributesToGet(oob, getAttributeInfos(c.schema(), ObjectClass.ACCOUNT_NAME));
         
         final Uid uid = c.create(ObjectClass.ACCOUNT, attrs, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
 
         List<ConnectorObject> results = TestHelpers.searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid), oob.build());
-        assertTrue("expect 1 connector object", results.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", results.size() == 1);
         final ConnectorObject co = results.get(0);
         final Set<Attribute> returned = co.getAttributes();
         System.out.println(returned);
@@ -94,10 +93,10 @@ public class AccountOperationSearchTests extends OracleERPTestsBase {
         addAllAttributesToGet(oob, getAttributeInfos(c.schema(), ObjectClass.ACCOUNT_NAME));
         
         final Uid uid = c.create(ObjectClass.ACCOUNT, attrs, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
 
         List<ConnectorObject> results = TestHelpers.searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid), oob.build());
-        assertTrue("expect 1 connector object", results.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", results.size() == 1);
         final ConnectorObject co = results.get(0);
         final Set<Attribute> returned = co.getAttributes();
         System.out.println(returned);
@@ -117,13 +116,13 @@ public class AccountOperationSearchTests extends OracleERPTestsBase {
         replaceNameByRandom(attrs);
         
         final Uid uid = c.create(ObjectClass.ACCOUNT, attrs, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
 
         List<ConnectorObject> results = TestHelpers.searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid), null);
-        assertTrue("expect 1 connector object", results.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", results.size() == 1);
 
         List<ConnectorObject> results1 = TestHelpers.searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(new Uid(uid.getUidValue().toLowerCase()) ), null);
-        assertTrue("expect 1 connector object", results1.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", results1.size() == 1);
 
         final ConnectorObject co = results1.get(0);
         final Set<Attribute> returned = co.getAttributes();

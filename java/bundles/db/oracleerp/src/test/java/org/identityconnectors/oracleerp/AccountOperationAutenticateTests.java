@@ -22,8 +22,8 @@
  */
 package org.identityconnectors.oracleerp;
 
-import static org.junit.Assert.*;
-
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,7 +31,6 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
 import org.identityconnectors.framework.common.exceptions.InvalidPasswordException;
 import org.identityconnectors.framework.common.objects.*;
-import org.junit.Test;
 
 
 
@@ -55,9 +54,9 @@ public class AccountOperationAutenticateTests extends OracleERPTestsBase {
         replaceNameByRandom(attrs);
         final GuardedString password = AttributeUtil.getGuardedStringValue(AttributeUtil.find(OperationalAttributes.PASSWORD_NAME, attrs));
         final Uid uid = c.create(ObjectClass.ACCOUNT, attrs, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
-        assertEquals(uid, c.authenticate(ObjectClass.ACCOUNT, uid.getUidValue(), password, null));
+        AssertJUnit.assertEquals(uid, c.authenticate(ObjectClass.ACCOUNT, uid.getUidValue(), password, null));
     }
     
     /**
@@ -70,15 +69,15 @@ public class AccountOperationAutenticateTests extends OracleERPTestsBase {
         final Set<Attribute> attrs = getAttributeSet(ACCOUNT_REQUIRED_ATTRS);
         replaceNameByRandom(attrs);
         final Uid uid = c.create(ObjectClass.ACCOUNT, attrs, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
-        assertEquals(uid, c.resolveUsername(ObjectClass.ACCOUNT, uid.getUidValue(), null));
+        AssertJUnit.assertEquals(uid, c.resolveUsername(ObjectClass.ACCOUNT, uid.getUidValue(), null));
     }
     
     /**
      * Test method .
      */
-    @Test(expected=InvalidCredentialException.class)
+    @Test(expectedExceptions=InvalidCredentialException.class)
     public void testAuthenticateDissabled() {
         final OracleERPConnector c = getConnector(CONFIG_TST); 
        
@@ -86,16 +85,16 @@ public class AccountOperationAutenticateTests extends OracleERPTestsBase {
         replaceNameByRandom(attrs);
         final GuardedString password = AttributeUtil.getGuardedStringValue(AttributeUtil.find(OperationalAttributes.PASSWORD_NAME, attrs));
         Uid uid = c.create(ObjectClass.ACCOUNT, attrs, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
-        assertEquals(uid, c.authenticate(ObjectClass.ACCOUNT, uid.getUidValue(), password, null)); 
+        AssertJUnit.assertEquals(uid, c.authenticate(ObjectClass.ACCOUNT, uid.getUidValue(), password, null)); 
 
         //Dissable
         final Set<Attribute> update = new HashSet<Attribute>();       
         update.add(uid);
         update.add(AttributeBuilder.buildEnabled(false));
         uid = c.update(ObjectClass.ACCOUNT, uid, update, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
         c.authenticate(ObjectClass.ACCOUNT, uid.getUidValue(), password, null); 
     }   
@@ -103,7 +102,7 @@ public class AccountOperationAutenticateTests extends OracleERPTestsBase {
     /**
      * Test method .
      */
-    @Test(expected=InvalidPasswordException.class)
+    @Test(expectedExceptions=InvalidPasswordException.class)
     public void testAuthenticateExpired() {
         final OracleERPConnector c = getConnector(CONFIG_TST); 
        
@@ -111,16 +110,16 @@ public class AccountOperationAutenticateTests extends OracleERPTestsBase {
         replaceNameByRandom(attrs);
         final GuardedString password = AttributeUtil.getGuardedStringValue(AttributeUtil.find(OperationalAttributes.PASSWORD_NAME, attrs));
         Uid uid = c.create(ObjectClass.ACCOUNT, attrs, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
-        assertEquals(uid, c.authenticate(ObjectClass.ACCOUNT, uid.getUidValue(), password, null)); 
+        AssertJUnit.assertEquals(uid, c.authenticate(ObjectClass.ACCOUNT, uid.getUidValue(), password, null)); 
 
         //Dissable
         final Set<Attribute> update = new HashSet<Attribute>();       
         update.add(uid);
         update.add(AttributeBuilder.buildPasswordExpired(true));
         uid = c.update(ObjectClass.ACCOUNT, uid, update, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
         c.authenticate(ObjectClass.ACCOUNT, uid.getUidValue(), password, null); 
     }      

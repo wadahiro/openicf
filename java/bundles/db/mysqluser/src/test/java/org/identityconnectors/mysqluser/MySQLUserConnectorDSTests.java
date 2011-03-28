@@ -22,8 +22,12 @@
  */
 package org.identityconnectors.mysqluser;
 
-import static org.junit.Assert.*;
-
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.AssertJUnit;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -72,25 +76,25 @@ public class MySQLUserConnectorDSTests extends MySQLTestBase {
         PropertyBag testProps = TestHelpers.getProperties(MySQLUserConnector.class);
 
         idmHost = testProps.getStringProperty(HOST);
-        assertNotNull(HOST + MSG, idmHost);
+        AssertJUnit.assertNotNull(HOST + MSG, idmHost);
 
         idmUser = testProps.getStringProperty(USER);
-        assertNotNull(USER + MSG, idmUser);
+        AssertJUnit.assertNotNull(USER + MSG, idmUser);
 
         idmPassword = new GuardedString(testProps.getProperty(PASSWD, String.class, "").toCharArray());
-        assertNotNull(PASSWD + MSG, idmPassword);
+        AssertJUnit.assertNotNull(PASSWD + MSG, idmPassword);
 
         idmPort = testProps.getStringProperty(PORT);
-        assertNotNull(PORT + MSG, idmPort);
+        AssertJUnit.assertNotNull(PORT + MSG, idmPort);
 
         idmDriver = testProps.getStringProperty(DRIVER);
-        assertNotNull(DRIVER + MSG, idmDriver);
+        AssertJUnit.assertNotNull(DRIVER + MSG, idmDriver);
 
         idmModelUser = testProps.getStringProperty(USER_MODEL);
-        assertNotNull(USER_MODEL + MSG, idmModelUser);
+        AssertJUnit.assertNotNull(USER_MODEL + MSG, idmModelUser);
 
         final String passwd = testProps.getStringProperty(TEST_PASSWD);
-        assertNotNull(TEST_PASSWD + MSG, passwd);
+        AssertJUnit.assertNotNull(TEST_PASSWD + MSG, passwd);
         testPassword = new GuardedString(passwd.toCharArray());       
     }
 
@@ -107,8 +111,8 @@ public class MySQLUserConnectorDSTests extends MySQLTestBase {
      * Setup  the test
      * @throws Exception
      */
-    @Before
-    public void setup() throws Exception {
+    @BeforeMethod
+	public void setup() throws Exception {
         // attempt to create the database in the directory..
         config = newConfiguration();
         facade = getFacade();
@@ -123,8 +127,8 @@ public class MySQLUserConnectorDSTests extends MySQLTestBase {
     /**
      * @throws Exception
      */
-    @After
-    public void teardown() throws Exception {     
+    @AfterMethod
+	public void teardown() throws Exception {     
         config = null;
     }
 
@@ -148,8 +152,8 @@ public class MySQLUserConnectorDSTests extends MySQLTestBase {
     @Test()
     public void testConfiguration() throws Exception {
         
-        assertEquals("tstDatasource", TEST_DS, config.getDatasource());
-        assertEquals("tstJndiProperties", Arrays.asList(JNDI_PROPERTIES), Arrays.asList(config.getJndiProperties()));
+        AssertJUnit.assertEquals("tstDatasource", TEST_DS, config.getDatasource());
+        AssertJUnit.assertEquals("tstJndiProperties", Arrays.asList(JNDI_PROPERTIES), Arrays.asList(config.getJndiProperties()));
     
     }
 

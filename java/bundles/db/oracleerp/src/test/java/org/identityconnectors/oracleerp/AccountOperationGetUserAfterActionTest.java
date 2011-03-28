@@ -3,8 +3,9 @@
  */
 package org.identityconnectors.oracleerp;
 
-import static org.junit.Assert.*;
-
+import org.testng.annotations.Test;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
 import java.util.List;
 import java.util.Set;
 
@@ -18,7 +19,6 @@ import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.test.common.TestHelpers;
-import org.junit.Test;
 
 /**
  * @author petr
@@ -45,26 +45,26 @@ public class AccountOperationGetUserAfterActionTest extends OracleERPTestsBase {
         
         
         final Uid uid = c.create(ObjectClass.ACCOUNT, attrs, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
 
         List<ConnectorObject> results = TestHelpers
         .searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid));
-        assertTrue("expect 1 connector object", results.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", results.size() == 1);
         final ConnectorObject co = results.get(0);
         final Set<Attribute> returned = co.getAttributes();
         
         //The new, script added attribute must exist and have value 5
         final Attribute find = AttributeUtil.find(HR_EMP_NUM, returned);
-        assertNotNull(HR_EMP_NUM, find );
+        AssertJUnit.assertNotNull(HR_EMP_NUM, find );
         final List<Object> value = find.getValue();
-        assertEquals(HR_EMP_NUM, 1, value.size() );
-        assertEquals(HR_EMP_NUM, "5", value.get(0) );
+        AssertJUnit.assertEquals(HR_EMP_NUM, 1, value.size() );
+        AssertJUnit.assertEquals(HR_EMP_NUM, "5", value.get(0) );
    }
     
     /**
      * Test method for {@link org.identityconnectors.oracleerp.AccountOperationGetUserAfterAction#runScriptOnConnector(java.lang.Object, org.identityconnectors.framework.common.objects.ConnectorObjectBuilder)}.
      */
-    @Test(expected=ConnectorException.class)
+    @Test(expectedExceptions=ConnectorException.class)
     public void testRunScriptOnConnectorError() {
         final OracleERPConfiguration cfg = getConfiguration(CONFIG_SYSADM);
         final String scriptText = IOUtil.getResourceAsString(this.getClass(), RUN_ERROR_ACTION);
@@ -77,16 +77,16 @@ public class AccountOperationGetUserAfterActionTest extends OracleERPTestsBase {
         
         
         final Uid uid = c.create(ObjectClass.ACCOUNT, attrs, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
 
         TestHelpers.searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid));
-        fail("expect no connector object");
+        Assert.fail("expect no connector object");
    }
     
     /**
      * Test method for {@link org.identityconnectors.oracleerp.AccountOperationGetUserAfterAction#runScriptOnConnector(java.lang.Object, org.identityconnectors.framework.common.objects.ConnectorObjectBuilder)}.
      */
-    @Test(expected=ConnectorException.class)
+    @Test(expectedExceptions=ConnectorException.class)
     public void testRunScriptOnConnectorParsedError() {
         final OracleERPConfiguration cfg = getConfiguration(CONFIG_SYSADM);
         final ScriptBuilder sb = new ScriptBuilder().setScriptLanguage(GROOVY).setScriptText("return (  ;");
@@ -98,9 +98,9 @@ public class AccountOperationGetUserAfterActionTest extends OracleERPTestsBase {
         
         
         final Uid uid = c.create(ObjectClass.ACCOUNT, attrs, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
 
         TestHelpers.searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid));
-        fail("expect no connector object");
+        Assert.fail("expect no connector object");
    }
 }

@@ -22,6 +22,8 @@
  */
 package org.identityconnectors.oracleerp;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import static org.identityconnectors.oracleerp.OracleERPUtil.*;
 
 import java.sql.Timestamp;
@@ -34,8 +36,6 @@ import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.oracleerp.AccountSQLCall.AccountSQLCallBuilder;
-import org.junit.Assert;
-import org.junit.Test;
 
 
 
@@ -62,7 +62,7 @@ public class AccountSQLBuilderTests {
         final AccountSQLCall asc = buildSQLCalll(true, attrs);
 
         //test sql
-        Assert.assertEquals("Invalid SQL",
+        AssertJUnit.assertEquals("Invalid SQL",
                         "{ call APPS.fnd_user_pkg.CreateUser ( x_user_name => ?, x_owner => upper(?), "+
                         "x_unencrypted_password => ?, x_start_date => ?, x_end_date => ?, "+
                         "x_last_logon_date => ?, x_description => ?, x_password_date => ?, "+
@@ -72,7 +72,7 @@ public class AccountSQLBuilderTests {
                         asc.getCallSql());
         //session is always null, so 16 params
         
-        Assert.assertEquals("Invalid number of  SQL Params", 16, asc.getSqlParams().size());
+        AssertJUnit.assertEquals("Invalid number of  SQL Params", 16, asc.getSqlParams().size());
     }
  
     
@@ -86,7 +86,7 @@ public class AccountSQLBuilderTests {
 
 
         //test sql
-        Assert.assertEquals("Invalid SQL",
+        AssertJUnit.assertEquals("Invalid SQL",
                         "{ call APPS.fnd_user_pkg.UpdateUser ( x_user_name => ?, x_owner => upper(?), "+
                         "x_unencrypted_password => ?, x_start_date => ?, x_end_date => ?, "+
                         "x_description => ?, x_password_date => ?, x_password_accesses_left => ?, "+
@@ -94,7 +94,7 @@ public class AccountSQLBuilderTests {
                         "x_email_address => ?, x_fax => ?, x_customer_id => ?, x_supplier_id => ? ) }",
                         asc.getCallSql());
         //session is always null, so 15 params
-        Assert.assertEquals("Invalid number of  SQL Params", 15, asc.getSqlParams().size());
+        AssertJUnit.assertEquals("Invalid number of  SQL Params", 15, asc.getSqlParams().size());
     }        
     
     /**
@@ -105,7 +105,7 @@ public class AccountSQLBuilderTests {
         final Set<Attribute> attrs = createNullAccountAttributes();
         final AccountSQLCall asc = buildSQLCalll(true, attrs);
         //test sql
-        Assert.assertEquals("Invalid SQL",
+        AssertJUnit.assertEquals("Invalid SQL",
                 "{ call APPS.fnd_user_pkg.CreateUser ( x_user_name => ?, x_owner => upper(?), "+
                 "x_unencrypted_password => ?, x_start_date => ?, x_end_date => FND_USER_PKG.null_date, "+
                 "x_last_logon_date => ?, x_description => FND_USER_PKG.null_char, "+
@@ -116,7 +116,7 @@ public class AccountSQLBuilderTests {
                 "x_customer_id => FND_USER_PKG.null_number, x_supplier_id => FND_USER_PKG.null_number ) }",
                 asc.getCallSql());
         //session is always null, so 16 params
-        Assert.assertEquals("Invalid number of  SQL Params", 6, asc.getSqlParams().size());    
+        AssertJUnit.assertEquals("Invalid number of  SQL Params", 6, asc.getSqlParams().size());    
     }
     
     /**
@@ -127,7 +127,7 @@ public class AccountSQLBuilderTests {
         final Set<Attribute> attrs = createNullAccountAttributes();
         final AccountSQLCall asc = buildSQLCalll(false, attrs);
         //test sql
-        Assert.assertEquals("Invalid SQL",
+        AssertJUnit.assertEquals("Invalid SQL",
                 "{ call APPS.fnd_user_pkg.UpdateUser ( x_user_name => ?, x_owner => upper(?), "+
                 "x_unencrypted_password => ?, x_start_date => ?, x_end_date => FND_USER_PKG.null_date, "+
                 "x_description => FND_USER_PKG.null_char, "+
@@ -138,7 +138,7 @@ public class AccountSQLBuilderTests {
                 "x_customer_id => FND_USER_PKG.null_number, x_supplier_id => FND_USER_PKG.null_number ) }",
                 asc.getCallSql());
         //session is always null, so 16 params
-        Assert.assertEquals("Invalid number of  SQL Params", 5, asc.getSqlParams().size());    
+        AssertJUnit.assertEquals("Invalid number of  SQL Params", 5, asc.getSqlParams().size());    
     }
     
     /**
@@ -158,7 +158,7 @@ public class AccountSQLBuilderTests {
         final AccountSQLCall asc = asb.build();
 
         //test sql
-        Assert.assertEquals("Invalid SQL",
+        AssertJUnit.assertEquals("Invalid SQL",
                         "{ call APPS.fnd_user_pkg.CreateUser ( x_user_name => ?, x_owner => upper(?), "+
                         "x_unencrypted_password => ?, x_start_date => ?, x_end_date => ?, "+
                         "x_last_logon_date => ?, x_description => ?, x_password_date => ?, "+
@@ -168,8 +168,8 @@ public class AccountSQLBuilderTests {
                         asc.getCallSql());
         //session is always null, so 16 params
         
-        Assert.assertEquals("Invalid number of  SQL Params", 16, asc.getSqlParams().size());
-        Assert.assertEquals("The SQL Password param value", PASSWORD_TEMP, asc.getSqlParams().get(2).getValue());
+        AssertJUnit.assertEquals("Invalid number of  SQL Params", 16, asc.getSqlParams().size());
+        AssertJUnit.assertEquals("The SQL Password param value", PASSWORD_TEMP, asc.getSqlParams().get(2).getValue());
     }
     
     /**
@@ -188,7 +188,7 @@ public class AccountSQLBuilderTests {
         final AccountSQLCall asc = asb.build();
 
         //test sql
-        Assert.assertEquals("Invalid SQL",
+        AssertJUnit.assertEquals("Invalid SQL",
                         "{ call APPS.fnd_user_pkg.CreateUser ( x_user_name => ?, x_owner => upper(?), "+
                         "x_unencrypted_password => ?, x_start_date => ?, x_end_date => ?, "+
                         "x_last_logon_date => ?, x_description => ?, x_password_date => ?, "+
@@ -198,8 +198,8 @@ public class AccountSQLBuilderTests {
                         asc.getCallSql());
         //session is always null, so 16 params
         
-        Assert.assertEquals("Invalid number of  SQL Params", 16, asc.getSqlParams().size());
-        Assert.assertEquals("The SQL Password param value", PASSWORD, asc.getSqlParams().get(2).getValue());
+        AssertJUnit.assertEquals("Invalid number of  SQL Params", 16, asc.getSqlParams().size());
+        AssertJUnit.assertEquals("The SQL Password param value", PASSWORD, asc.getSqlParams().get(2).getValue());
     }
     
     /**
@@ -219,7 +219,7 @@ public class AccountSQLBuilderTests {
         final AccountSQLCall asc = asb.build();
 
         //test sql
-        Assert.assertEquals("Invalid SQL",
+        AssertJUnit.assertEquals("Invalid SQL",
                         "{ call APPS.fnd_user_pkg.CreateUser ( x_user_name => ?, x_owner => upper(?), "+
                         "x_unencrypted_password => ?, x_start_date => ?, x_end_date => ?, "+
                         "x_last_logon_date => ?, x_description => ?, x_password_date => ?, "+
@@ -229,8 +229,8 @@ public class AccountSQLBuilderTests {
                         asc.getCallSql());
         //session is always null, so 16 params
         
-        Assert.assertEquals("Invalid number of  SQL Params", 16, asc.getSqlParams().size());
-        Assert.assertEquals("The SQL Password param value", PASSWORD, asc.getSqlParams().get(2).getValue());
+        AssertJUnit.assertEquals("Invalid number of  SQL Params", 16, asc.getSqlParams().size());
+        AssertJUnit.assertEquals("The SQL Password param value", PASSWORD, asc.getSqlParams().get(2).getValue());
     }
     
     /**
@@ -250,7 +250,7 @@ public class AccountSQLBuilderTests {
         final AccountSQLCall asc = asb.build();
 
         //test sql
-        Assert.assertEquals("Invalid SQL",
+        AssertJUnit.assertEquals("Invalid SQL",
                         "{ call APPS.fnd_user_pkg.CreateUser ( x_user_name => ?, x_owner => upper(?), "+
                         "x_unencrypted_password => ?, x_start_date => ?, x_end_date => ?, "+
                         "x_last_logon_date => ?, x_description => ?, x_password_date => ?, "+
@@ -260,8 +260,8 @@ public class AccountSQLBuilderTests {
                         asc.getCallSql());
         //session is always null, so 16 params
         
-        Assert.assertEquals("Invalid number of  SQL Params", 16, asc.getSqlParams().size());
-        Assert.assertEquals("The SQL Password param value", PASSWORD, asc.getSqlParams().get(2).getValue());
+        AssertJUnit.assertEquals("Invalid number of  SQL Params", 16, asc.getSqlParams().size());
+        AssertJUnit.assertEquals("The SQL Password param value", PASSWORD, asc.getSqlParams().get(2).getValue());
     }
     
     /**

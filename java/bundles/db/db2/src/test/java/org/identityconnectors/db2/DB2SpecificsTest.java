@@ -22,13 +22,11 @@
  */
 package org.identityconnectors.db2;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.Test;
 import java.sql.Connection;
 import java.util.Collection;
-
-import org.junit.Test;
 
 /**
  * Test DB2 specifics

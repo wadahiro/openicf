@@ -22,9 +22,9 @@
  */
 package org.identityconnectors.oracleerp;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import static org.identityconnectors.oracleerp.OracleERPUtil.*;
-import static org.junit.Assert.*;
-
 import java.util.List;
 import java.util.Set;
 
@@ -38,7 +38,6 @@ import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.test.common.TestHelpers;
-import org.junit.Test;
 
 
 
@@ -65,7 +64,7 @@ public class AuditorOperationSearchTests extends OracleERPTestsBase {
         replaceNameByRandom(attrs);
         
         final Uid uid = c.create(ObjectClass.ACCOUNT, attrs, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
         final OperationOptionsBuilder oob = new OperationOptionsBuilder();
         final Set<Attribute> attrsOpt = getAttributeSet(ACCOUNT_OPTIONS);
@@ -76,6 +75,6 @@ public class AuditorOperationSearchTests extends OracleERPTestsBase {
         final Filter filter = FilterBuilder.equalTo(AttributeBuilder.build(NAME, "Does no mather, not null"));
         List<ConnectorObject> results = TestHelpers.searchToList(c, AUDITOR_RESPS_OC, filter, oob.build());
         System.out.println(results);
-        assertTrue("expect 1 connector object", results.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", results.size() == 1);
     }
 }

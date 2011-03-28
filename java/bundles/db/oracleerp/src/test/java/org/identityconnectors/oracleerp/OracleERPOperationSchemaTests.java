@@ -22,14 +22,13 @@
  */
 package org.identityconnectors.oracleerp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.Test;
 import java.util.Set;
 
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.Schema;
-import org.junit.Test;
 
 
 

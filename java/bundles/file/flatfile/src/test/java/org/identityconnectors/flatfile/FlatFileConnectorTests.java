@@ -22,6 +22,9 @@
  */
 package org.identityconnectors.flatfile;
 
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.AssertJUnit;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -46,9 +49,6 @@ import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.test.common.TestHelpers;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 
 
 public class FlatFileConnectorTests {
@@ -99,8 +99,8 @@ public class FlatFileConnectorTests {
     // =======================================================================
     // Setup/Tear down..
     // =======================================================================
-    @Before
-    public void createData() throws Exception {
+    @BeforeMethod
+	public void createData() throws Exception {
         // create a csv data file..
         File f = new File(FILENAME);
         // make sure to delete..
@@ -147,7 +147,7 @@ public class FlatFileConnectorTests {
         // System.out.println("Actual: " + actual);
         // System.out.println("Expected: " + TEST_ACCOUNTS);
         // attempt to see if they compare..
-        Assert.assertEquals(TEST_ACCOUNTS, actual);
+        AssertJUnit.assertEquals(TEST_ACCOUNTS, actual);
     }
 
     static class NoFilter implements Filter {
@@ -179,7 +179,7 @@ public class FlatFileConnectorTests {
         // System.out.println("Actual: " + actual);
         // System.out.println("Expected: " + TEST_ACCOUNTS);
         // attempt to see if they compare..
-        Assert.assertEquals(TEST_ACCOUNTS, actual);
+        AssertJUnit.assertEquals(TEST_ACCOUNTS, actual);
     }
 
     // =======================================================================

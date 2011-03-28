@@ -22,14 +22,12 @@
  */
 package org.identityconnectors.flatfile;
 
-import static junit.framework.Assert.assertEquals;
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
+import org.testng.Assert;
 
 import java.io.File;
 import java.nio.charset.Charset;
-
-import junit.framework.Assert;
-
-import org.junit.Test;
 
 /**
  * Attempts to test that the configuration options can validate the input given
@@ -44,10 +42,10 @@ public class FlatFileConfigurationTests {
     public void testValidate() throws Exception {
         FlatFileConfiguration config = new FlatFileConfiguration();
         // check defaults..
-        assertEquals(null, config.getFile());
-        assertEquals(Charset.defaultCharset().name(), config.getEncoding());
-        assertEquals('"', config.getTextQualifier());
-        assertEquals(',', config.getFieldDelimiter());
+        Assert.assertEquals(null, config.getFile());
+        Assert.assertEquals(Charset.defaultCharset().name(), config.getEncoding());
+        Assert.assertEquals('"', config.getTextQualifier());
+        Assert.assertEquals(',', config.getFieldDelimiter());
         // set a unique attribute so there's not a runtime exception..
         config.setUniqueAttributeName("uid");
         
@@ -55,11 +53,11 @@ public class FlatFileConfigurationTests {
         File f = new File("test/test.csv");
         // simple property test..
         config.setFile(f);
-        assertEquals(f, config.getFile());
+        Assert.assertEquals(f, config.getFile());
         // try the validate..
         try {
             config.validate();
-            Assert.fail();
+            AssertJUnit.fail();
         } catch (RuntimeException e) {
             // expected because the file doesn't exist..
         }
@@ -68,7 +66,7 @@ public class FlatFileConfigurationTests {
         f.deleteOnExit();
         // attempt validate again..
         config.setFile(f);
-        assertEquals(f, config.getFile());
+        Assert.assertEquals(f, config.getFile());
         // this should work..
         config.validate();
 
@@ -76,19 +74,19 @@ public class FlatFileConfigurationTests {
         config.setEncoding(null);
         try {
             config.validate();
-            Assert.fail();
+            AssertJUnit.fail();
         } catch (IllegalArgumentException ex) {
             // should go here..
         }
         // check encoding..
         config.setEncoding(Charset.forName("UTF-8").name());
-        assertEquals(Charset.forName("UTF-8").name(), config.getEncoding());
+        Assert.assertEquals(Charset.forName("UTF-8").name(), config.getEncoding());
 
         // test stupid problem..
         config.setFieldDelimiter('"');
         try {
             config.validate();
-            Assert.fail();
+            AssertJUnit.fail();
         } catch (IllegalStateException ex) {
             // should go here..
         }
@@ -99,7 +97,7 @@ public class FlatFileConfigurationTests {
         try {
             config.setUniqueAttributeName("");
             config.validate();
-            Assert.fail();
+            AssertJUnit.fail();
         } catch (IllegalArgumentException ex) {
             // should throw..
         }

@@ -3,7 +3,7 @@
 <!--
 http://www.javabeat.net/articles/185-apache-maven-20-maven-plugins-1.html
 
- Copyright (c) 2011 ForgeRock Inc. All Rights Reserved
+ Copyright © 2011 ForgeRock Inc. All Rights Reserved
 
  The contents of this file are subject to the terms
  of the Common Development and Distribution License
@@ -61,4 +61,17 @@ http://www.javabeat.net/articles/185-apache-maven-20-maven-plugins-1.html
         <!--module>webservice/openportal</module-->
         <module>webservice/spml</module>
     </modules>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-eclipse-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <downloadSources>true</downloadSources>
+                    <downloadJavadocs>true</downloadJavadocs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

@@ -22,6 +22,9 @@
  */
 package org.identityconnectors.db2;
 
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
 import java.sql.*;
 
 import org.identityconnectors.dbcommon.*;

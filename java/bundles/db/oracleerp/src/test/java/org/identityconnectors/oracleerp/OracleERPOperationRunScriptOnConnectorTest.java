@@ -3,9 +3,9 @@
  */
 package org.identityconnectors.oracleerp;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import static org.identityconnectors.oracleerp.OracleERPUtil.*;
-import static org.junit.Assert.*;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -19,7 +19,6 @@ import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.ScriptContext;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.junit.Test;
 
 /**
  * @author petr
@@ -43,7 +42,7 @@ public class OracleERPOperationRunScriptOnConnectorTest extends OracleERPTestsBa
         
         
         final Uid uid = c.create(ObjectClass.ACCOUNT, attrs, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
 
         
         Map<String, Object> scriptArguments = new HashMap<String, Object>();
@@ -55,15 +54,15 @@ public class OracleERPOperationRunScriptOnConnectorTest extends OracleERPTestsBa
         
         ScriptContext request = new ScriptContext(GROOVY, scriptText, scriptArguments);
         final Object ret = c.runScriptOnConnector(request , null);
-        assertNotNull("mail not returned", ret);
-        assertEquals("mail value", EXPECTED_MAIL, ret);
+        AssertJUnit.assertNotNull("mail not returned", ret);
+        AssertJUnit.assertEquals("mail value", EXPECTED_MAIL, ret);
     }
     
 
     /**
      * Test method for {@link org.identityconnectors.oracleerp.AccountOperationGetUserAfterAction#runScriptOnConnector(java.lang.Object, org.identityconnectors.framework.common.objects.ConnectorObjectBuilder)}.
      */
-    @Test(expected=ConnectorException.class)
+    @Test(expectedExceptions=ConnectorException.class)
     public void testRunScriptOnConnectorError() {
         final OracleERPConfiguration cfg = getConfiguration(CONFIG_SYSADM);
         final String scriptText = IOUtil.getResourceAsString(this.getClass(), RUN_ERROR_ACTION);
@@ -73,7 +72,7 @@ public class OracleERPOperationRunScriptOnConnectorTest extends OracleERPTestsBa
         
         
         final Uid uid = c.create(ObjectClass.ACCOUNT, attrs, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
 
         
         Map<String, Object> scriptArguments = new HashMap<String, Object>();
@@ -85,14 +84,14 @@ public class OracleERPOperationRunScriptOnConnectorTest extends OracleERPTestsBa
         
         ScriptContext request = new ScriptContext(GROOVY, scriptText, scriptArguments);
         final Object ret = c.runScriptOnConnector(request , null);
-        assertNotNull("mail not returned", ret);
-        assertEquals("mail value", EXPECTED_MAIL, ret);
+        AssertJUnit.assertNotNull("mail not returned", ret);
+        AssertJUnit.assertEquals("mail value", EXPECTED_MAIL, ret);
    }
     
     /**
      * Test method for {@link org.identityconnectors.oracleerp.AccountOperationGetUserAfterAction#runScriptOnConnector(java.lang.Object, org.identityconnectors.framework.common.objects.ConnectorObjectBuilder)}.
      */
-    @Test(expected=ConnectorException.class)
+    @Test(expectedExceptions=ConnectorException.class)
     public void testRunScriptOnConnectorParsedError() {
         final OracleERPConfiguration cfg = getConfiguration(CONFIG_SYSADM);
         final String scriptText = "return (  ;";
@@ -102,7 +101,7 @@ public class OracleERPOperationRunScriptOnConnectorTest extends OracleERPTestsBa
         
         
         final Uid uid = c.create(ObjectClass.ACCOUNT, attrs, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
 
         
         Map<String, Object> scriptArguments = new HashMap<String, Object>();
@@ -114,7 +113,7 @@ public class OracleERPOperationRunScriptOnConnectorTest extends OracleERPTestsBa
         
         ScriptContext request = new ScriptContext(GROOVY, scriptText, scriptArguments);
         final Object ret = c.runScriptOnConnector(request , null);
-        assertNotNull("mail not returned", ret);
-        assertEquals("mail value", EXPECTED_MAIL, ret);
+        AssertJUnit.assertNotNull("mail not returned", ret);
+        AssertJUnit.assertEquals("mail value", EXPECTED_MAIL, ret);
    }
 }

@@ -22,9 +22,8 @@
  */
 package org.identityconnectors.oracleerp;
 
-import static org.junit.Assert.assertNotNull;
-
-import org.junit.Test;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.Test;
 
 
 
@@ -71,7 +70,7 @@ public class OracleERPConnectorTests extends OracleERPTestsBase {
     /**
      * Test method for {@link OracleERPConfiguration#getConnectionUrl()}.
      */
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expectedExceptions=IllegalArgumentException.class)
     public void testConnectorUserWrongAccountIncluded() {
         OracleERPConfiguration cfg = getConfiguration(CONFIG_SYSADM);
         cfg.setAccountsIncluded("WHERE REAL='BLAF'");
@@ -125,7 +124,7 @@ public class OracleERPConnectorTests extends OracleERPTestsBase {
         conn.test();
     }
     
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expectedExceptions=IllegalArgumentException.class)
     public void testConnectorWrongPasswordAttribute() {
         OracleERPConfiguration cfg = getConfiguration(CONFIG_SYSADM);
         cfg.setPasswordAttribute("description"); // it is duplicite

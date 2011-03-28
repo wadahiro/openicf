@@ -22,9 +22,9 @@
  */
 package org.identityconnectors.oracleerp;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import static org.identityconnectors.oracleerp.OracleERPUtil.*;
-import static org.junit.Assert.*;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +38,6 @@ import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.test.common.TestHelpers;
-import org.junit.Test;
 
 
 
@@ -62,16 +61,16 @@ public class AccountOperationUpdateTests extends OracleERPTestsBase {
         final Set<Attribute> create = getAttributeSet(ACCOUNT_REQUIRED_ATTRS);
         replaceNameByRandom(create);
         Uid uid = c.create(ObjectClass.ACCOUNT, create, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
         final Set<Attribute> update = getAttributeSet(ACCOUNT_MODIFY_ATTRS);
         replaceNameByValue(update, uid.getUidValue());
         uid = c.update(ObjectClass.ACCOUNT, uid, update, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
         List<ConnectorObject> results = TestHelpers
         .searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid));
-        assertTrue("expect 1 connector object", results.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", results.size() == 1);
         
         final ConnectorObject co = results.get(0);
         final Set<Attribute> returned = co.getAttributes();
@@ -91,11 +90,11 @@ public class AccountOperationUpdateTests extends OracleERPTestsBase {
         final Set<Attribute> create = getAttributeSet(ACCOUNT_MODIFY_ATTRS);
         replaceNameByRandom(create);
         Uid uid = c.create(ObjectClass.ACCOUNT, create, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
         List<ConnectorObject> results = TestHelpers
         .searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid));
-        assertTrue("expect 1 connector object", results.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", results.size() == 1);
         
         ConnectorObject co = results.get(0);
         Set<Attribute> returned = co.getAttributes();
@@ -106,10 +105,10 @@ public class AccountOperationUpdateTests extends OracleERPTestsBase {
         final Set<Attribute> update = getAttributeSet(ACCOUNT_ALL_ATTRS);
         replaceNameByValue(update, uid.getUidValue());
         uid = c.update(ObjectClass.ACCOUNT, uid, update, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
         results = TestHelpers.searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid));
-        assertTrue("expect 1 connector object", results.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", results.size() == 1);
         
         co = results.get(0);
         returned = co.getAttributes();
@@ -136,11 +135,11 @@ public class AccountOperationUpdateTests extends OracleERPTestsBase {
         final Set<Attribute> create = getAttributeSet(ACCOUNT_ALL_ATTRS);
         replaceNameByRandom(create);
         Uid uid = c.create(ObjectClass.ACCOUNT, create, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
         List<ConnectorObject> results = TestHelpers
         .searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid));
-        assertTrue("expect 1 connector object", results.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", results.size() == 1);
         
         ConnectorObject co = results.get(0);
         Set<Attribute> returned = co.getAttributes();
@@ -155,10 +154,10 @@ public class AccountOperationUpdateTests extends OracleERPTestsBase {
         final Attribute emptyResp = AttributeBuilder.build(DIRECT_RESPS);
         update.add(emptyResp);
         uid = c.update(ObjectClass.ACCOUNT, uid, update, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
         results = TestHelpers.searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid));
-        assertTrue("expect 1 connector object", results.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", results.size() == 1);
         
         co = results.get(0);
         returned = co.getAttributes();
@@ -181,14 +180,14 @@ public class AccountOperationUpdateTests extends OracleERPTestsBase {
     /**
      * Test method .
      */
-    @Test(expected=IllegalStateException.class)
+    @Test(expectedExceptions=IllegalStateException.class)
     public void testUpdate() {
         final OracleERPConnector c = getConnector(CONFIG_SYSADM);
         
         final Set<Attribute> create = getAttributeSet(ACCOUNT_REQUIRED_ATTRS);
         replaceNameByRandom(create);
         Uid uid = c.create(ObjectClass.ACCOUNT, create, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
         final Set<Attribute> update = getAttributeSet(ACCOUNT_MODIFY_ATTRS);
         // Name is generated to the new name
@@ -207,7 +206,7 @@ public class AccountOperationUpdateTests extends OracleERPTestsBase {
         final Set<Attribute> create = getAttributeSet(ACCOUNT_REQUIRED_ATTRS);
         replaceNameByRandom(create);
         Uid uid = c.create(ObjectClass.ACCOUNT, create, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
         final Set<Attribute> update = new HashSet<Attribute>();       
         
@@ -216,11 +215,11 @@ public class AccountOperationUpdateTests extends OracleERPTestsBase {
         update.add(uid);
         update.add(AttributeBuilder.buildEnabled(false));
         uid = c.update(ObjectClass.ACCOUNT, uid, update, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
         List<ConnectorObject> results = TestHelpers
         .searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid));
-        assertTrue("expect 1 connector object", results.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", results.size() == 1);
         
         final ConnectorObject co = results.get(0);
         final Set<Attribute> returned = co.getAttributes();
@@ -240,17 +239,17 @@ public class AccountOperationUpdateTests extends OracleERPTestsBase {
         final Set<Attribute> create = getAttributeSet(ACCOUNT_REQUIRED_ATTRS);
         replaceNameByRandom(create);
         Uid uid = c.create(ObjectClass.ACCOUNT, create, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
         final Set<Attribute> dissable = new HashSet<Attribute>();       
         dissable.add(uid);
         dissable.add(AttributeBuilder.buildEnabled(false));
         uid = c.update(ObjectClass.ACCOUNT, uid, dissable, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
         List<ConnectorObject> results = TestHelpers
         .searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid));
-        assertTrue("expect 1 connector object", results.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", results.size() == 1);
         
         final ConnectorObject co = results.get(0);
         final Set<Attribute> returned = co.getAttributes();
@@ -260,11 +259,11 @@ public class AccountOperationUpdateTests extends OracleERPTestsBase {
         enable.add(uid);
         enable.add(AttributeBuilder.buildEnabled(true));
         uid = c.update(ObjectClass.ACCOUNT, uid, enable, null);
-        assertNotNull(uid);
+        AssertJUnit.assertNotNull(uid);
         
         List<ConnectorObject> results2 = TestHelpers
         .searchToList(c, ObjectClass.ACCOUNT, FilterBuilder.equalTo(uid));
-        assertTrue("expect 1 connector object", results2.size() == 1);
+        AssertJUnit.assertTrue("expect 1 connector object", results2.size() == 1);
         
         final ConnectorObject co2 = results2.get(0);
         final Set<Attribute> returned2 = co2.getAttributes();

@@ -22,6 +22,9 @@
  */
 package org.identityconnectors.rw3270.hod;
 
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.AssertJUnit;
 import java.io.StringReader;
 import java.text.MessageFormat;
 import java.util.Enumeration;
@@ -37,8 +40,6 @@ import javax.naming.NamingException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import junit.framework.Assert;
-
 import org.identityconnectors.common.l10n.CurrentLocale;
 import org.identityconnectors.common.script.Script;
 import org.identityconnectors.common.script.ScriptBuilder;
@@ -52,8 +53,6 @@ import org.identityconnectors.rw3270.RW3270Configuration;
 import org.identityconnectors.rw3270.RW3270Connection;
 import org.identityconnectors.test.common.PropertyBag;
 import org.identityconnectors.test.common.TestHelpers;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -94,14 +93,14 @@ public class HodConnectionTests {
                 //
                 String command = "LISTUSER IDM03";
                 String line = executeCommand(connection, command);
-                Assert.assertTrue(line.contains("USER=IDM03"));
+                AssertJUnit.assertTrue(line.contains("USER=IDM03"));
                 System.out.println(line);
             } finally {
                 connection.dispose();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Assert.fail(e.toString());
+            AssertJUnit.fail(e.toString());
         }
     }
 
@@ -188,16 +187,16 @@ public class HodConnectionTests {
                     MapTransform transform = fillInPatternNodes(omvsParser);
                     @SuppressWarnings("unchecked")
                     Map<String, Object> attributes = (Map<String, Object>)transform.transform(line);
-                    Assert.assertNotNull(attributes.get("TSO.MAXSIZE"));
-                    Assert.assertNotNull(attributes.get("TSO.USERDATA"));
-                    Assert.assertNotNull(attributes.get("TSO.JOBCLASS"));
+                    AssertJUnit.assertNotNull(attributes.get("TSO.MAXSIZE"));
+                    AssertJUnit.assertNotNull(attributes.get("TSO.USERDATA"));
+                    AssertJUnit.assertNotNull(attributes.get("TSO.JOBCLASS"));
                 }
             } finally {
                 connection.dispose();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Assert.fail(e.toString());
+            AssertJUnit.fail(e.toString());
         }
     }
 
@@ -226,13 +225,13 @@ public class HodConnectionTests {
                 MapTransform transform = fillInPatternNodes(cicsParser);
                 @SuppressWarnings("unchecked")
                 Map<String, Object> attributes = (Map<String, Object>)transform.transform(line);
-                Assert.assertNotNull(attributes.get("CICS.XRFSOFF"));
-                Assert.assertTrue(attributes.get("CICS.OPCLASS") instanceof List);
+                AssertJUnit.assertNotNull(attributes.get("CICS.XRFSOFF"));
+                AssertJUnit.assertTrue(attributes.get("CICS.OPCLASS") instanceof List);
             } finally {
                 connection.dispose();
             }
         } catch (Exception e) {
-            Assert.fail(e.toString());
+            AssertJUnit.fail(e.toString());
         }
     }
     
@@ -269,14 +268,14 @@ public class HodConnectionTests {
                 MapTransform transform = fillInPatternNodes(tsoParser);
                 @SuppressWarnings("unchecked")
                 Map<String, Object> attributes = (Map<String, Object>)transform.transform(line);
-                Assert.assertNotNull(attributes.get("TSO.MAXSIZE"));
-                Assert.assertNotNull(attributes.get("TSO.USERDATA"));
-                Assert.assertNotNull(attributes.get("TSO.JOBCLASS"));
+                AssertJUnit.assertNotNull(attributes.get("TSO.MAXSIZE"));
+                AssertJUnit.assertNotNull(attributes.get("TSO.USERDATA"));
+                AssertJUnit.assertNotNull(attributes.get("TSO.JOBCLASS"));
             } finally {
                 connection.dispose();
             }
         } catch (Exception e) {
-            Assert.fail(e.toString());
+            AssertJUnit.fail(e.toString());
         }
     }
 

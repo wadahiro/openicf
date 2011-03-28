@@ -22,10 +22,9 @@
  */
 package org.identityconnectors.oracleerp;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import static org.identityconnectors.common.StringUtil.isBlank;
-import static org.junit.Assert.*;
-
-import org.junit.Test;
 
 
 
@@ -44,25 +43,25 @@ public class OracleERPConfigurationTests extends OracleERPTestsBase {
     @Test
     public void testConfigSysadm() {
         final OracleERPConfiguration config = getConfiguration(CONFIG_SYSADM);
-        assertNotNull("null config", config);
+        AssertJUnit.assertNotNull("null config", config);
         
-        assertNotNull("null driver", config.getDriver());        
+        AssertJUnit.assertNotNull("null driver", config.getDriver());        
         if(isBlank(config.getUrl())) {
-            assertNotNull("null host", config.getHost());
-            assertNotNull("null user", config.getUser());
-            assertNotNull("null port", config.getPort());
+            AssertJUnit.assertNotNull("null host", config.getHost());
+            AssertJUnit.assertNotNull("null user", config.getUser());
+            AssertJUnit.assertNotNull("null port", config.getPort());
         }
-        assertNotNull("null password", config.getPassword());
-        assertNotNull("null account includede", config.getAccountsIncluded());
-        assertFalse("isActiveAccountsOnl", config.isActiveAccountsOnly());
-        assertNotNull("getAuditResponsibility", config.getAuditResponsibility());
-        assertTrue("isManageSecuringAttrs", config.isManageSecuringAttrs());
-        assertFalse("isNoSchemaId", config.isNoSchemaId());
-        assertTrue("isReturnSobOrgAttrs", config.isReturnSobOrgAttrs());
-        assertNull("getUserAfterActionScript", config.getUserAfterActionScript());
-        assertNotNull("null getConnectionUrl", config.getConnectionUrl());
-        assertNotNull("null clientEncryptionLevel", config.getClientEncryptionLevel());
-        assertNotNull("null clientEncryptionType", config.getClientEncryptionType());
+        AssertJUnit.assertNotNull("null password", config.getPassword());
+        AssertJUnit.assertNotNull("null account includede", config.getAccountsIncluded());
+        AssertJUnit.assertFalse("isActiveAccountsOnl", config.isActiveAccountsOnly());
+        AssertJUnit.assertNotNull("getAuditResponsibility", config.getAuditResponsibility());
+        AssertJUnit.assertTrue("isManageSecuringAttrs", config.isManageSecuringAttrs());
+        AssertJUnit.assertFalse("isNoSchemaId", config.isNoSchemaId());
+        AssertJUnit.assertTrue("isReturnSobOrgAttrs", config.isReturnSobOrgAttrs());
+        AssertJUnit.assertNull("getUserAfterActionScript", config.getUserAfterActionScript());
+        AssertJUnit.assertNotNull("null getConnectionUrl", config.getConnectionUrl());
+        AssertJUnit.assertNotNull("null clientEncryptionLevel", config.getClientEncryptionLevel());
+        AssertJUnit.assertNotNull("null clientEncryptionType", config.getClientEncryptionType());
         
         config.validate();
     }    
@@ -73,23 +72,23 @@ public class OracleERPConfigurationTests extends OracleERPTestsBase {
     @Test
     public void testConfigTst() {
         final OracleERPConfiguration config = getConfiguration(CONFIG_TST);
-        assertNotNull("null config", config);
+        AssertJUnit.assertNotNull("null config", config);
         
-        assertNotNull("null driver", config.getDriver());        
+        AssertJUnit.assertNotNull("null driver", config.getDriver());        
         if(isBlank(config.getUrl())) {
-            assertNotNull("null host", config.getHost());
-            assertNotNull("null user", config.getUser());
-            assertNotNull("null port", config.getPort());
+            AssertJUnit.assertNotNull("null host", config.getHost());
+            AssertJUnit.assertNotNull("null user", config.getUser());
+            AssertJUnit.assertNotNull("null port", config.getPort());
         }
-        assertNotNull("null password", config.getPassword());
-        assertNotNull("null account includede", config.getAccountsIncluded());
-        assertTrue("isActiveAccountsOnl", config.isActiveAccountsOnly());
-        assertNotNull("getAuditResponsibility", config.getAuditResponsibility());
-        assertFalse("isManageSecuringAttrs", config.isManageSecuringAttrs());
-        assertFalse("isNoSchemaId", config.isNoSchemaId());
-        assertFalse("isReturnSobOrgAttrs", config.isReturnSobOrgAttrs());
-        assertNull("getUserAfterActionScript", config.getUserAfterActionScript());        
-        assertNotNull("null getConnectionUrl", config.getConnectionUrl());
+        AssertJUnit.assertNotNull("null password", config.getPassword());
+        AssertJUnit.assertNotNull("null account includede", config.getAccountsIncluded());
+        AssertJUnit.assertTrue("isActiveAccountsOnl", config.isActiveAccountsOnly());
+        AssertJUnit.assertNotNull("getAuditResponsibility", config.getAuditResponsibility());
+        AssertJUnit.assertFalse("isManageSecuringAttrs", config.isManageSecuringAttrs());
+        AssertJUnit.assertFalse("isNoSchemaId", config.isNoSchemaId());
+        AssertJUnit.assertFalse("isReturnSobOrgAttrs", config.isReturnSobOrgAttrs());
+        AssertJUnit.assertNull("getUserAfterActionScript", config.getUserAfterActionScript());        
+        AssertJUnit.assertNotNull("null getConnectionUrl", config.getConnectionUrl());
         
         config.validate();
     }      
@@ -101,23 +100,23 @@ public class OracleERPConfigurationTests extends OracleERPTestsBase {
     @Test
     public void testConfigUser() {
         final OracleERPConfiguration config = getConfiguration(CONFIG_USER);
-        assertNotNull("null config", config);
+        AssertJUnit.assertNotNull("null config", config);
         
-        assertNotNull("null driver", config.getDriver());        
+        AssertJUnit.assertNotNull("null driver", config.getDriver());        
         if(isBlank(config.getUrl())) {
-            assertNotNull("null host", config.getHost());
-            assertNotNull("null user", config.getUser());
-            assertNotNull("null port", config.getPort());
+            AssertJUnit.assertNotNull("null host", config.getHost());
+            AssertJUnit.assertNotNull("null user", config.getUser());
+            AssertJUnit.assertNotNull("null port", config.getPort());
         }
-        assertNotNull("null password", config.getPassword());
-        assertNotNull("null account includede", config.getAccountsIncluded());
-        assertFalse("isActiveAccountsOnl", config.isActiveAccountsOnly());
-        assertNotNull("getAuditResponsibility", config.getAuditResponsibility());
-        assertTrue("isManageSecuringAttrs", config.isManageSecuringAttrs());
-        assertFalse("isNoSchemaId", config.isNoSchemaId());
-        assertFalse("isReturnSobOrgAttrs", config.isReturnSobOrgAttrs());
-        assertNull("getUserAfterActionScript", config.getUserAfterActionScript());
-        assertNotNull("null getConnectionUrl", config.getConnectionUrl());
+        AssertJUnit.assertNotNull("null password", config.getPassword());
+        AssertJUnit.assertNotNull("null account includede", config.getAccountsIncluded());
+        AssertJUnit.assertFalse("isActiveAccountsOnl", config.isActiveAccountsOnly());
+        AssertJUnit.assertNotNull("getAuditResponsibility", config.getAuditResponsibility());
+        AssertJUnit.assertTrue("isManageSecuringAttrs", config.isManageSecuringAttrs());
+        AssertJUnit.assertFalse("isNoSchemaId", config.isNoSchemaId());
+        AssertJUnit.assertFalse("isReturnSobOrgAttrs", config.isReturnSobOrgAttrs());
+        AssertJUnit.assertNull("getUserAfterActionScript", config.getUserAfterActionScript());
+        AssertJUnit.assertNotNull("null getConnectionUrl", config.getConnectionUrl());
         
         config.validate();
     }
@@ -129,8 +128,8 @@ public class OracleERPConfigurationTests extends OracleERPTestsBase {
     public void testConfigUserPasswordAttribute() {
         final OracleERPConfiguration config = getConfiguration(CONFIG_USER);
         config.setPasswordAttribute("test");
-        assertNotNull("null config", config);
-        assertEquals("getPasswordAttribute", "test", config.getPasswordAttribute());
+        AssertJUnit.assertNotNull("null config", config);
+        AssertJUnit.assertEquals("getPasswordAttribute", "test", config.getPasswordAttribute());
         config.validate();
     }    
  
@@ -140,7 +139,7 @@ public class OracleERPConfigurationTests extends OracleERPTestsBase {
     @Test
     public void testValidateSysConfiguration() {
         final OracleERPConfiguration config = getConfiguration(CONFIG_TST);
-        assertNotNull(config);
+        AssertJUnit.assertNotNull(config);
         config.validate();
     }
 }

@@ -22,6 +22,9 @@
  */
 package org.identityconnectors.rw3270;
 
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.AssertJUnit;
 import java.text.MessageFormat;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -34,8 +37,6 @@ import java.util.ResourceBundle;
 
 import javax.naming.NamingException;
 
-import junit.framework.Assert;
-
 import org.identityconnectors.common.l10n.CurrentLocale;
 import org.identityconnectors.common.script.Script;
 import org.identityconnectors.common.script.ScriptBuilder;
@@ -44,8 +45,6 @@ import org.identityconnectors.framework.common.objects.ConnectorMessages;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 
 public class RW3270ConnectionTests {
@@ -76,12 +75,12 @@ public class RW3270ConnectionTests {
             
             try {
                 connection.waitFor("USER=", 100);
-                Assert.fail("exception expected");
+                AssertJUnit.fail("exception expected");
             } catch (RuntimeException e) {
             }
             try {
                 connection.waitFor("USER=", "C", 100);
-                Assert.fail("exception expected");
+                AssertJUnit.fail("exception expected");
             } catch (RuntimeException e) {
             }
             Thread thread1 = new Thread() {
@@ -95,7 +94,7 @@ public class RW3270ConnectionTests {
             };
             thread1.start();
             thread1.join(5000);
-            Assert.assertTrue(thread1.isAlive());
+            AssertJUnit.assertTrue(thread1.isAlive());
 
             Thread thread2 = new Thread() {
                 public void run() {
@@ -108,10 +107,10 @@ public class RW3270ConnectionTests {
             };
             thread2.start();
             thread2.join(5000);
-            Assert.assertTrue(thread2.isAlive());
+            AssertJUnit.assertTrue(thread2.isAlive());
         } catch (Exception e) {
             e.printStackTrace();
-            Assert.fail(e.toString());
+            AssertJUnit.fail(e.toString());
         }
     }
 
@@ -125,7 +124,7 @@ public class RW3270ConnectionTests {
             connection.send("[cursor (256)]");
             try {
                 connection.send("[bogus]");
-                Assert.fail("no error thrown");
+                AssertJUnit.fail("no error thrown");
             } catch (IllegalArgumentException e) {
             }
             sendRelease((DummyConnection)connection, "USER=IDM03");
@@ -138,7 +137,7 @@ public class RW3270ConnectionTests {
             connection.waitFor("USER=", "IDM03", 3000);
         } catch (Exception e) {
             e.printStackTrace();
-            Assert.fail(e.toString());
+            AssertJUnit.fail(e.toString());
         }
     }
 
@@ -151,16 +150,16 @@ public class RW3270ConnectionTests {
                 connection.send("[pa"+i+"]");
             try {
                 connection.send("[pa0]");
-                Assert.fail("bad PA Key not caught");
+                AssertJUnit.fail("bad PA Key not caught");
             } catch (RuntimeException e) {
             }
             try {
                 connection.send("[pa5]");
-                Assert.fail("bad PA Key not caught");
+                AssertJUnit.fail("bad PA Key not caught");
             } catch (RuntimeException e) {
             }
         } catch (Exception e) {
-            Assert.fail(e.toString());
+            AssertJUnit.fail(e.toString());
         }
     }
 
@@ -173,16 +172,16 @@ public class RW3270ConnectionTests {
                 connection.send("[pf"+i+"]");
             try {
                 connection.send("[pf0]");
-                Assert.fail("bad PFA Key not caught");
+                AssertJUnit.fail("bad PFA Key not caught");
             } catch (RuntimeException e) {
             }
             try {
                 connection.send("[pf25]");
-                Assert.fail("bad PF Key not caught");
+                AssertJUnit.fail("bad PF Key not caught");
             } catch (RuntimeException e) {
             }
         } catch (Exception e) {
-            Assert.fail(e.toString());
+            AssertJUnit.fail(e.toString());
         }
     }
     
@@ -307,7 +306,8 @@ public class RW3270ConnectionTests {
             _ioPair.reset();
         }
 
-        public void test() {
+        @Test
+		public void test() {
         }
     }
 

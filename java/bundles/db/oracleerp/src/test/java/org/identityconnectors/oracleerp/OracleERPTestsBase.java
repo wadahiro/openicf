@@ -22,9 +22,11 @@
  */
 package org.identityconnectors.oracleerp;
 
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
 import static org.identityconnectors.oracleerp.OracleERPUtil.DEFAULT_DRIVER;
-import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -49,7 +51,6 @@ import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
 import org.identityconnectors.test.common.TestHelpers;
-import org.junit.BeforeClass;
 
 
 /**
@@ -190,10 +191,10 @@ abstract public class OracleERPTestsBase {
         try {
             dataProvider.loadConfiguration(configName, config);
         } catch (Exception e) {            
-            fail("load configuration "+configName+" error:"+ e.getMessage());
+            Assert.fail("load configuration "+configName+" error:"+ e.getMessage());
         }
-        assertNotNull(config);
-        assertEquals("The driver is not defined, the dataprovider is not initialized. Set up:" +
+        AssertJUnit.assertNotNull(config);
+        AssertJUnit.assertEquals("The driver is not defined, the dataprovider is not initialized. Set up:" +
         		     "-Dproject.name=connector-oracleerp "+
                      "-Ddata-provider=org.identityconnectors.contract.data.GroovyDataProvider"+
                      "-DbundleJar=dist/org.identityconnectors.oracleerp-1.0.1.jar"+
@@ -209,9 +210,9 @@ abstract public class OracleERPTestsBase {
      * @return OracleERPConnector
      */
     protected OracleERPConnector getConnector(OracleERPConfiguration config) {
-        assertNotNull(config);
+        AssertJUnit.assertNotNull(config);
         OracleERPConnector c = new OracleERPConnector();
-        assertNotNull(c);
+        AssertJUnit.assertNotNull(c);
         c.init(config);
         return c;
     }
@@ -223,7 +224,7 @@ abstract public class OracleERPTestsBase {
      */
     protected OracleERPConnector getConnector(String configName) {
         OracleERPConfiguration config = getConfiguration(configName);
-        assertNotNull(config);
+        AssertJUnit.assertNotNull(config);
         return getConnector(config);
     }
 
@@ -234,11 +235,11 @@ abstract public class OracleERPTestsBase {
      */
     protected ConnectorFacade getFacade(OracleERPConfiguration config) {
         final ConnectorFacadeFactory factory = ConnectorFacadeFactory.getInstance();
-        assertNotNull(factory);
+        AssertJUnit.assertNotNull(factory);
         final APIConfiguration impl = TestHelpers.createTestConfiguration(OracleERPConnector.class, config);
-        assertNotNull(impl);
+        AssertJUnit.assertNotNull(impl);
         final ConnectorFacade facade = factory.newInstance(impl);
-        assertNotNull(facade);
+        AssertJUnit.assertNotNull(facade);
         return facade;
     }
 
@@ -249,7 +250,7 @@ abstract public class OracleERPTestsBase {
      */
     protected ConnectorFacade getFacade(String configName) {
         OracleERPConfiguration config = getConfiguration(configName);
-        assertNotNull(config);
+        AssertJUnit.assertNotNull(config);
         return getFacade(config); 
     }
 
@@ -261,7 +262,8 @@ abstract public class OracleERPTestsBase {
      * @param fullMatch true for both side match, false for test those in expected are exist and equal in actual
      * @param ignoreSet {@link Set} attribute names being ignores
      */
-    protected void testAttrSet(final Map<String, Attribute> expMap,
+    @Test
+	protected void testAttrSet(final Map<String, Attribute> expMap,
             final Map<String, Attribute> currMap, boolean fullMatch,
             Set<String> ignoreSet) {
         log.info("attributeSetsEquals");
@@ -288,8 +290,8 @@ abstract public class OracleERPTestsBase {
                 }
             }
         }
-        assertEquals("missing attriburtes " + mis, mis.size(), 0);
-        assertEquals("extra attriburtes " + ext, 0, ext.size());
+        AssertJUnit.assertEquals("missing attriburtes " + mis, mis.size(), 0);
+        AssertJUnit.assertEquals("extra attriburtes " + ext, 0, ext.size());
         log.info("expected attributes are equal to current");
     }
 
@@ -298,12 +300,13 @@ abstract public class OracleERPTestsBase {
      * @param expAttr
      * @param currAttr
      */
-    private void testAttribute(String attrName, final Attribute expAttr, final Attribute currAttr) {
+    @Test(enabled = false)
+	private void testAttribute(String attrName, final Attribute expAttr, final Attribute currAttr) {
         final List<Object> expVals = expAttr.getValue() == null ? new ArrayList<Object>() : expAttr.getValue();
         final List<Object> currVals = currAttr.getValue() == null ? new ArrayList<Object>() : currAttr.getValue();
         final int expValSize = expVals.size();
         final int currValSize = currVals.size();
-        assertEquals("Size of attribute:"+attrName, expValSize, currValSize);
+        AssertJUnit.assertEquals("Size of attribute:"+attrName, expValSize, currValSize);
     
         for (int i = 0; i < expValSize; i++) {
             if( expVals.get(i) == currVals.get(i)) {
@@ -312,9 +315,9 @@ abstract public class OracleERPTestsBase {
             String exp = expVals.get(i) == null ? "null" : expVals.get(i).toString();
             String curr = currVals.get(i) == null ? "null" : currVals.get(i).toString();
             if(attrName.contains("date")) {
-                assertEquals(attrName+":["+i+"]", OracleERPUtil.normalizeStrDate(exp) , OracleERPUtil.normalizeStrDate(curr));
+                AssertJUnit.assertEquals(attrName+":["+i+"]", OracleERPUtil.normalizeStrDate(exp) , OracleERPUtil.normalizeStrDate(curr));
             } else {
-                assertEquals(attrName+":["+i+"]", exp, curr);
+                AssertJUnit.assertEquals(attrName+":["+i+"]", exp, curr);
             }
             
         }
@@ -327,7 +330,8 @@ abstract public class OracleERPTestsBase {
      * @param fullMatch
      * @param ignore
      */
-    protected void testAttrSet(Set<Attribute> expected, Set<Attribute> actual, boolean fullMatch, String ... ignore) {
+    @Test
+	protected void testAttrSet(Set<Attribute> expected, Set<Attribute> actual, boolean fullMatch, String ... ignore) {
         testAttrSet(AttributeUtil.toMap(expected), AttributeUtil.toMap(actual), fullMatch, new HashSet<String>(Arrays.asList(ignore)));              
     }
 
@@ -337,7 +341,8 @@ abstract public class OracleERPTestsBase {
      * @param actual
      * @param ignore
      */
-    protected void testAttrSet(Set<Attribute> expected, Set<Attribute> actual, String ... ignore) {
+    @Test
+	protected void testAttrSet(Set<Attribute> expected, Set<Attribute> actual, String ... ignore) {
         testAttrSet(AttributeUtil.toMap(expected), AttributeUtil.toMap(actual), false, new HashSet<String>(Arrays.asList(ignore)));              
     }
 }

@@ -22,13 +22,14 @@
  */
 package org.identityconnectors.db2;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.Assert;
 import java.sql.*;
 import java.util.*;
 
@@ -110,7 +111,7 @@ public class DB2ConnectorTest {
 	/**
 	 * Test fail of Authenticate
 	 */
-	@Test(expected=RuntimeException.class)
+	@Test(expectedExceptions=RuntimeException.class)
 	public void testAuthenticateFail(){
 		String username = "undefined";
 		String password = "testPassword";
@@ -472,7 +473,7 @@ public class DB2ConnectorTest {
     /**
      * Tests deleting user that does not exist
      */
-    @Test(expected=UnknownUidException.class)
+    @Test(expectedExceptions=UnknownUidException.class)
     public void testDeleteUnexisting() {
         assertNotNull(facade);
         String userName = "delUser";
@@ -483,7 +484,7 @@ public class DB2ConnectorTest {
         uid = findUser(userName);
         assertNull(uid);
         facade.delete(ObjectClass.ACCOUNT, new Uid("UNKNOWN"), null);
-        fail("Delete of not existing user should fail");
+        Assert.fail("Delete of not existing user should fail");
     }
     
     /**
@@ -537,7 +538,7 @@ public class DB2ConnectorTest {
         attributes.add(AttributeBuilder.build(DB2Connector.USER_AUTH_GRANTS,"CONNECT ON DATABASE"));
         try{
             facade.create(ObjectClass.ACCOUNT, attributes, null);
-            fail("Validate should fail : too long user name");
+            Assert.fail("Validate should fail : too long user name");
         }
         catch(IllegalArgumentException e){}
         
@@ -550,7 +551,7 @@ public class DB2ConnectorTest {
         attributes.add(new Name(new String(invalid1)));
         try{
             facade.create(ObjectClass.ACCOUNT, attributes, null);
-            fail("Validate should fail : Invalid character name");
+            Assert.fail("Validate should fail : Invalid character name");
         }
         catch(IllegalArgumentException e){}
         
@@ -558,7 +559,7 @@ public class DB2ConnectorTest {
         attributes.add(new Name(new String(invalid2)));
         try{
             facade.create(ObjectClass.ACCOUNT, attributes, null);
-            fail("Validate should fail : Invalid prefix");
+            Assert.fail("Validate should fail : Invalid prefix");
         }
         catch(IllegalArgumentException e){}
         
@@ -566,7 +567,7 @@ public class DB2ConnectorTest {
         attributes.add(new Name(new String(invalid3)));
         try{
             facade.create(ObjectClass.ACCOUNT, attributes, null);
-            fail("Validate should fail : Reserved keyword");
+            Assert.fail("Validate should fail : Reserved keyword");
         }
         catch(IllegalArgumentException e){}
         
@@ -583,10 +584,11 @@ public class DB2ConnectorTest {
     	testFailForValidity(connector,"US%US","Must fail for invalid char");
     }
     
-    private void testFailForValidity(DB2Connector connector,String name,String msg){
+    @Test(enabled = false)
+	private void testFailForValidity(DB2Connector connector,String name,String msg){
     	try{
     		connector.checkDB2Validity(name);
-    		fail(msg);
+    		Assert.fail(msg);
     	}
     	catch(RuntimeException e){
     	}

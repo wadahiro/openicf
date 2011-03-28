@@ -39,8 +39,9 @@
  */
 package org.identityconnectors.mysqluser;
 
-import static org.junit.Assert.*;
-
+import org.testng.annotations.Test;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -68,7 +69,6 @@ import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 import org.identityconnectors.test.common.TestHelpers;
-import org.junit.Test;
 
 /**
  * @author Petr Jung
@@ -152,12 +152,12 @@ public abstract class MySQLTestBase {
      */
     @Test
     public void testCreate() {
-        assertNotNull(facade);
+        AssertJUnit.assertNotNull(facade);
         String userName=TST_USER1;
         quitellyDeleteUser(userName);
         final Uid uid = createUser(userName, testPassword);
-        assertNotNull(uid);
-        assertEquals(userName, uid.getUidValue());
+        AssertJUnit.assertNotNull(uid);
+        AssertJUnit.assertEquals(userName, uid.getUidValue());
         //Delete it at the end
         quitellyDeleteUser(userName);
     }
@@ -167,7 +167,7 @@ public abstract class MySQLTestBase {
      */
     @Test
     public void testCreateAllGrants() {
-        assertNotNull(facade);
+        AssertJUnit.assertNotNull(facade);
         MySQLUserConnection conn = null;
         PreparedStatement ps = null;
         ResultSet result = null;
@@ -176,22 +176,22 @@ public abstract class MySQLTestBase {
         final List<SQLParam> values = new ArrayList<SQLParam>();
         values.add(new SQLParam("userName", userName));
         final Uid uid = createUser(userName, testPassword);
-        assertNotNull(uid);
-        assertEquals(userName, uid.getUidValue());
+        AssertJUnit.assertNotNull(uid);
+        AssertJUnit.assertEquals(userName, uid.getUidValue());
         final String SQL_SG = "SELECT count(*) FROM mysql.user WHERE user=?";
         try {
             conn = MySQLUserConnection.getConnection(newConfiguration());
             ps = conn.prepareStatement(SQL_SG, values);
             result = ps.executeQuery();
             if(result.next()) {
-                assertEquals("row count", 3, result.getInt(1));
+                AssertJUnit.assertEquals("row count", 3, result.getInt(1));
             } else {
-                fail("row count is not 3");
+                Assert.fail("row count is not 3");
             }
             conn.commit();
         } catch (SQLException ex) {
             log.info("SELECT count(*) FROM mysqluser WHERE user={0}, sql exception {1}", userName, ex.getMessage());
-            fail("testCreateAllGrants fail");
+            Assert.fail("testCreateAllGrants fail");
         } finally {
             SQLUtil.closeQuietly(result);
             SQLUtil.closeQuietly(ps);
@@ -205,18 +205,18 @@ public abstract class MySQLTestBase {
     /**
      * Test method for {@link MySQLUserConnector#create(ObjectClass, Set, OperationOptions)}.
      */
-    @Test(expected = AlreadyExistsException.class)
+    @Test(expectedExceptions = AlreadyExistsException.class)
     public void testCreateDuplicate() {
-        assertNotNull(facade);
+        AssertJUnit.assertNotNull(facade);
         String userName=TST_USER1;
         quitellyDeleteUser(userName);
         final Uid uid = createUser(userName, testPassword);
-        assertNotNull(uid);
-        assertEquals(userName, uid.getUidValue());
+        AssertJUnit.assertNotNull(uid);
+        AssertJUnit.assertEquals(userName, uid.getUidValue());
         //duplicate
         try {
             createUser(userName, testPassword);
-            fail("Duplicate user created");
+            Assert.fail("Duplicate user created");
         } finally {
             //Delete it at the end        
             quitellyDeleteUser(userName);
@@ -226,14 +226,14 @@ public abstract class MySQLTestBase {
     /**
      * Test method for {@link MySQLUserConnector#create(ObjectClass, Set, OperationOptions)}.
      */
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void testCreateUnsupported() {
-        assertNotNull(facade);
+        AssertJUnit.assertNotNull(facade);
         String userName=TST_USER1;
         quitellyDeleteUser(userName);
         
         Set<Attribute> tuas = getUserAttributeSet(TST_USER1, testPassword);
-        assertNotNull(tuas);
+        AssertJUnit.assertNotNull(tuas);
         ObjectClass oc = new ObjectClass("UNSUPPORTED");
         facade.create(oc, tuas, null);   
     }
@@ -245,7 +245,7 @@ public abstract class MySQLTestBase {
     public void testCreateAndUpdate() {
         String userName = TST_USER1;
         String newName = TST_USER3;
-        assertNotNull(facade);
+        AssertJUnit.assertNotNull(facade);
         //To be sure it is created
         quitellyCreateUser(userName, testPassword);    
         quitellyDeleteUser(newName);    
@@ -265,12 +265,12 @@ public abstract class MySQLTestBase {
         final Uid uidUpdate = facade.update(ObjectClass.ACCOUNT, coBeforeUpdate.getUid(), AttributeUtil.filterUid(changeSet), null);
         
         // uids should be the same
-        assertEquals(newName, uidUpdate.getUidValue());
+        AssertJUnit.assertEquals(newName, uidUpdate.getUidValue());
         
         // retrieve the updated object
         // retrieve the object      
         String actual = testUserFound(newName, true); 
-        assertEquals(coBeforeUpdate.getName().getNameValue(), actual);
+        AssertJUnit.assertEquals(coBeforeUpdate.getName().getNameValue(), actual);
         
         quitellyDeleteUser(TST_USER1); 
         quitellyDeleteUser(TST_USER3);   
@@ -279,10 +279,10 @@ public abstract class MySQLTestBase {
     /**
      * Test creating of the connector object, searching using UID and update
      */
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void testUpdateUnsupported() {
         String userName = TST_USER1;
-        assertNotNull(facade);
+        AssertJUnit.assertNotNull(facade);
         //To be sure it is created
         quitellyCreateUser(userName, testPassword);    
         // retrieve the object      
@@ -306,7 +306,7 @@ public abstract class MySQLTestBase {
      */
     @Test
     public void testDelete() {
-        assertNotNull(facade);
+        AssertJUnit.assertNotNull(facade);
         String userName = TST_USER2;
         //To be sure it is created
         quitellyCreateUser(userName, testPassword);
@@ -323,9 +323,9 @@ public abstract class MySQLTestBase {
      * Test method for {@link MySQLUserConnector#delete(ObjectClass, Uid, OperationOptions)}.
      * 
      */
-    @Test(expected = UnknownUidException.class)
+    @Test(expectedExceptions = UnknownUidException.class)
     public void testDeleteUnexisting() {
-        assertNotNull(facade);  
+        AssertJUnit.assertNotNull(facade);  
         facade.delete(ObjectClass.ACCOUNT, new Uid("UNKNOWN"), null); 
     }
 
@@ -348,10 +348,10 @@ public abstract class MySQLTestBase {
         FindUidObjectHandler handler = new FindUidObjectHandler(new Uid(idmModelUser));
         // attempt to find the newly created object..
         facade.search(ObjectClass.ACCOUNT, new EqualsFilter(expected), handler, null);
-        assertTrue("The modeluser was not found", handler.found);
+        AssertJUnit.assertTrue("The modeluser was not found", handler.found);
         final ConnectorObject actual = handler.getConnectorObject();
-        assertNotNull(actual);
-        assertEquals("Expected user is not same",idmModelUser, AttributeUtil.getAsStringValue(actual.getName()));
+        AssertJUnit.assertNotNull(actual);
+        AssertJUnit.assertEquals("Expected user is not same",idmModelUser, AttributeUtil.getAsStringValue(actual.getName()));
      }
 
     /**
@@ -364,10 +364,10 @@ public abstract class MySQLTestBase {
         FindUidObjectHandler handler = new FindUidObjectHandler(new Uid(idmModelUser));
         // attempt to find the newly created object..
         facade.search(ObjectClass.ACCOUNT, new ContainsFilter(expected), handler, null);
-        assertTrue("The modeluser was not found", handler.found);
+        AssertJUnit.assertTrue("The modeluser was not found", handler.found);
         final ConnectorObject actual = handler.getConnectorObject();
-        assertNotNull(actual);
-        assertEquals("Expected user is not same",idmModelUser, AttributeUtil.getAsStringValue(actual.getName()));
+        AssertJUnit.assertNotNull(actual);
+        AssertJUnit.assertEquals("Expected user is not same",idmModelUser, AttributeUtil.getAsStringValue(actual.getName()));
      }
 
     /**
@@ -380,10 +380,10 @@ public abstract class MySQLTestBase {
         FindUidObjectHandler handler = new FindUidObjectHandler(new Uid(idmModelUser));
         // attempt to find the newly created object..
         facade.search(ObjectClass.ACCOUNT, new EndsWithFilter(expected), handler, null);
-        assertTrue("The modeluser was not found", handler.found);
+        AssertJUnit.assertTrue("The modeluser was not found", handler.found);
         final ConnectorObject actual = handler.getConnectorObject();
-        assertNotNull(actual);
-        assertEquals("Expected user is not same",idmModelUser, AttributeUtil.getAsStringValue(actual.getName()));
+        AssertJUnit.assertNotNull(actual);
+        AssertJUnit.assertEquals("Expected user is not same",idmModelUser, AttributeUtil.getAsStringValue(actual.getName()));
      }
 
     /**
@@ -396,10 +396,10 @@ public abstract class MySQLTestBase {
         FindUidObjectHandler handler = new FindUidObjectHandler(new Uid(idmModelUser));
         // attempt to find the newly created object..
         facade.search(ObjectClass.ACCOUNT, new StartsWithFilter(expected), handler, null);
-        assertTrue("The modeluser was not found", handler.found);
+        AssertJUnit.assertTrue("The modeluser was not found", handler.found);
         final ConnectorObject actual = handler.getConnectorObject();
-        assertNotNull(actual);
-        assertEquals("Expected user is not same",idmModelUser, AttributeUtil.getAsStringValue(actual.getName()));
+        AssertJUnit.assertNotNull(actual);
+        AssertJUnit.assertEquals("Expected user is not same",idmModelUser, AttributeUtil.getAsStringValue(actual.getName()));
      }
 
     /**
@@ -412,10 +412,10 @@ public abstract class MySQLTestBase {
         FindUidObjectHandler handler = new FindUidObjectHandler(expected);
         // attempt to find the newly created object..
         facade.search(ObjectClass.ACCOUNT, new EqualsFilter(expected), handler, null);
-        assertTrue("The modeluser was not found", handler.found);
+        AssertJUnit.assertTrue("The modeluser was not found", handler.found);
         final Uid actual = handler.getUid();
-        assertNotNull(actual);
-        assertTrue(actual.is(expected.getName()));  
+        AssertJUnit.assertNotNull(actual);
+        AssertJUnit.assertTrue(actual.is(expected.getName()));  
      }
 
 
@@ -423,7 +423,7 @@ public abstract class MySQLTestBase {
      * Test method 
      * @throws Exception
      */
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void testInvalidConfigurationUsermodel() throws Exception {
         config.setUsermodel("");
         config.validate();
@@ -452,8 +452,8 @@ public abstract class MySQLTestBase {
     
         final String[] tstProp = {"a=a","b=b"};
         config.setJndiProperties(tstProp);
-        assertEquals(tstProp[0], config.getJndiProperties()[0]);
-        assertEquals(tstProp[1], config.getJndiProperties()[1]);
+        AssertJUnit.assertEquals(tstProp[0], config.getJndiProperties()[0]);
+        AssertJUnit.assertEquals(tstProp[1], config.getJndiProperties()[1]);
         config.validate();
     }
 
@@ -463,7 +463,7 @@ public abstract class MySQLTestBase {
     @Test
     public void testAuthenticateOriginal() {
         String userName = TST_USER1;
-        assertNotNull(facade);
+        AssertJUnit.assertNotNull(facade);
         //To be sure it is created
         quitellyCreateUser(userName, testPassword);    
         
@@ -471,7 +471,7 @@ public abstract class MySQLTestBase {
         testUserFound(userName, true);
         
         final Uid uid = facade.authenticate(ObjectClass.ACCOUNT, userName, testPassword, null);
-        assertEquals(userName, uid.getUidValue());
+        AssertJUnit.assertEquals(userName, uid.getUidValue());
         quitellyDeleteUser(userName); 
     }
     
@@ -482,7 +482,7 @@ public abstract class MySQLTestBase {
     @Test
     public void testResolveUsernameOriginal() {
         String userName = TST_USER1;
-        assertNotNull(facade);
+        AssertJUnit.assertNotNull(facade);
         //To be sure it is created
         quitellyCreateUser(userName, testPassword);    
         
@@ -490,17 +490,17 @@ public abstract class MySQLTestBase {
         testUserFound(userName, true);
         
         final Uid uid = facade.resolveUsername(ObjectClass.ACCOUNT, userName, null);
-        assertEquals(userName, uid.getUidValue());
+        AssertJUnit.assertEquals(userName, uid.getUidValue());
         quitellyDeleteUser(userName); 
     }    
 
     /**
      * Test creating of the connector object, searching using UID and update
      */
-    @Test(expected = InvalidCredentialException.class)
+    @Test(expectedExceptions = InvalidCredentialException.class)
     public void testAuthenticateWrongOriginal() {
         String userName = TST_USER1;
-        assertNotNull(facade);
+        AssertJUnit.assertNotNull(facade);
         //To be sure it is created
         quitellyCreateUser(userName, testPassword);
         
@@ -516,9 +516,9 @@ public abstract class MySQLTestBase {
     /**
      * Test creating of the connector object, searching using UID and update
      */
-    @Test(expected = InvalidCredentialException.class)
+    @Test(expectedExceptions = InvalidCredentialException.class)
     public void testResolveUsernameWrongOriginal() {
-        assertNotNull(facade);
+        AssertJUnit.assertNotNull(facade);
         facade.resolveUsername(ObjectClass.ACCOUNT, "blaf", null);
     }    
 
@@ -529,7 +529,7 @@ public abstract class MySQLTestBase {
     public void testCreateUpdateAutenticate() {
         final String NEWPWD = "newvalue";        
         String userName = TST_USER1;
-        assertNotNull(facade);
+        AssertJUnit.assertNotNull(facade);
         //To be sure it is created
         quitellyCreateUser(userName, testPassword);
         
@@ -548,7 +548,7 @@ public abstract class MySQLTestBase {
         final Uid uidUpdate = facade.update(coUpdate.getObjectClass() , coUpdate.getUid(), AttributeUtil.filterUid(coUpdate.getAttributes()), null);
         
         // uids should be the same
-        assertEquals(userName, uidUpdate.getUidValue());
+        AssertJUnit.assertEquals(userName, uidUpdate.getUidValue());
         
         facade.authenticate(ObjectClass.ACCOUNT, userName, new GuardedString(NEWPWD.toCharArray()), null);
         
@@ -562,19 +562,19 @@ public abstract class MySQLTestBase {
     public void testSchemaApi() {
         Schema schema = facade.schema();
         // Schema should not be null
-        assertNotNull(schema);
+        AssertJUnit.assertNotNull(schema);
         Set<ObjectClassInfo> objectInfos = schema.getObjectClassInfo();
-        assertNotNull(objectInfos);
-        assertEquals(1, objectInfos.size());
+        AssertJUnit.assertNotNull(objectInfos);
+        AssertJUnit.assertEquals(1, objectInfos.size());
         ObjectClassInfo objectInfo = (ObjectClassInfo) objectInfos.toArray()[0];
-        assertNotNull(objectInfo);
+        AssertJUnit.assertNotNull(objectInfo);
         // the object class has to ACCOUNT_NAME
-        assertTrue(objectInfo.is(ObjectClass.ACCOUNT_NAME));
+        AssertJUnit.assertTrue(objectInfo.is(ObjectClass.ACCOUNT_NAME));
         // iterate through AttributeInfo Set
         Set<AttributeInfo> attInfos = objectInfo.getAttributeInfo();
         
-        assertNotNull(AttributeInfoUtil.find(Name.NAME, attInfos));
-        assertNotNull(AttributeInfoUtil.find(OperationalAttributes.PASSWORD_NAME, attInfos));
+        AssertJUnit.assertNotNull(AttributeInfoUtil.find(Name.NAME, attInfos));
+        AssertJUnit.assertNotNull(AttributeInfoUtil.find(OperationalAttributes.PASSWORD_NAME, attInfos));
     }
 
     /**
@@ -737,7 +737,7 @@ public abstract class MySQLTestBase {
         } catch (SQLException ex) {
             log.error(ex, "Fail to create User {0} Grants , statement:{1}", userName, sql);
             SQLUtil.rollbackQuietly(conn);
-            fail(ex.getMessage());
+            Assert.fail(ex.getMessage());
         } finally {
             SQLUtil.closeQuietly(ps);
             SQLUtil.closeQuietly(conn);
@@ -756,7 +756,8 @@ public abstract class MySQLTestBase {
     /**
      * @param userName
      */
-    private String testUserFound(String userName, boolean found) {
+    @Test(enabled = false)
+	private String testUserFound(String userName, boolean found) {
         String ret = null;
     
         // update the last change
@@ -783,9 +784,9 @@ public abstract class MySQLTestBase {
             SQLUtil.closeQuietly(conn);
         }
         if(found) {
-            assertNotNull("The object for "+userName+" is null", ret);
+            AssertJUnit.assertNotNull("The object for "+userName+" is null", ret);
         } else {
-            assertNull("The object for "+userName+" is not null", ret);
+            AssertJUnit.assertNull("The object for "+userName+" is not null", ret);
         }
         log.ok("test User {0} found {1} ", userName, found);   
         return ret;
@@ -854,7 +855,7 @@ public abstract class MySQLTestBase {
 
     protected Uid createUser(String user, GuardedString password) {
         Set<Attribute> tuas = getUserAttributeSet(user, password);
-        assertNotNull(tuas);
+        AssertJUnit.assertNotNull(tuas);
         return facade.create(ObjectClass.ACCOUNT, tuas, null);
     }
 

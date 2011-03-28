@@ -22,9 +22,9 @@
  */
 package org.identityconnectors.oracleerp;
 
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
 import static org.identityconnectors.oracleerp.OracleERPUtil.*;
-import static org.junit.Assert.assertEquals;
-
 import java.util.List;
 import java.util.Set;
 
@@ -35,7 +35,6 @@ import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.test.common.TestHelpers;
-import org.junit.Test;
 
 
 

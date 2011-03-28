@@ -22,9 +22,9 @@
  */
 package org.identityconnectors.oracleerp;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import static org.identityconnectors.oracleerp.OracleERPUtil.*;
-import static org.junit.Assert.*;
-
 import java.util.List;
 
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
@@ -35,7 +35,6 @@ import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.test.common.TestHelpers;
-import org.junit.Test;
 
 
 
@@ -68,7 +67,7 @@ public class RespNamesOperationSearchTests extends OracleERPTestsBase {
         
         List<ConnectorObject> results = TestHelpers.searchToList(c, RESP_NAMES_OC, noFilter, oob.build());
         System.out.println(results);
-        assertEquals("connector object size", 1253, results.size());
+        AssertJUnit.assertEquals("connector object size", 1253, results.size());
     }
     
     /**
@@ -85,7 +84,7 @@ public class RespNamesOperationSearchTests extends OracleERPTestsBase {
         final Filter filter = FilterBuilder.equalTo(AttributeBuilder.build(NAME, "System Administrator"));
         List<ConnectorObject> results = TestHelpers.searchToList(c, RESP_NAMES_OC, filter, oob.build());
         System.out.println(results);
-        assertEquals("connector object size", 1, results.size());
+        AssertJUnit.assertEquals("connector object size", 1, results.size());
     }    
 
 }
