@@ -34,13 +34,14 @@
     <artifactId>ScriptedSQLConnector</artifactId>
     <packaging>bundle</packaging>
     <name>ScriptedSQLConnector</name>
+    <description>A Database connector that uses Groovy scripts to perform actions</description>
     <properties>
         <defaultConnectorFamily>db</defaultConnectorFamily>
         <skipTests>true</skipTests>
         <contracts.skip>true</contracts.skip>
         <privateConfigPath>${user.home}/.connectors/connector-${project.artifactId}/config</privateConfigPath>
         <embedded.dependencies>dbcommon</embedded.dependencies>
-        <connectorPackage>com.forgerock.openicf.db.scriptedsqlconnector</connectorPackage>
+        <connectorPackage>com.forgerock.openicf.db.scriptedsql</connectorPackage>
         <connectorClass>ScriptedSQLConnector</connectorClass>
     </properties>
     <dependencies>
