@@ -23,7 +23,6 @@
  *
  * $Id$
  */
-
 package com.forgerock.openicf.db.scriptedsqlconnector;
 
 import java.util.*;
@@ -42,7 +41,6 @@ import org.identityconnectors.common.script.ScriptExecutor;
 import org.identityconnectors.common.script.ScriptExecutorFactory;
 
 // import org.identityconnectors.dbcommon.DatabaseFilterTranslator;
-
 /**
  * Main implementation of the ScriptedJDBC Connector
  * 
@@ -191,17 +189,19 @@ public class ScriptedSQLConnector implements PoolableConnector, AuthenticateOp, 
             }
             arguments.put("attributes", attrMap);
 
-            // Password - we provide it in clear, can't be arsed to do that in the script
-            GuardedString gpasswd = AttributeUtil.getPasswordValue(attrs);
-            if (gpasswd != null) {
-                gpasswd.access(new Accessor() {
+            // Password - if allowed we provide it in clear, can't be arsed to do that in the script
+            if (config.getClearTextPasswordToScript()) {
+                GuardedString gpasswd = AttributeUtil.getPasswordValue(attrs);
+                if (gpasswd != null) {
+                    gpasswd.access(new Accessor() {
 
-                    public void access(char[] clearChars) {
-                        arguments.put("password", clearChars.toString());
-                    }
-                });
-            } else {
-                arguments.put("password", null);
+                        public void access(char[] clearChars) {
+                            arguments.put("password", clearChars.toString());
+                        }
+                    });
+                } else {
+                    arguments.put("password", null);
+                }
             }
 
             try {
@@ -449,12 +449,11 @@ public class ScriptedSQLConnector implements PoolableConnector, AuthenticateOp, 
         arguments.put("attributes", attrMap);
 
         // Do we need to update the password?
-        // If yes, we provide it in clear
-        // TODO: read flag from options to see if password should be passed as clear
-        if (method.equalsIgnoreCase("UPDATE")) {
+        if (config.getClearTextPasswordToScript() && method.equalsIgnoreCase("UPDATE")) {
             GuardedString gpasswd = AttributeUtil.getPasswordValue(attrs);
             if (gpasswd != null) {
                 gpasswd.access(new Accessor() {
+
                     public void access(char[] clearChars) {
                         arguments.put("password", clearChars.toString());
                     }
