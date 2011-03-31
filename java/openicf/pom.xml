@@ -25,16 +25,16 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.forgerock.openicf</groupId>
-    <artifactId>openicf</artifactId>
+    <groupId>org.forgerock</groupId>
+    <artifactId>forgerock-i3-parent</artifactId>
     <version>1-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>ForgeRock OpenICF Parent</name>
+    <!--name>ForgeRock OpenICF Parent</name>
     <description>
         The Open Identity Connectors Framework and Toolkit (OpenICF) is built to help drive development of Connectors.
         Connectors provide a consistent generic layer between applications and target resources.
-    </description>
-    <!--name>ForgeRock I3 Platform Parent</name>
+    </description-->
+    <name>ForgeRock I3 Platform Parent</name>
     <description>
         The ForgeRock Open Platform provides a secure and integrated platform to leverage your IT infrastructure to the next level.
         The products within this platform are best of breed open source software: well known and proven technology.
@@ -43,13 +43,13 @@
         seamlessly in a easy but still flexible way. We provide you with a premier quality Portal, Identity, Access and
         Federation management solution alongside an Enterprise Service Bus that glues all your enterprise business services together;
         all this without compromising either the user experience, security or the flexibility to add services or new aggregated content.
-    </description-->
+    </description>
     <url>http://www.forgerock.com</url>
     <licenses>
         <license>
             <name>CDDL License, Version 1.0</name>
-            <url>http://www.opensource.org/licenses/cddl1.php</url>
-            <comments>Common Development and Distribution License</comments>
+            <url>http://forgerock.org/license/CDDLv1.0.html</url>
+            <comments>Common Development and Distribution License Version 1.0</comments>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -58,23 +58,20 @@
         <url>http://www.forgerock.com</url>
     </organization>
     <scm>
-        <!--connection>scm:svn:https://svn.forgerock.org/openicf/trunk/java/openicf</connection>
-        <developerConnection>scm:svn:https://svn.forgerock.org/openicf/trunk/java/openicf</developerConnection-->
-        <url>http://sources.forgerock.org/browse/openicf</url>
-        <connection>scm:svn:http://localhost/svn/openicf/trunk/java/openicf</connection>
-        <developerConnection>scm:svn:http://localhost/svn/openicf/trunk/java/openicf</developerConnection>
+        <connection>scm:svn:https://svn.forgerock.org/forgerock/trunk/forgerock-i3-parent</connection>
+        <developerConnection>scm:svn:https://svn.forgerock.org/forgerock/trunk/forgerock-i3-parent</developerConnection>
+        <url>http://sources.forgerock.org/browse/forgerock</url>
     </scm>
     <distributionManagement>
         <snapshotRepository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype Nexus Snapshots</name>
-            <url>${sonatypeOssDistMgmtSnapshotsUrl}</url>
+            <id>forgerock-snapshots</id>
+            <name>ForgeRock Snapshot Repository</name>
+            <url>${forgerockDistMgmtSnapshotsUrl}</url>
         </snapshotRepository>
         <repository>
-            <id>sonatype-nexus-staging</id>
-            <name>Nexus Release Repository</name>
-            <!--url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url-->
-            <url>http://localhost:8081/nexus/content/repositories/releases</url>
+            <id>forgerock-staging</id>
+            <name>ForgeRock Release Repository</name>
+            <url>https://repo.forgerock.org/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
 
@@ -95,21 +92,9 @@
     </pluginRepositories>
 
 
-    <developers>
-        <developer>
-            <id>forgerock</id>
-            <name>ForgeRock Engineering</name>
-            <email>replaceme@nos#pam.forgerock.org</email>
-            <organization>ForgeRock</organization>
-            <roles />
-            <timezone>+1</timezone>
-        </developer>
-    </developers>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!--sonatypeOssDistMgmtSnapshotsUrl>https://oss.sonatype.org/content/repositories/snapshots/</sonatypeOssDistMgmtSnapshotsUrl-->
-        <sonatypeOssDistMgmtSnapshotsUrl>http://localhost:8081/nexus/content/repositories/snapshots/</sonatypeOssDistMgmtSnapshotsUrl>
+        <forgerockDistMgmtSnapshotsUrl>https://repo.forgerock.org/content/repositories/snapshots/</forgerockDistMgmtSnapshotsUrl>
     </properties>
 
 
@@ -392,35 +377,6 @@
                         </plugin>
                     </plugins>
                 </pluginManagement>
-            </build>
-        </profile>
-        <profile>
-            <id>package-up-license</id>
-            <activation>
-                <property>
-                    <name>licenseResourceBundle</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <!-- We want to package up license resources in the JARs produced -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-remote-resources-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>process</goal>
-                                </goals>
-                                <configuration>
-                                    <resourceBundles>
-                                        <resourceBundle>${licenseResourceBundle}</resourceBundle>
-                                    </resourceBundles>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
             </build>
         </profile>
     </profiles>
