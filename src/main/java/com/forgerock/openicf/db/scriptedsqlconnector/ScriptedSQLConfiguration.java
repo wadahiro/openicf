@@ -423,13 +423,33 @@ public class ScriptedSQLConfiguration extends AbstractConfiguration {
     }
 
     /**
+     * Should password be passed to scripts in clear text?
+     */
+    private boolean clearTextPasswordToScript = true;
+
+    /**
+     * Return the clearTextPasswordToScript boolean
+     * @return value
+     */
+    public boolean getClearTextPasswordToScript() {
+        return clearTextPasswordToScript;
+    }
+
+    /**
+     * Set the clearTextPasswordToScript value
+     * @param value
+     */
+    public void setClearTextPasswordToScript(boolean value) {
+        this.clearTextPasswordToScript = value;
+    }
+    /**
      * Create script string
      */
     private String createScript = "";
 
     /**
      * Return the Create script string
-     * @return adapterCompat value
+     * @return value
      */
     public String getCreateScript() {
         return createScript;
