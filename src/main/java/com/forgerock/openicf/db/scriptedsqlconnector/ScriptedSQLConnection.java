@@ -23,7 +23,7 @@
  *
  * $Id$
  */
-package com.forgerock.openicf.db.scriptedsqlconnector;
+package com.forgerock.openicf.db.scriptedsql;
 
 import org.identityconnectors.framework.common.exceptions.*;
 
