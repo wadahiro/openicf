@@ -30,8 +30,8 @@
         <menu ref="parent"/>
         <menu name="Overview" img="images/arrow_right.png">
             <item name="Introduction" href="index.html"/>
-            <item name="Usage" href="usage.html"/>
-            <item name="IBM API Doc" href="http://publib.boulder.ibm.com/infocenter/tivihelp/v2r1/topic/com.ibm.itame.doc/am611_adminJ_devref.pdf"/>
+            <item name="Install API" href="install_api.html"/>
+            <item name="IBM API Documentation (PDF)" href="http://publib.boulder.ibm.com/infocenter/tivihelp/v2r1/topic/com.ibm.itame.doc/am611_adminJ_devref.pdf"/>
             <item name="FAQ" href="faq.html"/>
         </menu>
         <menu ref="reports"/>

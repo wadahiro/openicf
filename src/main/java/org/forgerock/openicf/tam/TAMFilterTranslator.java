@@ -23,7 +23,7 @@
  *
  * $Id$
  */
-package com.forgerock.openicf.tam;
+package org.forgerock.openicf.tam;
 
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.filter.*;

@@ -23,7 +23,7 @@
  *
  * $Id$
  */
-package com.forgerock.openicf.tam;
+package org.forgerock.openicf.tam;
 
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -218,7 +218,7 @@ public class TAMConnector implements PoolableConnector, AuthenticateOp, CreateOp
             and the policy server.
              */
             try {
-                URL configURL = new URL(configuration.getConfigUrl());
+                URL configURL = new URL(configuration.getConfigurationFileURL());
                 if (configuration.isCertificateBased()) {
                     if (log.isInfo()) {
                         log.info("new PDContext({0},{1})", locale.toString(), configURL.toString());
@@ -228,7 +228,7 @@ public class TAMConnector implements PoolableConnector, AuthenticateOp, CreateOp
                     GuardedStringAccessor accessor = new GuardedStringAccessor();
                     configuration.getAdminPassword().access(accessor);
                     if (log.isInfo()) {
-                        log.info("new PDContext({0},{1},adminPassword,{2})", locale.toString(), configuration.getAdminUser(), configURL.toString());
+                        log.info("new PDContext({0},{1},adminPassword,{2})", locale.toString(), configuration.getAdminUserID(), configURL.toString());
                     }
                     /*
                     Create a security context using our locale. administrative
@@ -236,7 +236,7 @@ public class TAMConnector implements PoolableConnector, AuthenticateOp, CreateOp
                     the form file:/// by the SvrSslCfg class.
                      */
                     ctxt = new PDContext(locale,
-                            configuration.getAdminUser(),
+                            configuration.getAdminUserID(),
                             accessor.getArray(),
                             configURL);
 
@@ -650,27 +650,17 @@ public class TAMConnector implements PoolableConnector, AuthenticateOp, CreateOp
 
                 Attribute firstNameAttr = AttributeUtil.find(ATTR_FIRST_NAME, replaceAttributes);
                 if (null != firstNameAttr) {
-                    String firstName = AttributeUtil.getStringValue(firstNameAttr);
-                    if (StringUtil.isNotBlank(firstName)) {
                         if (log.isInfo()) {
-                            log.info("PDUser.setDescription(ctxt,{0},{1},msgs)", uid.getUidValue(), firstName);
+                        log.info("PDAdmin API does not support the firstName update.");
                         }
-                        PDUser.setDescription(ctxt, uid.getUidValue(), firstName, msgs);
-                        processMessages(method, msgs);
                     }
-                }
 
                 Attribute lastNameAttr = AttributeUtil.find(ATTR_LAST_NAME, replaceAttributes);
                 if (null != lastNameAttr) {
-                    String lastName = AttributeUtil.getStringValue(lastNameAttr);
-                    if (StringUtil.isNotBlank(lastName)) {
                         if (log.isInfo()) {
-                            log.info("PDUser.setDescription(ctxt,{0},{1},msgs)", uid.getUidValue(), lastName);
+                        log.info("PDAdmin API does not support the lastName update.");
                         }
-                        PDUser.setDescription(ctxt, uid.getUidValue(), lastName, msgs);
-                        processMessages(method, msgs);
                     }
-                }
 
                 Attribute descriptionAttr = AttributeUtil.find(PredefinedAttributes.DESCRIPTION, replaceAttributes);
                 if (null != descriptionAttr) {
@@ -703,7 +693,6 @@ public class TAMConnector implements PoolableConnector, AuthenticateOp, CreateOp
                     PDUser.setSSOUser(ctxt, uid.getUidValue(), ssoUser, msgs);
                     processMessages(method, msgs);
                 }
-
 
                 Attribute groupsAttr = AttributeUtil.find(PredefinedAttributes.GROUPS_NAME, replaceAttributes);
                 if (null != groupsAttr) {
@@ -970,6 +959,10 @@ public class TAMConnector implements PoolableConnector, AuthenticateOp, CreateOp
                     } else {
                         e = new ConnectorIOException("Access Manager Exception: " + msgCode);
                     }
+                    // code: 813334644 = "HPDJA0116E   Cannot contact server."
+                    // code: 320938184 = "HPDIA0200W   Authentication failed. You have used an invalid user name, password or client certificate."
+                    // code: 348132087 = "HPDMG0759W   The user name already exists in the registry."
+
                 }
             }
             throw e;
