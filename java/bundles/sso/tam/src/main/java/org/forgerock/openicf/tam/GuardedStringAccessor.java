@@ -23,7 +23,7 @@
  * 
  * $Id$
  */
-package com.forgerock.openicf.tam;
+package org.forgerock.openicf.tam;
 
 import java.util.Arrays;
 import org.identityconnectors.common.security.GuardedString;
