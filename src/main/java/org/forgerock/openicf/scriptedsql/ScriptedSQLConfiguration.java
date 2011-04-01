@@ -530,7 +530,7 @@ public class ScriptedSQLConfiguration extends AbstractConfiguration {
 
     /**
      * Return the Test script string
-     * @return adapterCompat value
+     * @return testScript value
      */
     public String getTestScript() {
         return testScript;

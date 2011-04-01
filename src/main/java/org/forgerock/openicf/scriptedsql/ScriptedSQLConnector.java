@@ -49,7 +49,7 @@ import org.identityconnectors.common.script.ScriptExecutorFactory;
  * @since 1.0
  */
 @ConnectorClass(displayNameKey = "ScriptedSQL", configurationClass = ScriptedSQLConfiguration.class)
-public class ScriptedSQLConnector implements PoolableConnector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp, SearchOp<Map>, SyncOp, TestOp, UpdateAttributeValuesOp {
+public class ScriptedSQLConnector implements PoolableConnector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp, SearchOp<Map>, SyncOp, TestOp, UpdateAttributeValuesOp, ScriptOnConnectorOp {
 
     /**
      * Setup logging for the {@link ScriptedSQLConnector}.
@@ -70,6 +70,7 @@ public class ScriptedSQLConnector implements PoolableConnector, AuthenticateOp, 
     private ScriptExecutor deleteExecutor = null;
     private ScriptExecutor searchExecutor = null;
     private ScriptExecutor testExecutor = null;
+    private ScriptExecutor runOnConnectorExecutor = null;
 
     /**
      * Gets the Configuration context for this connector.
@@ -348,6 +349,39 @@ public class ScriptedSQLConnector implements PoolableConnector, AuthenticateOp, 
      */
     public SyncToken getLatestSyncToken(ObjectClass objectClass) {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Object runScriptOnConnector(ScriptContext request, OperationOptions options) {
+        Object result = null;
+        try {
+            if (request.getScriptText() != null && request.getScriptText().length() > 0) {
+                assert request.getScriptLanguage().equalsIgnoreCase(config.getScriptingLanguage());
+                runOnConnectorExecutor = factory.newScriptExecutor(getClass().getClassLoader(), request.getScriptText(), true);
+            }
+        } catch (Exception e) {
+            throw new ConnectorException("RunOnConnector script parse error", e);
+        }
+        if (runOnConnectorExecutor != null) {
+            Map<String, Object> arguments = new HashMap<String, Object>();
+            arguments.put("connection", connection.getSqlConnection());
+            arguments.put("action", "RUNSCRIPTONCONNECTOR");
+            arguments.put("log", log);
+            arguments.put("options", options.getOptions());
+            arguments.put("scriptsArguments", request.getScriptArguments());
+            try {
+                // We return any object from the script
+                result = runOnConnectorExecutor.execute(arguments);
+                log.ok("runOnConnector script ok");
+            } catch (Exception e) {
+                throw new ConnectorException("runOnConnector script error", e);
+            } finally {
+                // clean up.. ??? should we close?
+            }
+        }
+        return result;
     }
 
     /**
