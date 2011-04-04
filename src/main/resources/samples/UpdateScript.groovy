@@ -42,6 +42,8 @@ import groovy.sql.DataSet;
 //
 // objectClass: a String describing the Object class (__ACCOUNT__ / __GROUP__ / other)
 //
+// uid: a String representing the entry uid
+//
 // attributes: an Attribute Map, containg the <String> attribute name as a key
 // and the <List> attribute value(s) as value.
 //
@@ -54,8 +56,8 @@ def sql = new Sql(connection);
 
 switch ( action ) {
     case "UPDATE":
-    if (attributes.get("Name") != null){
-        sql.executeUpdate("update Users set Name = ? where uid = ?", [attributes.get("Name").get(0), attributes.get("__NAME__").get(0)])
+    if (attributes.get("fullname").get(0) != null){
+        sql.executeUpdate("update Users set fullname = ? where uid = ?", [attributes.get("fullname").get(0), attributes.get("__NAME__").get(0)])
     }
     break
 
