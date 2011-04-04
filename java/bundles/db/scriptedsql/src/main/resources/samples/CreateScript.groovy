@@ -42,15 +42,21 @@ def sql = new Sql(connection);
 
 switch ( objectClass ) {
     case "__ACCOUNT__":
-        sql.execute("insert into Users (uid, Name) values (?,?)",[attributes.get("__NAME__").get(0), attributes.get("Name").get(0)])
-        break
+    sql.execute("insert into Users (uid, firstname,lastname,email) values (?,?,?,?)",
+        [
+            attributes.get("__NAME__").get(0),
+            attributes.get("firstname").get(0),
+            attributes.get("lastname").get(0),
+            attributes.get("email").get(0)
+        ])
+    break
 
     case "__GROUP__":
-        sql.execute("insert into Groups (gid, Name) values (?,?)",[attributes.get("__NAME__").get(0), attributes.get("Name").get(0)])
-        break
+    sql.execute("insert into Groups (gid, Name) values (?,?)",[attributes.get("__NAME__").get(0), attributes.get("Name").get(0)])
+    break
 
     default:
-        sql
+    sql
 }
 
 

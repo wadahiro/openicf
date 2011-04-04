@@ -79,6 +79,6 @@ def result = []
 log.ok("Search request is: "+template.toString())
 
 // sql.eachRow(template.toString(), { println it.id + " -- ${it.firstName} --"} );
-sql.eachRow(template.toString(), {result.add([uid:it.uid, fullname:it.Name])} );
+sql.eachRow(template.toString(), {result.add([uid:it.uid, fullname:it.fullname])} );
 
 return result

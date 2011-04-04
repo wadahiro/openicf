@@ -39,8 +39,8 @@ def sql = new Sql(connection);
 
 // Let's drop table if exists
 try {
-   sql.execute("DROP TABLE IF EXISTS 'Users'");
-   sql.execute("DROP TABLE IF EXISTS 'Groups'");
+   sql.execute("DROP TABLE IF EXISTS Users");
+   sql.execute("DROP TABLE IF EXISTS Groups");
 } catch(Exception e){}
 
 def mySQLCreateUsers = "CREATE TABLE Users ("+
