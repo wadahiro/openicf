@@ -522,6 +522,26 @@ public class ScriptedSQLConfiguration extends AbstractConfiguration {
     public void setSearchScript(String value) {
         this.searchScript = value;
     }
+    /**
+     * Sync script string
+     */
+    private String syncScript = "";
+
+    /**
+     * Return the Sync script string
+     * @return syncScript value
+     */
+    public String getSyncScript() {
+        return syncScript;
+    }
+
+    /**
+     * Set the Sync script string
+     * @param value
+     */
+    public void setSyncScript(String value) {
+        this.syncScript = value;
+    }
 
     /**
      * Test script string

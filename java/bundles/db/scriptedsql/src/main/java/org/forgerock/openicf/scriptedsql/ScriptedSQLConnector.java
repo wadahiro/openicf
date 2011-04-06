@@ -34,6 +34,7 @@ import org.identityconnectors.framework.common.exceptions.*;
 import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 import org.identityconnectors.common.StringUtil;
+import org.identityconnectors.framework.common.FrameworkUtil;
 import org.identityconnectors.common.logging.Log;
 
 import org.identityconnectors.common.security.GuardedString.Accessor;
@@ -69,8 +70,9 @@ public class ScriptedSQLConnector implements PoolableConnector, AuthenticateOp, 
     private ScriptExecutor updateExecutor = null;
     private ScriptExecutor deleteExecutor = null;
     private ScriptExecutor searchExecutor = null;
-    private ScriptExecutor testExecutor = null;
+    private ScriptExecutor syncExecutor = null;
     private ScriptExecutor runOnConnectorExecutor = null;
+    private ScriptExecutor testExecutor = null;
 
     /**
      * Gets the Configuration context for this connector.
@@ -118,6 +120,13 @@ public class ScriptedSQLConnector implements PoolableConnector, AuthenticateOp, 
             }
         } catch (Exception e) {
             throw new ConnectorException("Search script parse error", e);
+        }
+        try {
+            if (config.getSyncScript() != null && config.getSyncScript().length() > 0) {
+                syncExecutor = factory.newScriptExecutor(getClass().getClassLoader(), config.getSyncScript(), true);
+            }
+        } catch (Exception e) {
+            throw new ConnectorException("Sync script parse error", e);
         }
         try {
             if (config.getTestScript() != null && config.getTestScript().length() > 0) {
@@ -211,8 +220,10 @@ public class ScriptedSQLConnector implements PoolableConnector, AuthenticateOp, 
             } catch (Exception e) {
                 throw new ConnectorException("create script error", e);
             }
+            return new Uid(AttributeUtil.getNameFromAttributes(attrs).getNameValue());
+        } else {
+            throw new UnsupportedOperationException();
         }
-        return new Uid(AttributeUtil.getNameFromAttributes(attrs).getNameValue());
     }
 
     /**
@@ -281,6 +292,8 @@ public class ScriptedSQLConnector implements PoolableConnector, AuthenticateOp, 
             } finally {
                 // clean up.. ??? should we close?
             }
+        } else {
+            throw new UnsupportedOperationException();
         }
     }
 
@@ -334,6 +347,8 @@ public class ScriptedSQLConnector implements PoolableConnector, AuthenticateOp, 
             } finally {
                 // clean up.. ??? should we close?
             }
+        } else {
+            throw new UnsupportedOperationException();
         }
     }
 
@@ -341,14 +356,74 @@ public class ScriptedSQLConnector implements PoolableConnector, AuthenticateOp, 
      * {@inheritDoc}
      */
     public void sync(ObjectClass objClass, SyncToken token, SyncResultsHandler handler, final OperationOptions options) {
-        throw new UnsupportedOperationException();
+        log.info("check the ObjectClass");
+        if (objClass == null) {
+            throw new IllegalArgumentException(config.getMessage("MSG_ACCOUNT_OBJECT_CLASS_REQUIRED"));
+        }
+        log.ok("The ObjectClass is ok");
+        if (handler == null) {
+            throw new IllegalArgumentException(config.getMessage("MSG_RESULT_HANDLER_NULL"));
+        }
+        log.ok("The result handler is not null");
+        if (syncExecutor != null) {
+            Map<String, Object> arguments = new HashMap<String, Object>();
+            arguments.put("connection", connection.getSqlConnection());
+            arguments.put("objectClass", objClass.getObjectClassValue());
+            arguments.put("action", "SYNC");
+            arguments.put("log", log);
+            arguments.put("options", options.getOptions());
+            arguments.put("token", token.getValue());
+            try {
+                // We expect the script to return a list of Maps
+                List<Map> results = (List<Map>) syncExecutor.execute(arguments);
+                log.ok("test ok");
+                processDeltas(objClass, results, handler);
+            } catch (Exception e) {
+                throw new ConnectorException("Sync script error", e);
+            } finally {
+                // clean up.. ??? should we close?
+            }
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 
     /**
      * {@inheritDoc}
      */
-    public SyncToken getLatestSyncToken(ObjectClass objectClass) {
-        throw new UnsupportedOperationException();
+    public SyncToken getLatestSyncToken(ObjectClass objClass) {
+        SyncToken st = null;
+        log.info("check the ObjectClass");
+        if (objClass == null) {
+            throw new IllegalArgumentException(config.getMessage("MSG_ACCOUNT_OBJECT_CLASS_REQUIRED"));
+        }
+        log.ok("The ObjectClass is ok");
+        if (syncExecutor != null) {
+            Map<String, Object> arguments = new HashMap<String, Object>();
+            arguments.put("connection", connection.getSqlConnection());
+            arguments.put("objectClass", objClass.getObjectClassValue());
+            arguments.put("action", "GET_LATEST_SYNC_TOKEN");
+            arguments.put("log", log);
+            try {
+                // We expect the script to return a value (or null) that makes the sync token
+                // !! result has to be one of the framework known types...
+                Object result = syncExecutor.execute(arguments);
+                log.ok("test ok");
+                FrameworkUtil.checkAttributeType(result.getClass());
+                st = new SyncToken(result);
+            } catch (java.lang.IllegalArgumentException ae) {
+                // Houston, we have an issue with the token...
+                // will stay null...
+                log.error("Token is not of a supported type");
+            } catch (Exception e) {
+                throw new ConnectorException("Get Latest Sync Token script error", e);
+            } finally {
+                // clean up.. ??? should we close?
+            }
+            return st;
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 
     /**
@@ -380,8 +455,10 @@ public class ScriptedSQLConnector implements PoolableConnector, AuthenticateOp, 
             } finally {
                 // clean up.. ??? should we close?
             }
+            return result;
+        } else {
+            throw new UnsupportedOperationException();
         }
-        return result;
     }
 
     /**
@@ -441,6 +518,82 @@ public class ScriptedSQLConnector implements PoolableConnector, AuthenticateOp, 
             cobld.setObjectClass(objClass);
             handler.handle(cobld.build());
             log.ok("ConnectorObject is builded");
+        }
+    }
+
+    private void processDeltas(ObjectClass objClass, List<Map> results, SyncResultsHandler handler) {
+
+        // Let's iterate over the results:
+        for (Map<String, Object> result : results) {
+            // The Map should look like:
+            // token: <Object> token
+            // operation: <String> CREATE_OR_UPDATE|DELETE (defaults to CREATE_OR_UPDATE)
+            // uid: <String> uid
+            // previousUid: <String> prevuid (This is for rename ops)
+            // password: <String> password
+            // attributes: <Map> of attributes <String>name/<List>values
+            SyncDeltaBuilder syncbld = new SyncDeltaBuilder();
+            String uid = (String) result.get("uid");
+            if (uid != null && !uid.isEmpty()) {
+
+                // Uid
+                syncbld.setUid(new Uid(uid));
+
+                // Token
+                Object token = result.get("token");
+                // Null token, set some acceptable value
+                if (token == null) {
+                    log.ok("token value is null, replacing to 0L");
+                    token = 0L;
+                }
+                syncbld.setToken(new SyncToken(token));
+
+                // Start building the connector object
+                ConnectorObjectBuilder cobld = new ConnectorObjectBuilder();
+                cobld.setName(uid);
+                cobld.setUid(uid);
+                cobld.setObjectClass(objClass);
+
+                // operation
+                // We assume that if DELETE, then we don't need to care about the rest
+                String op = (String) result.get("operation");
+                if (op != null && op.equalsIgnoreCase("DELETE")) {
+                    syncbld.setDeltaType(SyncDeltaType.DELETE);
+
+                } else {
+                    // we assume this is CREATE_OR_UPDATE
+                    syncbld.setDeltaType(SyncDeltaType.CREATE_OR_UPDATE);
+
+                    // previous UID
+                    String prevUid = (String) result.get("previousUid");
+                    if (prevUid != null && !prevUid.isEmpty()) {
+                        syncbld.setPreviousUid(new Uid(prevUid));
+                    }
+
+                    // password? is password valid if empty string? let's assume yes...
+                    if (result.get("password") != null) {
+                        cobld.addAttribute(AttributeBuilder.buildCurrentPassword(((String) result.get("password")).toCharArray()));
+                    }
+
+                    // Remaining attributes
+                    for (Map.Entry<String, List> attr : ((Map<String, List>) result.get("attributes")).entrySet()) {
+                        final String attrName = attr.getKey();
+                        final Object attrValue = attr.getValue();
+                        if (attrValue != null) {
+                            cobld.addAttribute(AttributeBuilder.build(attrName, attrValue));
+                        } else {
+                            cobld.addAttribute(AttributeBuilder.build(attrName));
+                        }
+                    }
+                }
+                syncbld.setObject(cobld.build());
+                if (!handler.handle(syncbld.build())) {
+                    log.ok("Stop processing of the sync result set");
+                    break;
+                }
+            } else {
+                // we have a null uid... mmmm....
+            }
         }
     }
 
