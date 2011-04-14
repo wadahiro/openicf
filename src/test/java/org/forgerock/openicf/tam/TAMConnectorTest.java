@@ -52,6 +52,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.forgerock.openicf.tam.TAMConnector.*;
 
 /**
  * Attempts to test the {@link TAMConnector} with the framework.
@@ -146,19 +147,20 @@ public class TAMConnectorTest {
      * Setup  the test
      * @throws Exception
      */
-//    @BeforeMethod
-//    public void setup() throws Exception {
-//        //config = newConfiguration();
-//        facade = getFacade();
-//    }
+    @BeforeMethod
+    public void setup() throws Exception {
+        //config = newConfiguration();
+        facade = getFacade();
+    }
 
     /**
      * @throws Exception
      */
-//    @AfterMethod
-//    public void teardown() throws Exception {
-//        config = null;
-//    }
+    @AfterMethod
+    public void teardown() throws Exception {
+        //config = null;
+        facade = null;
+    }
 
     protected ConnectorFacade getFacade() {
         ConnectorFacadeFactory factory = ConnectorFacadeFactory.getInstance();
@@ -181,10 +183,23 @@ public class TAMConnectorTest {
         }
     }
 
+    @Test(enabled = true)
+    public void testCreateGroup() {
+        Uid uid = new Uid("AAB0001");
+        Set<Attribute> attributes = new HashSet<Attribute>();
+        attributes.add(new Name(uid.getUidValue()));
+        attributes.add(AttributeBuilder.build(PredefinedAttributes.DESCRIPTION, "Test Group for TAM Connector test"));
+        //attributes.add(AttributeBuilder.build(TAMConnector.ATTR_REGISTRY_NAME, "cn=" + uid.getUidValue() + ",cn=SecurityGroups,secAuthority=Default"));
+        attributes.add(AttributeBuilder.build(TAMConnector.ATTR_REGISTRY_NAME, String.format(groupRegistryTemplate, uid.getUidValue())));
+        OperationOptions oo = null;
+        Uid result = facade.create(ObjectClass.GROUP, attributes, oo);
+        Assert.assertEquals(uid, result);
+    }
+
     /**
      * Test of create method, of class TAMConnector.
      */
-    @Test(enabled = false)
+    @Test(enabled = true, dependsOnMethods = {"testCreateGroup"})
     public void testCreateUser() {
         Uid expResult = new Uid("AAA0001");
         Set<Attribute> attributes = sampleUser(expResult.getUidValue());
@@ -193,11 +208,11 @@ public class TAMConnectorTest {
         Assert.assertEquals(expResult, result);
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true, dependsOnMethods = {"testCreateUser"})
     public void testUpdateUser() {
         Uid uid = new Uid("AAA0001");
         Set<Attribute> replaceAttributes = new HashSet<Attribute>();
-        replaceAttributes.add(AttributeBuilder.build(PredefinedAttributes.GROUPS_NAME, "AAA0001"));
+        replaceAttributes.add(AttributeBuilder.build(PredefinedAttributes.GROUPS_NAME, "AAB0001"));
         OperationOptions oo = null;
         Uid result = facade.update(ObjectClass.ACCOUNT, uid, replaceAttributes, oo);
         Assert.assertEquals(uid, result);
@@ -206,31 +221,19 @@ public class TAMConnectorTest {
     /**
      * Test of delete method, of class TAMConnector.
      */
-    @Test(enabled = false)
+    @Test(enabled = true, dependsOnMethods = {"testCreateUser", "testUpdateUser"})
     public void testDeleteUser() {
         Uid uid = new Uid("AAA0001");
         OperationOptions oo = null;
         facade.delete(ObjectClass.ACCOUNT, uid, oo);
     }
 
-    @Test(enabled = false)
-    public void testCreateGroup() {
-        Uid uid = new Uid("AAB0001");
-        Set<Attribute> attributes = new HashSet<Attribute>();
-        attributes.add(new Name(uid.getUidValue()));
-        attributes.add(AttributeBuilder.build(PredefinedAttributes.DESCRIPTION, "Test Group for TAM Connector test"));
-        attributes.add(AttributeBuilder.build(TAMConnector.ATTR_REGISTRY_NAME, "cn=" + uid.getUidValue() + ",cn=SecurityGroups,secAuthority=Default"));
-        OperationOptions oo = null;
-        Uid result = facade.create(ObjectClass.GROUP, attributes, oo);
-        Assert.assertEquals(uid, result);
-    }
-
     /**
      * Test of delete method, of class TAMConnector.
      */
-    @Test(enabled = false)
+    @Test(enabled = true, dependsOnMethods = {"testDeleteUser"})
     public void testDeleteGroup() {
-        Uid uid = new Uid("GX00005");
+        Uid uid = new Uid("AAB0001");
         OperationOptions oo = null;
         facade.delete(ObjectClass.GROUP, uid, oo);
 
@@ -272,7 +275,7 @@ public class TAMConnectorTest {
         Assert.assertEquals(uid, result);
     }
 
-    @Test(enabled = false , expectedExceptions=Exception.class)
+    @Test(enabled = false, expectedExceptions = Exception.class)
     public void testFailAuthenticate() {
         Uid uid = new Uid("AAA0001");
         GuardedString password = new GuardedString("dr0wssaP".toCharArray());

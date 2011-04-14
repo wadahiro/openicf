@@ -285,6 +285,8 @@ public class TAMConnector implements PoolableConnector, AuthenticateOp, CreateOp
              * assign the user to a specific group. This method sends a
              * request to the policy server to create the user.
              *------------------------------------------------------------------ */
+            // http://publib.boulder.ibm.com/infocenter/tivihelp/v2r1/index.jsp?topic=/com.ibm.itame.doc/com/tivoli/pd/jadmin/PDUser.html
+            // http://publib.boulder.ibm.com/infocenter/tivihelp/v2r1/index.jsp?topic=/com.ibm.itame.doc/com/tivoli/pd/jadmin/PDGroup.html
             // Set up all of the user’s attributes
             String firstName = null;
             if (null != attrMap.get(ATTR_FIRST_NAME)) {
@@ -342,6 +344,29 @@ public class TAMConnector implements PoolableConnector, AuthenticateOp, CreateOp
                                 pdRgyUserName,
                                 ssoUser);
                     }
+                    /*
+                    public static void importUser(PDContext context,
+                    java.lang.String pdName,
+                    PDRgyUserName rgyName,
+                    java.lang.String groupName,
+                    boolean ssoUser,
+                    PDMessages messages)
+                    throws PDException
+
+                    Creates a user in the Policy Director Management Server by importing an existing user from the user registry.
+
+                    This constructor corresponds to the ivadmin_user_import() C API.
+
+                    Parameters:
+                    context - the context for communicating with the Policy Director Management Server.
+                    pdName - the Policy Director user name. This value may not be null and must have a non-zero length.
+                    rgyName - an object specifying the registry user name. This value may not be null or specify a null or zero-length name.
+                    groupName - the initial group to which the user belongs. Can be null.
+                    ssoUser - true, if the user is capable of having single-signon credentials; false, otherwise.
+                    messages - in/out parameter; empty PDMessages on input; may contain zero or more informational or warning messages on output.
+                    Throws:
+                    PDException - if an error occurs. This exception may contain error and message codes defined in the product Error Message Reference document.
+                     */
                     PDUser.importUser(ctxt,
                             name.getNameValue(),
                             pdRgyUserName,
@@ -359,6 +384,34 @@ public class TAMConnector implements PoolableConnector, AuthenticateOp, CreateOp
                                 ssoUser, pwdPolicy);
                     }
                     /*
+                    public static void createUser(PDContext context,
+                    java.lang.String pdName,
+                    PDRgyUserName rgyName,
+                    java.lang.String description,
+                    char[] pwd,
+                    java.util.ArrayList groupNames,
+                    boolean ssoUser,
+                    boolean noPwdPolicy,
+                    PDMessages messages)
+                    throws PDException
+
+                    Creates a user in the Policy Director Management Server.
+
+                    This constructor corresponds to the ivadmin_user_create() C API.
+
+                    Parameters:
+                    context - the context for communicating with the Policy Director Management Server.
+                    pdName - the Policy Director user name. This value may not be null and must have a non-zero length.
+                    rgyName - the registry user name. The registry name in this object must be non-null and have a non-zero length.
+                    description - this argument is currently ignored; the description must be set explicitly using the setDescription method.
+                    pwd - the user password. This password may not be null and must have a non-zero length.
+                    groupNames - a list of group names (Strings) to which the user initially belongs. Can be null or empty.
+                    ssoUser - true, if the user is capable of having single-signon credentials; false, otherwise.
+                    noPwdPolicy - true, if password policy will not be enforced during creation; false, otherwise. This has no bearing on password policy enforcement after user creation.
+                    messages - in/out parameter; empty PDMessages on input; may contain zero or more informational or warning messages on output.
+                    Throws:
+                    PDException - if an error occurs. This exception may contain error and message codes defined in the product Error Message Reference document.
+                     *
                      * If description is nonnull then there is no exception but the msgs contains the message:
                      * Code=813,334,637 Text=HPDJA0109W   A nonnull value is being passed to an unsupported argument.
                      */
@@ -404,6 +457,27 @@ public class TAMConnector implements PoolableConnector, AuthenticateOp, CreateOp
                     if (log.isInfo()) {
                         log.info("PDGroup.importGroup(ctxt,{0},{1},{2},msgs", name.getNameValue(), pdRgyGroupName, description);
                     }
+                    /*
+                    public static void importGroup(PDContext context,
+                    java.lang.String pdName,
+                    PDRgyGroupName rgyName,
+                    java.lang.String container,
+                    PDMessages messages)
+                    throws PDException
+
+                    Creates a group in the Policy Director Management Server by importing it from the group directory.
+
+                    This constructor corresponds to the ivadmin_group_import() C API.
+
+                    Parameters:
+                    context - the context for communicating with the Policy Director Management Server.
+                    pdName - the Policy Director group name.
+                    rgyName - an object specifying the registry group name. This value may not be null or specify a null or zero-length name.
+                    container - the container object within the management object space. This value can be null or zero-length to indicate the group is at the root level.
+                    messages - in/out parameter; empty PDMessages on input; may contain zero or more informational or warning messages on output.
+                    Throws:
+                    PDException - if an error occurs. This exception may contain error and message codes defined in the product Error Message Reference document.
+                     */
                     PDGroup.importGroup(ctxt, name.getNameValue(), pdRgyGroupName, description, msgs);
                     uid = new Uid(name.getNameValue());
                     processMessages(method, msgs);
@@ -411,7 +485,28 @@ public class TAMConnector implements PoolableConnector, AuthenticateOp, CreateOp
                     if (log.isInfo()) {
                         log.info("PDGroup.createGroup(ctxt,{0},{1},{2},null,msgs", name.getNameValue(), pdRgyGroupName, description);
                     }
+
                     /*
+                    public static void createGroup(PDContext context,
+                    java.lang.String pdName,
+                    PDRgyGroupName rgyName,
+                    java.lang.String description,
+                    java.lang.String container,
+                    PDMessages messages)
+                    throws PDException
+
+                    Creates a group in the Policy Director Management Server.
+
+                    Parameters:
+                    context - the context for communicating with the Policy Director Management Server.
+                    pdName - the Policy Director group name. This value may not be null and must have a nonzero length.
+                    rgyName - the registry group name. The registry name in this object must be nonnull and have a nonzero length.
+                    description - this argument is currently ignored; the description must be set explicitly using the setDescription method.
+                    container - the container object within the management object space. This value can be null or zero-length to indicate the group is at the root level.
+                    messages - in/out parameter; empty PDMessages on input; may contain zero or more informational or warning messages on output.
+                    Throws:
+                    PDException - if an error occurs. This exception may contain error and message codes defined in the product Error Message Reference document.
+                     *
                      * If description is nonnull then there is no exception but the msgs contains the message:
                      * Code=813,334,637 Text=HPDJA0109W   A nonnull value is being passed to an unsupported argument.
                      */
@@ -650,17 +745,17 @@ public class TAMConnector implements PoolableConnector, AuthenticateOp, CreateOp
 
                 Attribute firstNameAttr = AttributeUtil.find(ATTR_FIRST_NAME, replaceAttributes);
                 if (null != firstNameAttr) {
-                        if (log.isInfo()) {
+                    if (log.isInfo()) {
                         log.info("PDAdmin API does not support the firstName update.");
-                        }
                     }
+                }
 
                 Attribute lastNameAttr = AttributeUtil.find(ATTR_LAST_NAME, replaceAttributes);
                 if (null != lastNameAttr) {
-                        if (log.isInfo()) {
+                    if (log.isInfo()) {
                         log.info("PDAdmin API does not support the lastName update.");
-                        }
                     }
+                }
 
                 Attribute descriptionAttr = AttributeUtil.find(PredefinedAttributes.DESCRIPTION, replaceAttributes);
                 if (null != descriptionAttr) {
@@ -962,6 +1057,7 @@ public class TAMConnector implements PoolableConnector, AuthenticateOp, CreateOp
                     // code: 813334644 = "HPDJA0116E   Cannot contact server."
                     // code: 320938184 = "HPDIA0200W   Authentication failed. You have used an invalid user name, password or client certificate."
                     // code: 348132087 = "HPDMG0759W   The user name already exists in the registry."
+                    // code: 348132117 = "HPDMG0789W   The user Distinguished Name (DN) cannot be created because it already exists."
 
                 }
             }
