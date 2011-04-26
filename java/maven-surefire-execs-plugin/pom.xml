@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.forgerock</groupId>
         <artifactId>forgerock-parent</artifactId>
-        <version>1-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <groupId>org.forgerock.openicf</groupId>
     <artifactId>maven-surefire-execs-plugin</artifactId>
