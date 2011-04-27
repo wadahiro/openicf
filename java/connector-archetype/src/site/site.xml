@@ -28,8 +28,8 @@
     xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.1 http://maven.apache.org/xsd/decoration-1.0.1.xsd">
     <skin>
         <groupId>org.forgerock.commons</groupId>
-		<artifactId>maven-forgerock-skin</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
+        <artifactId>maven-forgerock-skin</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
     </skin>
     <publishDate position="right" format="yyyy.MM.dd"/>
     <version position="right"/>
