@@ -24,34 +24,19 @@
  */
 package org.forgerock.openicf.openportal;
 
-import org.identityconnectors.framework.common.exceptions.*;
+import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.framework.common.objects.*;
 
-/**
- * Class to represent a OpenPortal Connection
- *
- * @author $author$
- * @version $Revision$ $Date$
- */
-public class OpenPortalConnection {
+import java.util.Collection;
+import java.util.Set;
 
-    private OpenPortalConfiguration _configuration;
-
-    public OpenPortalConnection(OpenPortalConfiguration configuration) {
-        _configuration = configuration;
-    }
-
-    /**
-     * Release internal resources
-     */
-    public void dispose() {
-        //implementation
-    }
-
-    /**
-     * If internal connection is not usable, throw IllegalStateException
-     */
-    public void test() {
-        //implementation
-    }
-
+public interface OpenPortalConnection {
+    Uid create(final ObjectClass objectClass, final Set<Attribute> attributes);
+    Uid update(final ObjectClass objectClass, Uid uid, final Set<Attribute> replaceAttributes);
+    void delete(final ObjectClass objectClass, Uid uid);
+    Collection<ConnectorObject> serach(String query, ObjectClass objectClass);
+    Uid authenticate(String userName, GuardedString password);
+    void test();
+    void dispose();
+    Schema schema();
 }

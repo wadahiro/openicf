@@ -26,13 +26,12 @@ package org.forgerock.openicf.openportal;
 
 import java.util.*;
 
+import org.identityconnectors.common.Assertions;
 import org.identityconnectors.common.security.*;
 import org.identityconnectors.framework.spi.*;
 import org.identityconnectors.framework.spi.operations.*;
-import org.identityconnectors.framework.common.exceptions.*;
 import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
-import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 
 /**
@@ -44,14 +43,14 @@ import org.identityconnectors.common.logging.Log;
 @ConnectorClass(
         displayNameKey = "OpenPortal",
         configurationClass = OpenPortalConfiguration.class)
-public class OpenPortalConnector implements PoolableConnector, AuthenticateOp, CreateOp, DeleteOp, SchemaOp, SearchOp<String>, SyncOp, TestOp, UpdateAttributeValuesOp {
+public class OpenPortalConnector implements PoolableConnector, AuthenticateOp, CreateOp, DeleteOp, SchemaOp, SearchOp<String>, TestOp, UpdateOp{
     /**
      * Setup logging for the {@link OpenPortalConnector}.
      */
     private static final Log log = Log.getLog(OpenPortalConnector.class);
 
     /**
-     * Place holder for the Connection created in the init method
+     * Place holder for the OpenPortalConnection created in the init method
      */
     private OpenPortalConnection connection;
 
@@ -75,7 +74,7 @@ public class OpenPortalConnector implements PoolableConnector, AuthenticateOp, C
      */
     public void init(Configuration cfg) {
         this.config = (OpenPortalConfiguration) cfg;
-        this.connection = new OpenPortalConnection(this.config);
+        this.connection = new OpenPortalConnectionImpl(config);
     }
 
     /**
@@ -109,33 +108,65 @@ public class OpenPortalConnector implements PoolableConnector, AuthenticateOp, C
         throw new UnsupportedOperationException();
     }
 
-
-
     /**
      * {@inheritDoc}
      */
     public Uid create(final ObjectClass objClass, final Set<Attribute> attrs, final OperationOptions options) {
-        throw new UnsupportedOperationException();
+        final String method = "create";
+        log.info("Entered {0} ", method);
+
+        Assertions.nullCheck(objClass, "objectClass");
+        Assertions.nullCheck(attrs, "attrs");
+
+        Uid uid = connection.create(objClass, attrs);
+
+        log.info("Exit {0}", method);
+        return uid;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public Uid update(ObjectClass objclass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
+        final String method = "update";
+        log.info("Entered {0}", method);
+
+        Assertions.nullCheck(objclass, "objClass");
+        Assertions.nullCheck(replaceAttributes, "replaceAttributes");
+
+        Uid returnUid = connection.update(objclass, uid, replaceAttributes);
+
+        log.info("Exit {0}", method);
+
+        return returnUid;
+    }
 
     /**
      * {@inheritDoc}
      */
     public void delete(final ObjectClass objClass, final Uid uid, final OperationOptions options) {
-        throw new UnsupportedOperationException();
-    }
+        final String method = "delete";
+        log.info("Entered {0}", method);
 
+        Assertions.nullCheck(objClass, "objClass");
+        Assertions.nullCheck(uid, "uid");
+
+        connection.delete(objClass, uid);
+
+        log.info("Exit {0}", method);
+    }
 
     /**
      * {@inheritDoc}
      */
     public Schema schema() {
-        throw new UnsupportedOperationException();
+        final String method = "schema";
+        log.info("Entered {0}", method);
+        log.info("Exit {0}", method);
+
+        return connection.schema();
     }
 
-
-   
     /**
      * {@inheritDoc}
      */
@@ -150,58 +181,20 @@ public class OpenPortalConnector implements PoolableConnector, AuthenticateOp, C
         throw new UnsupportedOperationException();
     }
 
-
-    /**
-     * {@inheritDoc}
-     */
-    public void sync(ObjectClass objClass, SyncToken token, SyncResultsHandler handler, final OperationOptions options) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public SyncToken getLatestSyncToken(ObjectClass objectClass) {
-        throw new UnsupportedOperationException();
-    }
-
-
     /**
      * {@inheritDoc}
      */
     public void test() {
-        throw new UnsupportedOperationException();
-    }
+        final String method = "test";
+        log.info("Entered {0}", method);
 
+        Assertions.nullCheck(config, "config");
+        Assertions.nullCheck(connection, "connection");
 
-    /**
-     * {@inheritDoc}
-     */
-    public Uid update(ObjectClass objclass,
-                      Uid uid,
-                      Set<Attribute> replaceAttributes,
-                      OperationOptions options) {
-        throw new UnsupportedOperationException();
-    }
+        if(connection != null){
+            connection.test();
+        }
 
-
-    /**
-     * {@inheritDoc}
-     */
-    public Uid addAttributeValues(ObjectClass objclass,
-                                  Uid uid,
-                                  Set<Attribute> valuesToAdd,
-                                  OperationOptions options) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Uid removeAttributeValues(ObjectClass objclass,
-                                     Uid uid,
-                                     Set<Attribute> valuesToRemove,
-                                     OperationOptions options) {
-        throw new UnsupportedOperationException();
+        log.info("Exit {0}", method);
     }
 }
