@@ -29,7 +29,7 @@ import org.identityconnectors.framework.spi.AbstractConfiguration;
 import org.identityconnectors.framework.spi.ConfigurationProperty;
 import org.identityconnectors.common.StringUtil;
 
-import java.io.File;
+//import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -151,6 +151,9 @@ public class OpenPortalConfiguration extends AbstractConfiguration {
         if (0 > port || port > 65535) {
             throw new IllegalArgumentException("Port must be in range [0..65535]");
         }
+        /*if(StringUtil.isBlank(wsdlFile)){
+            throw new IllegalArgumentException("WsdlFile cannot be null or empty.");
+        }*/
         try {
             getUrl();
         } catch (MalformedURLException e) {
@@ -168,7 +171,7 @@ public class OpenPortalConfiguration extends AbstractConfiguration {
             // Unathenticated url
             sb.append(host).append(":").append(port).append("/tunnel-web/axis");
         }
-        if(wsdlFile != null)
+        if(!StringUtil.isBlank(wsdlFile))
             sb.append("/").append(wsdlFile).append("?wsdl");
         return new URL(sb.toString());
     }
