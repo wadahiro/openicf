@@ -44,7 +44,7 @@ import org.identityconnectors.common.logging.Log;
 @ConnectorClass(
         displayNameKey = "OpenPortal",
         configurationClass = OpenPortalConfiguration.class)
-public class OpenPortalConnector implements PoolableConnector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp, ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<String>, SyncOp, TestOp, UpdateAttributeValuesOp {
+public class OpenPortalConnector implements PoolableConnector, AuthenticateOp, CreateOp, DeleteOp, SchemaOp, SearchOp<String>, SyncOp, TestOp, UpdateAttributeValuesOp {
     /**
      * Setup logging for the {@link OpenPortalConnector}.
      */
@@ -110,13 +110,6 @@ public class OpenPortalConnector implements PoolableConnector, AuthenticateOp, R
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
-    public Uid resolveUsername(final ObjectClass objectClass, final String username, final OperationOptions options) {
-        throw new UnsupportedOperationException();
-    }
-
 
     /**
      * {@inheritDoc}
@@ -142,22 +135,7 @@ public class OpenPortalConnector implements PoolableConnector, AuthenticateOp, R
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
-    public Object runScriptOnConnector(ScriptContext request, OperationOptions options) {
-        throw new UnsupportedOperationException();
-    }
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public Object runScriptOnResource(ScriptContext request, OperationOptions options) {
-        throw new UnsupportedOperationException();
-    }
-
-
+   
     /**
      * {@inheritDoc}
      */

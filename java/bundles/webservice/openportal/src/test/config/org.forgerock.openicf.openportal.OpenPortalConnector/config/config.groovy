@@ -44,7 +44,7 @@ configuration{
     port=8080
     remoteUser="bruno"
     password=new GuardedString("1234".toCharArray())
-    wsdlFile="file:///service.wsdl"
+    wsdlFile="Portal_UserService"
 }
 
 testsuite {

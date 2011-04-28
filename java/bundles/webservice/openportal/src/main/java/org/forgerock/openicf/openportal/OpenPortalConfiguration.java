@@ -68,7 +68,7 @@ public class OpenPortalConfiguration extends AbstractConfiguration {
 
     private GuardedString password = null;
 
-    private File wsdlFile = null;
+    private String wsdlFile = null;
 
     /**
      * Constructor
@@ -78,11 +78,11 @@ public class OpenPortalConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(displayMessageKey = "EXAMPLE_PROPERTY_DISPLAY", helpMessageKey = "EXAMPLE_PROPERTY_HELP", confidential = false)
-    public File getWsdlFile() {
+    public String getWsdlFile() {
         return wsdlFile;
     }
 
-    public void setWsdlFile(File wsdlFile) {
+    public void setWsdlFile(String wsdlFile) {
         this.wsdlFile = wsdlFile;
     }
 
@@ -168,6 +168,8 @@ public class OpenPortalConfiguration extends AbstractConfiguration {
             // Unathenticated url
             sb.append(host).append(":").append(port).append("/tunnel-web/axis");
         }
+        if(wsdlFile != null)
+            sb.append("/").append(wsdlFile).append("?wsdl");
         return new URL(sb.toString());
     }
 

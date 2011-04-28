@@ -60,6 +60,7 @@ public class OpenPortalConnectorTests {
     private static final String REMOTE_USER  = properties.getStringProperty("configuration.remoteUser");
     private static final GuardedString PASSWORD = properties.getProperty("configuration.password", GuardedString.class);
     //private static final int PORT = properties.getProperty("configuration.port",Integer.class);
+    private static final String WSDLFILE = properties.getStringProperty("configuration.wsdlFile");
     //set up logging
     private static final Log log = Log.getLog(OpenPortalConnectorTests.class);
 
@@ -103,7 +104,9 @@ public class OpenPortalConnectorTests {
         //connector.test();
         //System.out.println("" + config.validate());
         config.setSsl(true);
+        config.setWsdlFile(null);
         config.validate();
+
         System.out.println(config.getUrl());
     }
     @Test
@@ -111,19 +114,21 @@ public class OpenPortalConnectorTests {
         log.info("Checking validation without SSL..");
         //You can use TestHelpers to do some of the boilerplate work in running a search
         //TestHelpers.search(theConnector, ObjectClass.ACCOUNT, filter, handler, null);
-        //connector.test();
-        //System.out.println("" + config.validate());
-        //config.setSsl(true);
+        
+        config.setWsdlFile(null);
         config.validate();
         System.out.println(config.getUrl());
     }
-    /*@Test
-    public void exampleTest2() {
-        log.info("Running Test 2...");
+    @Test
+    public void getWSDLFile() throws MalformedURLException {
+        log.info("Getting WSDLFile...");
+        config.validate();
+        config.setWsdlFile(WSDLFILE);
+        System.out.println(config.getUrl());
         //Another example using TestHelpers
         //List<ConnectorObject> results = TestHelpers.searchToList(theConnector, ObjectClass.GROUP, filter);
     }
-
+    /*
     protected ConnectorFacade getFacade(OpenPortalConfiguration config) {
         ConnectorFacadeFactory factory = ConnectorFacadeFactory.getInstance();
         // **test only**
