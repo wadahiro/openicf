@@ -40,10 +40,10 @@ connector.i3.wrong.password=new GuardedString("".toCharArray())
 
 configuration{
     ssl = false
-    host="localhost"
-    port=80
-    remoteUser="admin"
-    password=new GuardedString("Passw0rd".toCharArray())
+    host="127.0.0.1"
+    port=8080
+    remoteUser="bruno"
+    password=new GuardedString("1234".toCharArray())
     wsdlFile="file:///service.wsdl"
 }
 

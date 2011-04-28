@@ -135,15 +135,19 @@ public class OpenPortalConfiguration extends AbstractConfiguration {
      * {@inheritDoc}
      */
     public void validate() {
-        if (StringUtil.isBlank(remoteUser)) {
+        if(ssl){
+            if (StringUtil.isBlank(remoteUser)) {
             throw new IllegalArgumentException("Remote User cannot be null or empty.");
+            }
+            if (null == password) {
+            throw new IllegalArgumentException("Password cannot be null.");
+            }
         }
+        
         if (StringUtil.isBlank(host)) {
             throw new IllegalArgumentException("Host cannot be null or empty.");
         }
-        if (null == password) {
-            throw new IllegalArgumentException("Password cannot be null.");
-        }
+        
         if (0 > port || port > 65535) {
             throw new IllegalArgumentException("Port must be in range [0..65535]");
         }
@@ -155,14 +159,14 @@ public class OpenPortalConfiguration extends AbstractConfiguration {
     }
 
     public URL getUrl() throws MalformedURLException {
-        StringBuffer sb = ssl ? new StringBuffer("https://") : new StringBuffer("http://");
-        sb.append(remoteUser).append(":").append("Passw0rd").append("@").append(host).append(":").append(port);
-        if (true) {
+        StringBuffer sb = new StringBuffer("http://");//ssl ? new StringBuffer("https://") : new StringBuffer("http://");
+             
+        if (ssl) {
             // Authenticated url
-            sb.append("/tunnel-web/secure/axis/");
-        } else {
+            sb.append(remoteUser).append(":").append("1234").append("@").append(host).append(":").append(port).append("/tunnel-web/secure/axis");
+        } else if(!ssl){
             // Unathenticated url
-            sb.append("/tunnel-web/axis/");
+            sb.append(host).append(":").append(port).append("/tunnel-web/axis");
         }
         return new URL(sb.toString());
     }

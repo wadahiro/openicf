@@ -22,6 +22,7 @@
  */
 package org.forgerock.openicf.openportal;
 
+import java.net.MalformedURLException;
 import java.util.*;
 
 
@@ -56,18 +57,32 @@ public class OpenPortalConnectorTests {
     // Host is a public property read from public configuration file
     private static final String HOST = properties.getStringProperty("configuration.host");
     // Login and password are private properties read from private configuration file 
-    private static final String REMOTE_USER = properties.getStringProperty("configuration.remoteUser");
+    private static final String REMOTE_USER  = properties.getStringProperty("configuration.remoteUser");
     private static final GuardedString PASSWORD = properties.getProperty("configuration.password", GuardedString.class);
-
+    //private static final int PORT = properties.getProperty("configuration.port",Integer.class);
     //set up logging
     private static final Log log = Log.getLog(OpenPortalConnectorTests.class);
 
+    private static OpenPortalConnector connector;
+    private static OpenPortalConfiguration config;
     @BeforeClass
     public static void setUp() {
-        Assert.assertNotNull(HOST);
+        
+
+        /*Assert.assertNotNull(HOST);
         Assert.assertNotNull(REMOTE_USER);
         Assert.assertNotNull(PASSWORD);
+*/
+        config = new OpenPortalConfiguration();
+        //config.setSsl(true);
+        config.setHost(HOST);
+        config.setRemoteUser(REMOTE_USER);
+        config.setPassword(PASSWORD);
+        //config.setPort(PORT);
+        config.setPort(properties.getProperty("configuration.port", Integer.class));
 
+        connector = new OpenPortalConnector();
+        connector.init(config);
         //
         //other setup work to do before running tests
         //
@@ -81,13 +96,28 @@ public class OpenPortalConnectorTests {
     }
 
     @Test
-    public void exampleTest1() {
-        log.info("Running Test 1...");
+    public void validateConfigWithSSL() throws MalformedURLException {
+        log.info("Checking validation with SSL..");
         //You can use TestHelpers to do some of the boilerplate work in running a search
         //TestHelpers.search(theConnector, ObjectClass.ACCOUNT, filter, handler, null);
+        //connector.test();
+        //System.out.println("" + config.validate());
+        config.setSsl(true);
+        config.validate();
+        System.out.println(config.getUrl());
     }
-
     @Test
+    public void validateConfigWithOutSSL() throws MalformedURLException {
+        log.info("Checking validation without SSL..");
+        //You can use TestHelpers to do some of the boilerplate work in running a search
+        //TestHelpers.search(theConnector, ObjectClass.ACCOUNT, filter, handler, null);
+        //connector.test();
+        //System.out.println("" + config.validate());
+        //config.setSsl(true);
+        config.validate();
+        System.out.println(config.getUrl());
+    }
+    /*@Test
     public void exampleTest2() {
         log.info("Running Test 2...");
         //Another example using TestHelpers
@@ -99,5 +129,5 @@ public class OpenPortalConnectorTests {
         // **test only**
         APIConfiguration impl = TestHelpers.createTestConfiguration(OpenPortalConnector.class, config);
         return factory.newInstance(impl);
-    }
+    }*/
 }
