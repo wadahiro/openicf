@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright © 2011 ForgeRock AS. All rights reserved.
+ * Copyright ¬© 2011 ForgeRock AS. All rights reserved.
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -77,7 +77,7 @@ public class OpenPortalConfiguration extends AbstractConfiguration {
 
     }
 
-    @ConfigurationProperty(displayMessageKey = "EXAMPLE_PROPERTY_DISPLAY", helpMessageKey = "EXAMPLE_PROPERTY_HELP", confidential = false)
+    @ConfigurationProperty(displayMessageKey = "WSDL_FILE_PROPERTY_DISPLAY", helpMessageKey = "WSDL_FILE_PROPERTY_HELP", confidential = false)
     public String getWsdlFile() {
         return wsdlFile;
     }
@@ -86,7 +86,7 @@ public class OpenPortalConfiguration extends AbstractConfiguration {
         this.wsdlFile = wsdlFile;
     }
 
-    @ConfigurationProperty(displayMessageKey = "EXAMPLE_PROPERTY_DISPLAY", helpMessageKey = "EXAMPLE_PROPERTY_HELP", confidential = false)
+    @ConfigurationProperty(displayMessageKey = "HOST_PROPERTY_DISPLAY", helpMessageKey = "HOST_PROPERTY_HELP", confidential = false)
     public String getHost() {
         return host;
     }
@@ -95,7 +95,7 @@ public class OpenPortalConfiguration extends AbstractConfiguration {
         this.host = host;
     }
 
-    @ConfigurationProperty(displayMessageKey = "EXAMPLE_PROPERTY_DISPLAY", helpMessageKey = "EXAMPLE_PROPERTY_HELP", confidential = false)
+    @ConfigurationProperty(displayMessageKey = "PORT_PROPERTY_DISPLAY", helpMessageKey = "PORT_PROPERTY_HELP", confidential = false)
     public int getPort() {
         return port;
     }
@@ -104,7 +104,7 @@ public class OpenPortalConfiguration extends AbstractConfiguration {
         this.port = port;
     }
 
-    @ConfigurationProperty(displayMessageKey = "EXAMPLE_PROPERTY_DISPLAY", helpMessageKey = "EXAMPLE_PROPERTY_HELP", confidential = false)
+    @ConfigurationProperty(displayMessageKey = "IS_SSL_PROPERTY_DISPLAY", helpMessageKey = "IS_SSL_PROPERTY_HELP", confidential = false)
     public boolean isSsl() {
         return ssl;
     }
@@ -113,7 +113,7 @@ public class OpenPortalConfiguration extends AbstractConfiguration {
         this.ssl = ssl;
     }
 
-    @ConfigurationProperty(displayMessageKey = "EXAMPLE_PROPERTY_DISPLAY", helpMessageKey = "EXAMPLE_PROPERTY_HELP", confidential = false)
+    @ConfigurationProperty(displayMessageKey = "REMOTE_USER_PROPERTY_DISPLAY", helpMessageKey = "REMOTE_USER_PROPERTY_HELP", confidential = false)
     public String getRemoteUser() {
         return remoteUser;
     }
@@ -122,7 +122,7 @@ public class OpenPortalConfiguration extends AbstractConfiguration {
         this.remoteUser = remoteUser;
     }
 
-    @ConfigurationProperty(displayMessageKey = "EXAMPLE_PROPERTY_DISPLAY", helpMessageKey = "EXAMPLE_PROPERTY_HELP", confidential = true)
+    @ConfigurationProperty(displayMessageKey = "PASSWORD_PROPERTY_DISPLAY", helpMessageKey = "PASSWORD_PROPERTY_HELP", confidential = true)
     public GuardedString getPassword() {
         return password;
     }
@@ -143,11 +143,11 @@ public class OpenPortalConfiguration extends AbstractConfiguration {
             throw new IllegalArgumentException("Password cannot be null.");
             }
         }
-        
+
         if (StringUtil.isBlank(host)) {
             throw new IllegalArgumentException("Host cannot be null or empty.");
         }
-        
+
         if (0 > port || port > 65535) {
             throw new IllegalArgumentException("Port must be in range [0..65535]");
         }
@@ -163,7 +163,7 @@ public class OpenPortalConfiguration extends AbstractConfiguration {
 
     public URL getUrl() throws MalformedURLException {
         StringBuffer sb = new StringBuffer("http://");//ssl ? new StringBuffer("https://") : new StringBuffer("http://");
-             
+
         if (ssl) {
             // Authenticated url
             sb.append(remoteUser).append(":").append("1234").append("@").append(host).append(":").append(port).append("/tunnel-web/secure/axis");

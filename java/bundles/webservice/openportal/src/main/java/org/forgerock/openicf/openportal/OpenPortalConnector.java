@@ -28,6 +28,7 @@ import java.util.*;
 
 import org.identityconnectors.common.Assertions;
 import org.identityconnectors.common.security.*;
+import org.identityconnectors.framework.common.exceptions.InvalidPasswordException;
 import org.identityconnectors.framework.spi.*;
 import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.objects.*;
@@ -105,7 +106,28 @@ public class OpenPortalConnector implements PoolableConnector, AuthenticateOp, C
      * {@inheritDoc}
      */
     public Uid authenticate(final ObjectClass objectClass, final String username, final GuardedString password, final OperationOptions options) {
-        throw new UnsupportedOperationException();
+        final String method = "authenticate";
+        log.info("Entry {0}", method);
+
+        Assertions.nullCheck(objectClass, "objectClass");
+        Assertions.nullCheck(password, "password");
+        Assertions.nullCheck(username, "username");
+        Assertions.blankCheck(username, "username");
+
+        if(!objectClass.is(ObjectClass.ACCOUNT_NAME)) {
+            throw new IllegalArgumentException("Authentication failed. Can only authenticate against " + ObjectClass.ACCOUNT_NAME + " resources.");
+        }
+
+        Uid uid = connection.authenticate(username, password);
+
+        if(uid == null){
+            throw new InvalidPasswordException("Invalid password for user: " + username);
+        }
+
+        log.info("Exit {0}", method);
+
+        return uid;
+
     }
 
     /**
@@ -113,7 +135,7 @@ public class OpenPortalConnector implements PoolableConnector, AuthenticateOp, C
      */
     public Uid create(final ObjectClass objClass, final Set<Attribute> attrs, final OperationOptions options) {
         final String method = "create";
-        log.info("Entered {0} ", method);
+        log.info("Entry {0} ", method);
 
         Assertions.nullCheck(objClass, "objectClass");
         Assertions.nullCheck(attrs, "attrs");
@@ -129,7 +151,7 @@ public class OpenPortalConnector implements PoolableConnector, AuthenticateOp, C
      */
     public Uid update(ObjectClass objclass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
         final String method = "update";
-        log.info("Entered {0}", method);
+        log.info("Entry {0}", method);
 
         Assertions.nullCheck(objclass, "objClass");
         Assertions.nullCheck(replaceAttributes, "replaceAttributes");
@@ -146,7 +168,7 @@ public class OpenPortalConnector implements PoolableConnector, AuthenticateOp, C
      */
     public void delete(final ObjectClass objClass, final Uid uid, final OperationOptions options) {
         final String method = "delete";
-        log.info("Entered {0}", method);
+        log.info("Entry {0}", method);
 
         Assertions.nullCheck(objClass, "objClass");
         Assertions.nullCheck(uid, "uid");
@@ -161,7 +183,7 @@ public class OpenPortalConnector implements PoolableConnector, AuthenticateOp, C
      */
     public Schema schema() {
         final String method = "schema";
-        log.info("Entered {0}", method);
+        log.info("Entry {0}", method);
         log.info("Exit {0}", method);
 
         return connection.schema();
@@ -171,14 +193,26 @@ public class OpenPortalConnector implements PoolableConnector, AuthenticateOp, C
      * {@inheritDoc}
      */
     public FilterTranslator<String> createFilterTranslator(ObjectClass objClass, OperationOptions options) {
-        throw new UnsupportedOperationException();
+        return new OpenPortalFilterTranslator();
     }
 
     /**
      * {@inheritDoc}
      */
     public void executeQuery(ObjectClass objClass, String query, ResultsHandler handler, OperationOptions options) {
-        throw new UnsupportedOperationException();
+        final String method = "executeQuery";
+        log.info("Entry {0}", method);
+
+        Assertions.nullCheck(objClass, "objClass");
+        Assertions.nullCheck(handler, "handler");
+
+        Collection<ConnectorObject> result = connection.allConnectorObjects(objClass);
+
+        for(ConnectorObject connectorObject: result){
+            handler.handle(connectorObject);
+        }
+
+        log.info("Exit {0}", method);
     }
 
     /**
@@ -186,7 +220,7 @@ public class OpenPortalConnector implements PoolableConnector, AuthenticateOp, C
      */
     public void test() {
         final String method = "test";
-        log.info("Entered {0}", method);
+        log.info("Entry {0}", method);
 
         Assertions.nullCheck(config, "config");
         Assertions.nullCheck(connection, "connection");

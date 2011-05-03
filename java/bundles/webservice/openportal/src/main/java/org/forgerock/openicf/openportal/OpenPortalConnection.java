@@ -34,7 +34,7 @@ public interface OpenPortalConnection {
     Uid create(final ObjectClass objectClass, final Set<Attribute> attributes);
     Uid update(final ObjectClass objectClass, Uid uid, final Set<Attribute> replaceAttributes);
     void delete(final ObjectClass objectClass, Uid uid);
-    Collection<ConnectorObject> serach(String query, ObjectClass objectClass);
+    Collection<ConnectorObject> allConnectorObjects(ObjectClass objectClass);
     Uid authenticate(String userName, GuardedString password);
     void test();
     void dispose();

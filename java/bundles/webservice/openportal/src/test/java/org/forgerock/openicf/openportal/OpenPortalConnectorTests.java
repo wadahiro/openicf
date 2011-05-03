@@ -36,10 +36,8 @@ import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.*;
 import org.identityconnectors.test.common.TestHelpers;
 import org.identityconnectors.test.common.PropertyBag;
-import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import static org.testng.Assert.*;
+import org.testng.annotations.*;
 
 /**
  * Attempts to test the {@link OpenPortalConnector} with the framework.
@@ -48,12 +46,12 @@ import org.testng.annotations.Test;
  * @version $Revision$ $Date$
  */
 public class OpenPortalConnectorTests {
-
+    private OpenPortalConnector openPortalConnector;
     /*
     * Example test properties.
     * See the Javadoc of the TestHelpers class for the location of the public and private configuration files.
     */
-    private static final PropertyBag properties = TestHelpers.getProperties(OpenPortalConnector.class);
+    /*private static final PropertyBag properties = TestHelpers.getProperties(OpenPortalConnector.class);
     // Host is a public property read from public configuration file
     private static final String HOST = properties.getStringProperty("configuration.host");
     // Login and password are private properties read from private configuration file 
@@ -65,16 +63,19 @@ public class OpenPortalConnectorTests {
     private static final Log log = Log.getLog(OpenPortalConnectorTests.class);
 
     private static OpenPortalConnector connector;
-    private static OpenPortalConfiguration config;
+    private static OpenPortalConfiguration config;*/
     @BeforeClass
-    public static void setUp() {
+    public void setUp() throws Exception{
         
+        openPortalConnector = new OpenPortalConnector();
+        OpenPortalConfiguration openPortalConfiguration = new OpenPortalConfiguration();
+        openPortalConnector.init(openPortalConfiguration);
 
         /*Assert.assertNotNull(HOST);
         Assert.assertNotNull(REMOTE_USER);
         Assert.assertNotNull(PASSWORD);
 */
-        config = new OpenPortalConfiguration();
+        /*config = new OpenPortalConfiguration();
         //config.setSsl(true);
         config.setHost(HOST);
         config.setRemoteUser(REMOTE_USER);
@@ -86,17 +87,15 @@ public class OpenPortalConnectorTests {
         connector.init(config);
         //
         //other setup work to do before running tests
-        //
+        //*/
     }
 
-    @AfterClass
-    public static void tearDown() {
-        //
-        //clean up resources
-        //
+   @AfterClass
+    public void tearDown() throws Exception {
+        openPortalConnector.dispose();
     }
 
-    @Test
+    /*@Test
     public void validateConfigWithSSL() throws MalformedURLException {
         log.info("Checking validation with SSL..");
         //You can use TestHelpers to do some of the boilerplate work in running a search
@@ -127,7 +126,42 @@ public class OpenPortalConnectorTests {
         System.out.println(config.getUrl());
         //Another example using TestHelpers
         //List<ConnectorObject> results = TestHelpers.searchToList(theConnector, ObjectClass.GROUP, filter);
+    }*/
+    @Test
+    public void testGetConfiguration() throws Exception {
+        assertNotNull(openPortalConnector.getConfiguration());
     }
+
+    @Test(expectedExceptions = NullPointerException.class)
+    public void testAuthenticateNullCheck() throws Exception {
+        openPortalConnector.authenticate(null, null, null, null);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testAuthenticateBlankCheck() throws Exception {
+        openPortalConnector.authenticate(ObjectClass.ACCOUNT, "", new GuardedString(), null);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testAuthenticateObjectClassCheck() throws Exception {
+        openPortalConnector.authenticate(ObjectClass.GROUP, "", new GuardedString(), null);
+    }
+
+    @Test(expectedExceptions = NullPointerException.class)
+    public void testCreateNullCheck() throws Exception {
+        openPortalConnector.create(null, null, null);
+    }
+
+    @Test(expectedExceptions = NullPointerException.class)
+    public void testUpdateNullCheck() throws Exception {
+        openPortalConnector.update(null,null, null, null);
+    }
+
+    @Test(expectedExceptions = NullPointerException.class)
+    public void testDeleteNullCheck() throws Exception {
+        openPortalConnector.delete(null, null, null);
+    }
+
     /*
     protected ConnectorFacade getFacade(OpenPortalConfiguration config) {
         ConnectorFacadeFactory factory = ConnectorFacadeFactory.getInstance();
