@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Waveset PUBLIC 'waveset.dtd' 'waveset.dtd'>
+<!--
+  Default Custom Catalog
+-->
+<Waveset>
+<Configuration name="defaultTestCustomCatalog">
+<Extension>
+    <CustomCatalog id="defaultCustomCatalog" enabled="true">
+        <MessageSet language="en" country="US">
+        <Msg id="RESATTR_WSDL_URL">WSDL Location</Msg>
+	    <Msg id="CAS_RESATTR_ENDPOINT_HELP"><![CDATA[<b>Optional attribute:</b><br>It overwrites the default webservice URL in the WSDL on USDWebService port.]]></Msg>
+	    <Msg id="CAS_RESATTR_POLICY_HELP"><![CDATA[<b>Optional attribute:</b><br> If specified the adapter will use the loginService(login,password,policy) method]]></Msg>
+	    <Msg id="CAS_RESATTR_WSDL_URL_HELP"><![CDATA[<b>Required attribute:</b><br>WSDL location URL. It can be remote URL or for performance purpose it can be local file. If you use local file, make sure the WSDL has the proper URL to the endpoint or specifi you own endpoint on the resource]]></Msg>
+	    <Msg id="CAS_ERROR_START_CONNECTION">Adapter can not establish connection to the server. The USDWebService port is NULL, check the WSDL</Msg>
+	    <Msg id="CAS_ERROR_AUTHENTICATE_CONNECTION">Adapter can not establish an authenticated connection with the with the given authentication parameters</Msg>
+	    <Msg id="CAS_ERROR_UNMARSHAL_ERROR">Adapter could not unmarshal this input: {0}</Msg>
+	    <Msg id="CAS_ERROR_REQUIRED_ATTR_MISSING">Required attribute: {0} is missing!</Msg>
+	    <Msg id="CAS_ERROR_UNMARSHAL_NULLINPUT">The response was NULL from the CA WebService</Msg>
+	    <Msg id="CAS_ERROR_HANDLE_NOT_FOUND">Adapter could not find the object handle for "{0}" account</Msg>
+	    <Msg id="CAS_ERROR_INVALID_RESOURCEATTRIBUTE">Invalid account attribute definition: {0}. Attribute must be one of these formats: "id" or "cnt:dept.name" </Msg>
+	    <Msg id="CAS_ERROR_USER_NOT_EXIST">User "{0}" not exists on resource</Msg>
+	    <Msg id="CAS_ERROR_ATTRIBUTE_RESOLVE">Adapter did not find one "{0}" object where property "{1}" equals with value "{2}". The number of result is {3}</Msg>
+        </MessageSet>
+    </CustomCatalog>
+</Extension>
+</Configuration>
+</Waveset>

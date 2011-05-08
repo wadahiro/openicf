@@ -1,0 +1,102 @@
+
+package org.forgerock.openicf.usd.ca;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+
+
+/**
+ * <p>Java class for anonymous complex type.
+ * 
+ * <p>The following schema fragment specifies the expected content contained within this class.
+ * 
+ * <pre>
+ * &lt;complexType>
+ *   &lt;complexContent>
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *       &lt;sequence>
+ *         &lt;element name="sid" type="{http://www.w3.org/2001/XMLSchema}int"/>
+ *         &lt;element name="docId" type="{http://www.w3.org/2001/XMLSchema}int"/>
+ *         &lt;element name="kdAttributes" type="{http://www.ca.com/UnicenterServicePlus/ServiceDesk}ArrayOfString"/>
+ *       &lt;/sequence>
+ *     &lt;/restriction>
+ *   &lt;/complexContent>
+ * &lt;/complexType>
+ * </pre>
+ * 
+ * 
+ */
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = "", propOrder = {
+    "sid",
+    "docId",
+    "kdAttributes"
+})
+@XmlRootElement(name = "modifyDocument")
+public class ModifyDocument {
+
+    protected int sid;
+    protected int docId;
+    @XmlElement(required = true)
+    protected ArrayOfString kdAttributes;
+
+    /**
+     * Gets the value of the sid property.
+     * 
+     */
+    public int getSid() {
+        return sid;
+    }
+
+    /**
+     * Sets the value of the sid property.
+     * 
+     */
+    public void setSid(int value) {
+        this.sid = value;
+    }
+
+    /**
+     * Gets the value of the docId property.
+     * 
+     */
+    public int getDocId() {
+        return docId;
+    }
+
+    /**
+     * Sets the value of the docId property.
+     * 
+     */
+    public void setDocId(int value) {
+        this.docId = value;
+    }
+
+    /**
+     * Gets the value of the kdAttributes property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link ArrayOfString }
+     *     
+     */
+    public ArrayOfString getKdAttributes() {
+        return kdAttributes;
+    }
+
+    /**
+     * Sets the value of the kdAttributes property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link ArrayOfString }
+     *     
+     */
+    public void setKdAttributes(ArrayOfString value) {
+        this.kdAttributes = value;
+    }
+
+}

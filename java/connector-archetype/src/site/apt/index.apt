@@ -34,6 +34,19 @@ How to create new connector
 
 * Examples
 
++---
+mvn archetype:generate \
+    -DarchetypeGroupId=org.forgerock.openicf \
+    -DarchetypeArtifactId=connector-archetype \
+    -DarchetypeVersion=1.0.0-SNAPSHOT \
+    -DremoteRepositories=http://maven.forgerock.org/repo/snapshots \
+    -DgroupId=org.forgerock.openicf.connectors.misc \
+    -DartifactId=sample \
+    -Dversion=1.0-SNAPSHOT \
+    -Dpackage=org.forgerock.openicf.sample \
+    -Dconnector_name=Sample
++---
+
 
 +---+
     $ mvn archetype:generate -DarchetypeCatalog=local

@@ -28,22 +28,22 @@
     xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.1 http://maven.apache.org/xsd/decoration-1.0.1.xsd">
     <skin>
         <groupId>org.forgerock.commons</groupId>
-        <artifactId>maven-forgerock-skin</artifactId>
+        <artifactId>forgerock-community-skin</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </skin>
     <publishDate position="right" format="yyyy.MM.dd"/>
     <version position="right"/>
-    <bannerLeft>
-        <name>OpenICF</name>
-        <src>https://wikis.forgerock.org/confluence/plugins/servlet/builder/resource/OPENIDM/OpenIDM-tagline-200x65.png</src>
-        <alt>OpenICF</alt>
-        <href>https://wikis.forgerock.org/confluence/display/openicf/Home</href>
-    </bannerLeft>
     <body>
         <breadcrumbs>
-            <item name="OpenICF" href="https://wikis.forgerock.org/confluence/display/openicf/Home"/>
-        </breadcrumbs>
-        <menu ref="modules"/>
+            <item name="OpenICF" href="http://openicf.forgerock.org"/>
+        </breadcrumbs>        
         <menu ref="reports"/>
     </body>
+    <custom>
+        <openproject>
+            <href>http://openicf.forgerock.org</href>
+            <src>images/openicf-tagline-195x65.png</src>
+            <alt>OpenICF</alt>
+        </openproject>
+    </custom>
 </project>

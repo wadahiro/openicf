@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-http://www.javabeat.net/articles/185-apache-maven-20-maven-plugins-1.html
 
  Copyright © 2011 ForgeRock Inc. All Rights Reserved
 
@@ -30,36 +29,49 @@ http://www.javabeat.net/articles/185-apache-maven-20-maven-plugins-1.html
     <parent>
         <groupId>org.forgerock</groupId>
         <artifactId>forgerock-parent</artifactId>
-        <version>1-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
-    <groupId>org.forgerock.openicf.bundles</groupId>
-    <artifactId>bundles-build</artifactId>
+    <groupId>org.forgerock.openicf.connectors</groupId>
+    <artifactId>connectors-site</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>OpenICF Connectors Build Parent</name>
+    <name>OpenICF Connectors Site</name>
     <description>Builder parent POM to build all connectors</description>
+    <url>http://openicf.forgerock.org/connectors</url>
+    <distributionManagement>
+        <site>
+            <id>forgerock.org</id>
+            <url>${siteDistributionURL}/connectors/</url>
+        </site>
+    </distributionManagement>
     <modules>
+        <module>misc/dbcommon</module>
+        <module>misc/dummy</module>
+        <module>misc/patternparser</module>
+
         <module>db/databasetable</module>
         <module>db/db2</module>
         <module>db/mysqluser</module>
         <module>db/oracle</module>
         <module>db/oracleerp</module>
+        <module>db/scriptedsql</module>
         <module>file/flatfile</module>
         <module>file/xml</module>
-        <module>ldap/ldap</module>
+        <!-- Missing OpenDJ JARs-->
+        <!--module>ldap/ldap</module-->
+        <module>sso/tam</module>
+        <module>unix/solaris</module>
+        <module>unix/vms</module>
+        <module>webservice/openportal</module>
+        <module>webservice/spml</module>
+        <!--module>webservice/usd</module-->
+        <!-- Requires private JARs -->
         <module>mainframe/3270common</module>
         <module>mainframe/3270freehost</module>
         <module>mainframe/3270hod</module>
         <module>mainframe/3270wrq</module>
         <module>mainframe/racf</module>
-        <module>misc/dbcommon</module>
-        <module>misc/dummy</module>
-        <module>misc/patternparser</module>
-        <module>sso/tam</module>
-        <module>unix/solaris</module>
-        <module>unix/vms</module>
-        <!--module>webservice/openportal</module-->
-        <module>webservice/spml</module>
+                
     </modules>
     <build>
         <plugins>
@@ -68,14 +80,6 @@ http://www.javabeat.net/articles/185-apache-maven-20-maven-plugins-1.html
                 <configuration>
                     <!-- No need to deploy the reactor -->
                     <skip>true</skip>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-eclipse-plugin</artifactId>
-                <configuration>
-                    <downloadSources>true</downloadSources>
-                    <downloadJavadocs>true</downloadJavadocs>
                 </configuration>
             </plugin>
         </plugins>

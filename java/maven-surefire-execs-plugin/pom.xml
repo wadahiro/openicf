@@ -32,7 +32,12 @@
     <packaging>maven-plugin</packaging>
     <name>OpenICF Maven Surefire Executions Plugin</name>
     <description>The Surefire Execs Plugin is used during the test phase of the build lifecycle to execute the unit and the contract tests of a connector.</description>
-
+    <distributionManagement>
+        <site>
+            <id>forgerock.org</id>
+            <url>scp://openicf.forgerock.org/var/www/vhosts/openicf.forgerock.org/httpdocs/maven-surefire-execs-plugin</url>
+        </site>
+    </distributionManagement>
     <scm>
         <connection>scm:svn:https://svn.forgerock.org/openicf/trunk/maven-surefire-execs-plugin</connection>
         <developerConnection>scm:svn:https://svn.forgerock.org/openicf/trunk/maven-surefire-execs-plugin</developerConnection>
@@ -52,16 +57,4 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-eclipse-plugin</artifactId>
-                <configuration>
-                    <downloadSources>true</downloadSources>
-                    <downloadJavadocs>true</downloadJavadocs>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>
