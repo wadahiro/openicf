@@ -25,12 +25,12 @@
   ~ $Id$
 -->
 <document xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns='http://maven.apache.org/XDOC/2.0'
-   xsi:schemaLocation='http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd'  url="./ldap.xml">
+   xsi:schemaLocation='http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd'  url="./os.xml">
     <properties>
-        <title>Lightweight Directory Access Protocol Connector Family</title>
+        <title>Operating System Connector Family</title>
     </properties>
     <body>
-        <section name="Lightweight Directory Access Protocol Connectors" href="Top">
+        <section name="Operating System Connectors" href="Top">
             <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer sapien purus, congue a tincidunt non, mollis vitae
             diam. Fusce pharetra massa interdum nisl ultrices mattis. Cras eget est ultricies magna auctor condimentum.
@@ -81,8 +81,8 @@
                 </ol>
             </section>
 
-            <section name="LDAP Connector" href="LDAP">
-                <p>LDAP Connector</p>
+            <section name="Solaris Connector Connector" href="solaris">
+                <p>Solaris Connector</p>
                 <table class="bodyTable" border="0" cellpadding="4" cellspacing="0">
                     <tbody>
                         <tr class="a">
@@ -97,10 +97,40 @@
                         </tr>
                         <tr class="b">
                             <td>
-                                <a href="http://maven.forgerock.org/repo/snapshots/org/forgerock/openicf/connectors/">ldap-1.1.0.0-SNAPSHOT.jar</a>
+                                <a href="http://maven.forgerock.org/repo/snapshots/org/forgerock/openicf/connectors/">solaris-1.1.0.0-SNAPSHOT.jar</a>
                             </td>
                             <td>
-                                <a href="./ldap/index.html">Documentation</a>
+                                <a href="./solaris">Documentation</a>
+                            </td>
+                            <td>Java 1.5</td>
+                            <td>
+                                <img src="images/comingSoon.png" align="middle"/>
+                            </td>
+                            <td>May 10, 2011</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            <section name="VMS Connector" href="vms">
+                <p>VMS Connector</p>
+                <table class="bodyTable" border="0" cellpadding="4" cellspacing="0">
+                    <tbody>
+                        <tr class="a">
+                            <th colspan="5">Connector Releases</th>
+                        </tr>
+                        <tr style="background-color: rgb(224, 224, 224); font-weight: bold">
+                            <td width="30%">Download</td>
+                            <td width="40%">Description</td>
+                            <td width="10%">Platform</td>
+                            <td width="10%">Status</td>
+                            <td width="10%">Build Date</td>
+                        </tr>
+                        <tr class="b">
+                            <td>
+                                <a href="http://maven.forgerock.org/repo/snapshots/org/forgerock/openicf/connectors/">vms-1.1.0.0-SNAPSHOT.jar</a>
+                            </td>
+                            <td>
+                                <a href="./vms">Documentation</a>
                             </td>
                             <td>Java 1.5</td>
                             <td>

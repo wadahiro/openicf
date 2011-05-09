@@ -25,7 +25,7 @@
   ~ $Id$
 -->
 <document xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns='http://maven.apache.org/XDOC/2.0'
-   xsi:schemaLocation='http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd'  url="./cisco.xml">
+   xsi:schemaLocation='http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd'  url="./sso.xml">
     <properties>
         <title>Single Sign-On Connector Family</title>
     </properties>
@@ -46,13 +46,37 @@
             <section name="Guidelines for support" href="Support">
                 <ol>
                     <li>
-                        <img src="images/checkmark_yes.jpg" alt="Supported"/>Officially supported by ForgeRock
+                        <p>
+                            <b>ForgeRock Supported Project</b>
+                            <img src="images/forgerock_supported.png" alt="ForgeRock Supported"/>
+                        </p>
+                        <ul>
+                            <li>Tested and QA by ForgeRock</li>
+                            <li>Officially bundled with OpenIDM</li>
+                            <li>Can be made part of the OpenIDM subscriptions</li>
+                        </ul>
                     </li>
                     <li>
-                        <img src="images/comingSoon.png" alt="Soon"/>Soon to be supported by ForgeRock
+                        <p>
+                            <b>Community Supported Project</b>
+                            <img src="images/community_supported.png" alt="Community Supported"/>
+                        </p>
+                        <ul>
+                            <li>Tested and QA by Community</li>
+                            <li>Not officially supported by ForgeRock</li>
+                        </ul>
                     </li>
                     <li>
-                        <img src="images/contributed.png" alt="Contribute"/>Community-Contributed (not officially supported)
+                        <p>
+                            <b>Incubator Project</b>
+                            <img src="images/incubator_project.png" alt="Incubator"/>
+                        </p>
+                        <ul>
+                            <li>Place for new connectors</li>
+                            <li>Not necessarily code complete</li>
+                            <li>Totally unsupported</li>
+                            <li>No binary releases</li>
+                        </ul>
                     </li>
                 </ol>
             </section>
@@ -72,14 +96,14 @@
                         </tr>
                         <tr class="b">
                             <td>
-                                <a href="http://maven.forgerock.org/repo/snapshots/org/forgerock/openicf/bundles/">tam-1.1.0.0-SNAPSHOT.jar</a>
+                                <a href="http://maven.forgerock.org/repo/snapshots/org/forgerock/openicf/connectors/">tam-1.1.0.0-SNAPSHOT.jar</a>
                             </td>
                             <td>
                                 <a href="./tam">Documentation</a>
                             </td>
                             <td>Java 1.5</td>
                             <td>
-                                <img src="images/checkmark_yes.jpg" align="middle"/>
+                                <img src="images/comingSoon.png" align="middle"/>
                             </td>
                             <td>May 10, 2011</td>
                         </tr>
