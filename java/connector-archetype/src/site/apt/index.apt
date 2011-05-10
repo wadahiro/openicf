@@ -34,12 +34,22 @@ How to create new connector
 
 * Examples
 
+    For the first time execute this command to import the archetype and generate a new connector project.
+
+    These properties are customisable: 
+        -DartifactId=<<sample>>
+        -Dversion=<<1.0-SNAPSHOT>>
+        -Dpackage=<<org.forgerock.openicf.sample>>
+        -Dconnector_name=<<Sample>>
+
+
 +---
 mvn archetype:generate \
     -DarchetypeGroupId=org.forgerock.openicf \
     -DarchetypeArtifactId=connector-archetype \
     -DarchetypeVersion=1.0.0-SNAPSHOT \
     -DremoteRepositories=http://maven.forgerock.org/repo/snapshots \
+    -DarchetypeRepository=http://maven.forgerock.org/repo/snapshots \
     -DgroupId=org.forgerock.openicf.connectors.misc \
     -DartifactId=sample \
     -Dversion=1.0-SNAPSHOT \
@@ -47,6 +57,7 @@ mvn archetype:generate \
     -Dconnector_name=Sample
 +---
 
+    For the second time even the local archetype can be used with the following command.
 
 +---+
     $ mvn archetype:generate -DarchetypeCatalog=local
@@ -57,9 +68,9 @@ mvn archetype:generate \
     1: local -> connector-archetype (OpenICF Connector Development Archetype)
     Choose a number: : 1
     Define value for property 'groupId': : org.forgerock.openicf.<<misc>>
-    Define value for property 'artifactId': : <<test>>
+    Define value for property 'artifactId': : <<sample>>
     Define value for property 'version':  1.0-SNAPSHOT: :
-    Define value for property 'package':  org.forgerock.openicf.<<test>>: :
+    Define value for property 'package':  org.forgerock.openicf.<<sample>>: :
     [INFO] Using property: ALL_OPERATIONS = yes
     [INFO] Using property: OP_AUTHENTICATE = yes
     [INFO] Using property: OP_CREATE = yes
@@ -75,15 +86,15 @@ mvn archetype:generate \
     [INFO] Using property: OP_UPDATEATTRIBUTEVALUES = yes
     [INFO] Using property: compatibility_version = 1.1
     [INFO] Using property: connector_family = <<misc>>
-    Define value for property 'connector_name': : <<Test>>
+    Define value for property 'connector_name': : <<Sample>>
     [INFO] Using property: framework_version = 0.0-SNAPSHOT
     [INFO] Using property: jira_project = ICFXXX
     [INFO] Using property: poolable_connector = no
     Confirm properties configuration:
     groupId: org.forgerock.openicf.misc
-    artifactId: test
+    artifactId: sample
     version: 1.0-SNAPSHOT
-    package: org.forgerock.openicf.test
+    package: org.forgerock.openicf.sample
     ALL_OPERATIONS: yes
     OP_AUTHENTICATE: yes
     OP_CREATE: yes
@@ -99,7 +110,7 @@ mvn archetype:generate \
     OP_UPDATEATTRIBUTEVALUES: yes
     compatibility_version: 1.1
     connector_family: misc
-    connector_name: TestSample
+    connector_name: Sample
     framework_version: 0.0-SNAPSHOT
     jira_project: ICFXXX
     poolable_connector: no
@@ -108,7 +119,7 @@ mvn archetype:generate \
     [INFO] BUILD SUCCESS
     [INFO] ------------------------------------------------------------------------
     [INFO] ------------------------------------------------------------------------
-    $ cd test
+    $ cd sample
     $ mvn install
 +---+
 

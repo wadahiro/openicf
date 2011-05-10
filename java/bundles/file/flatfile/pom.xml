@@ -42,7 +42,7 @@
         <contracts.skip>true</contracts.skip>
         <privateConfigPath>${user.home}/.connectors/connector-${project.artifactId}/config</privateConfigPath>
         <connectorPackage>org.identityconnectors.flatfile</connectorPackage>
-        <connectorClass>FlatFilelConnector</connectorClass>
+        <connectorClass>FlatFileConnector</connectorClass>
     </properties>
     <repositories>
         <repository>
