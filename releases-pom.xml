@@ -34,7 +34,6 @@
     <groupId>${project.groupId}</groupId>
     <artifactId>${project.artifactId}</artifactId>
     <version>${project.version}</version>
-    <packaging>bundle</packaging>
     <name>${project.name}</name>
     <description>${project.description}</description>
     <inceptionYear>${project.inceptionYear}</inceptionYear>
