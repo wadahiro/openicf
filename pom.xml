@@ -2,7 +2,7 @@
 <!--
  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 
- Copyright © 2011 ForgeRock AS. All rights reserved.
+ Copyright (c) 2011-2012 ForgeRock AS. All rights reserved.
 
  The contents of this file are subject to the terms
  of the Common Development and Distribution License
@@ -22,35 +22,40 @@
  your own identifying information:
  "Portions Copyrighted [year] [name of copyright owner]"
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.forgerock.openicf.connectors</groupId>
         <artifactId>connectors-parent</artifactId>
-        <version>1.1.0.0</version>
+        <version>1.1.0.1-SNAPSHOT</version>
     </parent>
     <groupId>org.forgerock.openicf.connectors.file</groupId>
-    <artifactId>openicf-xml-connector</artifactId>
+    <artifactId>xml-connector</artifactId>
     <version>1.1.0.1-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>Simulated XML Connector</name>
     <description>Connector can simulate almost any kind of resource.</description>
-    <url>http://openicf.forgerock.org/connectors/xml</url>
+    <url>http://openicf.forgerock.org/connectors/xml-connector</url>
     <scm>
-        <connection>scm:svn:https://svn.forgerock.org/openicf/trunk/connectors/java/xml</connection>
-        <developerConnection>scm:svn:https://svn.forgerock.org/openicf/trunk/connectors/java/xml</developerConnection>
-        <url>http://sources.forgerock.org/browse/openicf/trunk/connectors/java/xml</url>
+        <connection>scm:svn:https://svn.forgerock.org/openicf/branches/openicf-xml-connector-1.1.0.x</connection>
+        <developerConnection>scm:svn:https://svn.forgerock.org/openicf/branches/openicf-xml-connector-1.1.0.x
+        </developerConnection>
+        <url>http://sources.forgerock.org/browse/openicf/branches/openicf-xml-connector-1.1.0.x</url>
     </scm>
     <issueManagement>
         <system>jira</system>
         <url>https://bugster.forgerock.org/jira/browse/OPENICF/component/10181</url>
     </issueManagement>
+    <ciManagement>
+        <system>jenkins</system>
+        <url>http://builds.forgerock.org/job/OpenICF - XML Connector</url>
+    </ciManagement>
     <properties>
-        <skipTests>false</skipTests>
-        <contracts.skip>true</contracts.skip>
-        <privateConfigPath>${user.home}/.connectors/${project.artifactId}/config</privateConfigPath>
-        <embedded.dependencies>jaxen,saxonhe,xsom,relaxngDatatype,xml-apis,xercesImpl,stax-api</embedded.dependencies>
-        <connectorPackage>com.forgerock.openicf.xml</connectorPackage>
+        <openicf.osgi.embed>jaxen,saxonhe,xsom,relaxngDatatype,xml-apis,xercesImpl,stax-api</openicf.osgi.embed>
+        <openicf.osgi.import.before.defaults>!javax.swing*,</openicf.osgi.import.before.defaults>
+        <openicf.osgi.failok>true</openicf.osgi.failok>
+        <connectorPackage>org.forgerock.openicf.connectors.xml</connectorPackage>
         <connectorClass>XMLConnector</connectorClass>
         <jira.componentIds>10181</jira.componentIds>
         <jira.versionPrefix>${project.artifactId}</jira.versionPrefix>
@@ -78,21 +83,13 @@
             <name>JavaNet Repository</name>
             <url>http://download.java.net/maven/2</url>
         </repository>
+        <repository>
+            <!-- required for saxon-9.0 -->
+            <id>servicemix-m2-repo</id>
+            <name>Servicemix Maven2 Repository</name>
+            <url>http://svn.apache.org/repos/asf/servicemix/m2-repo/</url>
+        </repository>
     </repositories>
-    <profiles>
-        <profile>
-            <id>with-embedded-dependencies</id>
-            <properties>
-                <embedded.dependencies>jaxen,saxonhe,xsom,relaxngDatatype</embedded.dependencies>
-            </properties>
-        </profile>
-        <profile>
-            <id>active-embedded-dependencies</id>
-            <properties>
-                <embedded.dependencies>jaxen,saxonhe,xsom,relaxngDatatype</embedded.dependencies>
-            </properties>
-        </profile>
-    </profiles>
 
     <dependencies>
         <dependency>
@@ -103,8 +100,8 @@
         </dependency>
         <dependency>
             <groupId>net.sf.saxon</groupId>
-            <artifactId>saxonhe</artifactId>
-            <version>9.3</version>
+            <artifactId>saxon9he</artifactId>
+            <version>9.4.0.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -130,12 +127,29 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <parallel>true</parallel>
+                    <!-- TODO Fix the parallel tests -->
+                    <parallel>false</parallel>
                     <threadCount>10</threadCount>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.forgerock.maven.plugins</groupId>
+                <artifactId>openicf-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>reduce-pom</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
