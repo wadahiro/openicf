@@ -23,13 +23,11 @@
  *
  * $Id$
  */
-package org.forgerock.openicf.connectors.xml.tests;
+package org.forgerock.openicf.connectors.xml;
 
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
-import org.forgerock.openicf.connectors.xml.XMLConfiguration;
-import org.forgerock.openicf.connectors.xml.XMLConnector;
-import static org.forgerock.openicf.connectors.xml.tests.XmlConnectorTestUtil.*;
+
 import java.util.HashSet;
 import java.util.Set;
 import org.identityconnectors.common.security.GuardedString;
@@ -54,8 +52,9 @@ public class XMLConnectorTests {
     @BeforeMethod
     public void init() {        
         XMLConfiguration config = new XMLConfiguration();
-        config.setXmlFilePath(getRandomXMLFile());
-        config.setXsdFilePath(XSD_SCHEMA_FILEPATH);
+        config.setXmlFilePath(XmlConnectorTestUtil.getRandomXMLFile());
+        config.setXsdFilePath(XmlConnectorTestUtil.XSD_SCHEMA_FILEPATH);
+        config.setCreateFileIfNotExists(true);
         APIConfiguration impl = TestHelpers.createTestConfiguration(XMLConnector.class, config);
         ConnectorFacadeFactory factory = ConnectorFacadeFactory.getInstance();
         facade = factory.newInstance(impl);
@@ -104,21 +103,21 @@ public class XMLConnectorTests {
     @Test
     public void frameworkSchemaObjectShouldIncludeAccountObjectInformation() {
         Schema schema = facade.schema();
-        AssertJUnit.assertNotNull(schema.findObjectClassInfo(ACCOUNT_TYPE));
+        AssertJUnit.assertNotNull(schema.findObjectClassInfo(XmlConnectorTestUtil.ACCOUNT_TYPE));
     }
 
     @Test
     public void executeQueryAgainstDocumentContainingTwoAccountsWithNullAsQueryStringShouldReturnTwoAccounts() {
-        Set<Attribute> attrSetOne = getRequiredAccountAttributes();
+        Set<Attribute> attrSetOne = XmlConnectorTestUtil.getRequiredAccountAttributes();
         Set<Attribute> attrSetTwo = new HashSet<Attribute>();
-        attrSetTwo.add(AttributeBuilder.build(ATTR_NAME, "BondUid"));
-        attrSetTwo.add(AttributeBuilder.buildPassword(ATTR_ACCOUNT_VALUE_PASSWORD.toCharArray()));
-        attrSetTwo.add(AttributeBuilder.build(ATTR_ACCOUNT_LAST_NAME, "Bond"));
+        attrSetTwo.add(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_NAME, "BondUid"));
+        attrSetTwo.add(AttributeBuilder.buildPassword(XmlConnectorTestUtil.ATTR_ACCOUNT_VALUE_PASSWORD.toCharArray()));
+        attrSetTwo.add(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_ACCOUNT_LAST_NAME, "Bond"));
 
         facade.create(ObjectClass.ACCOUNT, attrSetOne, null);
         facade.create(ObjectClass.ACCOUNT, attrSetTwo, null);
 
-        TestResultsHandler resultsHandler = new TestResultsHandler();
+        XmlConnectorTestUtil.TestResultsHandler resultsHandler = new XmlConnectorTestUtil.TestResultsHandler();
         facade.search(ObjectClass.ACCOUNT, null, resultsHandler, null);
         AssertJUnit.assertEquals(2, resultsHandler.getResultSize());
     }
@@ -127,12 +126,12 @@ public class XMLConnectorTests {
     public void executeQueryOnAccountsWhereLastNameEqualsVaderShouldReturnOneResult() {
 
         // Create account
-        facade.create(ObjectClass.ACCOUNT, getRequiredAccountAttributes(), null);
+        facade.create(ObjectClass.ACCOUNT, XmlConnectorTestUtil.getRequiredAccountAttributes(), null);
 
         // Build query string
         //XMLFilterTranslator filterTranslator = (XMLFilterTranslator) connector.createFilterTranslator(ObjectClass.ACCOUNT, null);
-        EqualsFilter equalsFilter = new EqualsFilter(AttributeBuilder.build(ATTR_ACCOUNT_LAST_NAME, "Vader"));
-        TestResultsHandler resultsHandler = new TestResultsHandler();
+        EqualsFilter equalsFilter = new EqualsFilter(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_ACCOUNT_LAST_NAME, "Vader"));
+        XmlConnectorTestUtil.TestResultsHandler resultsHandler = new XmlConnectorTestUtil.TestResultsHandler();
 
         facade.search(
                 ObjectClass.ACCOUNT, equalsFilter, resultsHandler, null);
@@ -147,14 +146,14 @@ public class XMLConnectorTests {
 
     @Test
     public void createShouldReturnUidWhenGivenValidParameters() {
-        Uid uid = facade.create(ObjectClass.ACCOUNT, getRequiredAccountAttributes(), null);
+        Uid uid = facade.create(ObjectClass.ACCOUNT, XmlConnectorTestUtil.getRequiredAccountAttributes(), null);
 
         AssertJUnit.assertNotNull(uid);
     }
 
     @Test(expectedExceptions = NullPointerException.class)
     public void createWithNullAsObjectTypeShouldThrowException() {
-        facade.create(null, getRequiredAccountAttributes(), null);
+        facade.create(null, XmlConnectorTestUtil.getRequiredAccountAttributes(), null);
     }
 
     @Test(expectedExceptions = NullPointerException.class)
@@ -164,11 +163,11 @@ public class XMLConnectorTests {
 
     @Test
     public void updateShouldReturnUidWhenGivenValidParameters() {
-        Uid insertedUid = facade.create(ObjectClass.ACCOUNT, getRequiredAccountAttributes(), null);
+        Uid insertedUid = facade.create(ObjectClass.ACCOUNT, XmlConnectorTestUtil.getRequiredAccountAttributes(), null);
 
-        Set<Attribute> attributes = getRequiredAccountAttributes();
+        Set<Attribute> attributes = XmlConnectorTestUtil.getRequiredAccountAttributes();
 
-        attributes.add(AttributeBuilder.build(ATTR_ACCOUNT_EMAIL, "mailadress1@company.org", "mailadress2@company.org", "mailadress3@company.org"));
+        attributes.add(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_ACCOUNT_EMAIL, "mailadress1@company.org", "mailadress2@company.org", "mailadress3@company.org"));
 
         Uid updatedUid = facade.update(ObjectClass.ACCOUNT, insertedUid, attributes, null);
 
@@ -187,11 +186,11 @@ public class XMLConnectorTests {
 
     @Test
     public void deleteAccountFromDocumentContainingOneAccountShouldReturnResultSizeOfZero() {
-        Uid insertedUid = facade.create(ObjectClass.ACCOUNT, getRequiredAccountAttributes(), null);
+        Uid insertedUid = facade.create(ObjectClass.ACCOUNT, XmlConnectorTestUtil.getRequiredAccountAttributes(), null);
 
         facade.delete(ObjectClass.ACCOUNT, insertedUid, null);
 
-        TestResultsHandler resultsHandler = new TestResultsHandler();
+        XmlConnectorTestUtil.TestResultsHandler resultsHandler = new XmlConnectorTestUtil.TestResultsHandler();
 
         facade.search(ObjectClass.ACCOUNT, null, resultsHandler, null);
         AssertJUnit.assertEquals(0, resultsHandler.getResultSize());
@@ -209,11 +208,11 @@ public class XMLConnectorTests {
 
     @Test
     public void authenticateShouldReturnUidWhenGivenValidAccountDetails() {
-        Uid insertedUid = facade.create(ObjectClass.ACCOUNT, getRequiredAccountAttributes(), null);
+        Uid insertedUid = facade.create(ObjectClass.ACCOUNT, XmlConnectorTestUtil.getRequiredAccountAttributes(), null);
         System.out.println("UID: " + insertedUid.getUidValue());
 
-        Uid authenticatedUid = facade.authenticate(ObjectClass.ACCOUNT, ATTR_ACCOUNT_VALUE_NAME,
-                new GuardedString(ATTR_ACCOUNT_VALUE_PASSWORD.toCharArray()), null);
+        Uid authenticatedUid = facade.authenticate(ObjectClass.ACCOUNT, XmlConnectorTestUtil.ATTR_ACCOUNT_VALUE_NAME,
+                new GuardedString(XmlConnectorTestUtil.ATTR_ACCOUNT_VALUE_PASSWORD.toCharArray()), null);
 
         AssertJUnit.assertEquals(insertedUid.getUidValue(), authenticatedUid.getUidValue());
     }
@@ -224,16 +223,16 @@ public class XMLConnectorTests {
 
         //thrown.expectMessage(expectedErrorMessage);
 
-        facade.authenticate(ObjectClass.GROUP, "username", new GuardedString(ATTR_ACCOUNT_VALUE_PASSWORD.toCharArray()), null);
+        facade.authenticate(ObjectClass.GROUP, "username", new GuardedString(XmlConnectorTestUtil.ATTR_ACCOUNT_VALUE_PASSWORD.toCharArray()), null);
     }
 
     @Test(expectedExceptions = NullPointerException.class)
     public void authenticateShouldThrowExceptionWhenUsernameIsNull() {
-        facade.authenticate(ObjectClass.ACCOUNT, null, new GuardedString(ATTR_ACCOUNT_VALUE_PASSWORD.toCharArray()), null);
+        facade.authenticate(ObjectClass.ACCOUNT, null, new GuardedString(XmlConnectorTestUtil.ATTR_ACCOUNT_VALUE_PASSWORD.toCharArray()), null);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void authenticateShouldThrowExceptionWhenUsernameIsBlank() {
-        facade.authenticate(ObjectClass.ACCOUNT, "", new GuardedString(ATTR_ACCOUNT_VALUE_PASSWORD.toCharArray()), null);
+        facade.authenticate(ObjectClass.ACCOUNT, "", new GuardedString(XmlConnectorTestUtil.ATTR_ACCOUNT_VALUE_PASSWORD.toCharArray()), null);
     }
 }

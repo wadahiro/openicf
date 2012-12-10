@@ -23,7 +23,7 @@
  *
  * $Id$
  */
-package org.forgerock.openicf.connectors.xml.tests;
+package org.forgerock.openicf.connectors.xml;
 
 import java.io.File;
 import org.testng.annotations.Test;
@@ -32,7 +32,7 @@ import org.testng.AssertJUnit;
 import org.forgerock.openicf.connectors.xml.XMLConnector;
 import org.forgerock.openicf.connectors.xml.xsdparser.SchemaParser;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
-import static org.forgerock.openicf.connectors.xml.tests.XmlConnectorTestUtil.*;
+import static org.forgerock.openicf.connectors.xml.XmlConnectorTestUtil.*;
 
 public class SchemaParserTests {
 
@@ -40,7 +40,7 @@ public class SchemaParserTests {
 
     @BeforeMethod
     public void setUp() {
-        parser = new SchemaParser(XMLConnector.class, XSD_SCHEMA_FILEPATH);
+        parser = new SchemaParser(XMLConnector.class, XmlConnectorTestUtil.XSD_SCHEMA_FILEPATH);
     }
 
     @Test

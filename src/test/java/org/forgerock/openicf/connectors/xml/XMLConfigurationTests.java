@@ -23,7 +23,7 @@
  *
  * $Id$
  */
-package org.forgerock.openicf.connectors.xml.tests;
+package org.forgerock.openicf.connectors.xml;
 
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;

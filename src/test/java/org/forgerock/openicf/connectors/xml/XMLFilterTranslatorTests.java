@@ -22,7 +22,7 @@
  *
  * $Id$
  */
-package org.forgerock.openicf.connectors.xml.tests;
+package org.forgerock.openicf.connectors.xml;
 
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
@@ -36,7 +36,7 @@ import org.forgerock.openicf.connectors.xml.query.FunctionQuery;
 import org.forgerock.openicf.connectors.xml.query.QueryBuilder;
 import org.forgerock.openicf.connectors.xml.query.abstracts.Query;
 import org.forgerock.openicf.connectors.xml.xsdparser.SchemaParser;
-import static org.forgerock.openicf.connectors.xml.tests.XmlConnectorTestUtil.*;
+import static org.forgerock.openicf.connectors.xml.XmlConnectorTestUtil.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -81,6 +81,7 @@ public class XMLFilterTranslatorTests {
         XMLConfiguration config = new XMLConfiguration();
         config.setXmlFilePath(getRandomXMLFile());
         config.setXsdFilePath(XSD_SCHEMA_FILEPATH);
+        config.setCreateFileIfNotExists(true);
         SchemaParser parser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
 
         xmlHandler = new ConcurrentXMLHandler(config, parser.parseSchema(), parser.getXsdSchema());

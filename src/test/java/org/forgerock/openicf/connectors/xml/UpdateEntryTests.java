@@ -23,7 +23,7 @@
  *
  * $Id$
  */
-package org.forgerock.openicf.connectors.xml.tests;
+package org.forgerock.openicf.connectors.xml;
 
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
@@ -36,7 +36,7 @@ import org.forgerock.openicf.connectors.xml.XMLHandlerImpl;
 import org.forgerock.openicf.connectors.xml.query.QueryBuilder;
 import org.forgerock.openicf.connectors.xml.query.abstracts.Query;
 import org.forgerock.openicf.connectors.xml.xsdparser.SchemaParser;
-import static org.forgerock.openicf.connectors.xml.tests.XmlConnectorTestUtil.*;
+import static org.forgerock.openicf.connectors.xml.XmlConnectorTestUtil.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -61,6 +61,7 @@ public class UpdateEntryTests {
         XMLConfiguration config = new XMLConfiguration();
         config.setXmlFilePath(getRandomXMLFile());
         config.setXsdFilePath(XSD_SCHEMA_FILEPATH);
+        config.setCreateFileIfNotExists(true);
 
         SchemaParser parser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
         handler = new XMLHandlerImpl(config, parser.parseSchema(), parser.getXsdSchema());
@@ -97,7 +98,7 @@ public class UpdateEntryTests {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void containingAttributesFlaggedAsNonUpdateableShouldThrowException() {
-        final String expectedErrorMessage = ATTR_ACCOUNT_IS_DELETED + " is not updatable.";
+        final String expectedErrorMessage = XmlConnectorTestUtil.ATTR_ACCOUNT_IS_DELETED + " is not updatable.";
 
         // Setup account
         Uid insertedUid = createTestAccount();
@@ -105,14 +106,14 @@ public class UpdateEntryTests {
         //thrown.expectMessage(expectedErrorMessage);
 
         Set<Attribute> newAttributes = new HashSet();
-        newAttributes.add(AttributeBuilder.build(ATTR_ACCOUNT_IS_DELETED, "true"));
+        newAttributes.add(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_ACCOUNT_IS_DELETED, "true"));
 
         handler.update(ObjectClass.ACCOUNT, insertedUid, newAttributes);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void withBlankValueForRequiredFieldShouldThrowException() {
-        final String expectedErrorMessage = "Parameter '" + ATTR_ACCOUNT_LAST_NAME + "' must not be blank.";
+        final String expectedErrorMessage = "Parameter '" + XmlConnectorTestUtil.ATTR_ACCOUNT_LAST_NAME + "' must not be blank.";
 
         // Setup account
         Uid insertedUid = createTestAccount();
@@ -120,14 +121,14 @@ public class UpdateEntryTests {
         //thrown.expectMessage(expectedErrorMessage);
 
         Set<Attribute> newAttributes = new HashSet();
-        newAttributes.add(AttributeBuilder.build(ATTR_ACCOUNT_LAST_NAME, ""));
+        newAttributes.add(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_ACCOUNT_LAST_NAME, ""));
 
         handler.update(ObjectClass.ACCOUNT, insertedUid, newAttributes);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void withNullValueForRequiredFieldShouldThrowException() {
-        final String expectedErrorMessage = "No values provided for required attribute: " + ATTR_ACCOUNT_LAST_NAME;
+        final String expectedErrorMessage = "No values provided for required attribute: " + XmlConnectorTestUtil.ATTR_ACCOUNT_LAST_NAME;
 
         // Setup account
         Uid insertedUid = createTestAccount();
@@ -135,7 +136,7 @@ public class UpdateEntryTests {
         //thrown.expectMessage(expectedErrorMessage);
 
         Set<Attribute> newAttributes = new HashSet();
-        newAttributes.add(AttributeBuilder.build(ATTR_ACCOUNT_LAST_NAME));
+        newAttributes.add(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_ACCOUNT_LAST_NAME));
         handler.update(ObjectClass.ACCOUNT, insertedUid, newAttributes);
     }
 
@@ -146,10 +147,10 @@ public class UpdateEntryTests {
         Uid insertedUid = createTestAccount();
 
         Set<Attribute> attrWithoutValue = new HashSet();
-        attrWithoutValue.add(AttributeBuilder.build(ATTR_ACCOUNT_EMPLOYEE_TYPE));
+        attrWithoutValue.add(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_ACCOUNT_EMPLOYEE_TYPE));
         handler.update(ObjectClass.ACCOUNT, insertedUid, attrWithoutValue);
 
-        EqualsFilter equalsFilter = new EqualsFilter(AttributeBuilder.build(ATTR_NAME, ATTR_ACCOUNT_VALUE_NAME));
+        EqualsFilter equalsFilter = new EqualsFilter(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_NAME, XmlConnectorTestUtil.ATTR_ACCOUNT_VALUE_NAME));
         XMLFilterTranslator filterTranslator = new XMLFilterTranslator(true);
 
         Query equalsQuery = filterTranslator.createEqualsExpression(equalsFilter, false);
@@ -158,12 +159,12 @@ public class UpdateEntryTests {
         List<ConnectorObject> results = (List) handler.search(queryBuilder.toString(), ObjectClass.ACCOUNT);
         ConnectorObject connectorObject = results.get(0);
 
-        Assert.assertNull(connectorObject.getAttributeByName(ATTR_ACCOUNT_EMPLOYEE_TYPE));
+        Assert.assertNull(connectorObject.getAttributeByName(XmlConnectorTestUtil.ATTR_ACCOUNT_EMPLOYEE_TYPE));
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void withAttributeContainingValuesOfIllegalTypeShouldThrowException() {
-        final String expectedErrorMessage = ATTR_ACCOUNT_MS_EMPLOYED + " contains values of illegal type";
+        final String expectedErrorMessage = XmlConnectorTestUtil.ATTR_ACCOUNT_MS_EMPLOYED + " contains values of illegal type";
 
         // Setup account
         Uid insertedUid = createTestAccount();
@@ -171,7 +172,7 @@ public class UpdateEntryTests {
         //thrown.expectMessage(expectedErrorMessage);
 
         Set<Attribute> newAttributes = new HashSet();
-        newAttributes.add(AttributeBuilder.build(ATTR_ACCOUNT_MS_EMPLOYED, "1234"));
+        newAttributes.add(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_ACCOUNT_MS_EMPLOYED, "1234"));
 
         handler.update(ObjectClass.ACCOUNT, insertedUid, newAttributes);
     }
@@ -195,7 +196,7 @@ public class UpdateEntryTests {
         Uid insertedUid = createTestAccount();
 
         Set<Attribute> attrSet = new HashSet<Attribute>();
-        attrSet.add(AttributeBuilder.build(ATTR_ACCOUNT_FIRST_NAME, "James"));
+        attrSet.add(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_ACCOUNT_FIRST_NAME, "James"));
 
         Uid updatedUid = handler.update(ObjectClass.ACCOUNT, insertedUid, attrSet);
 
@@ -213,8 +214,8 @@ public class UpdateEntryTests {
         Uid insertedUid = createTestAccount();
 
         Set<Attribute> attrSet = new HashSet<Attribute>();
-        attrSet.add(AttributeBuilder.build(ATTR_ACCOUNT_FIRST_NAME, firstName));
-        attrSet.add(AttributeBuilder.build(ATTR_ACCOUNT_LAST_NAME, lastName));
+        attrSet.add(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_ACCOUNT_FIRST_NAME, firstName));
+        attrSet.add(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_ACCOUNT_LAST_NAME, lastName));
 
         // Update account
         handler.update(objClass, insertedUid, attrSet);
@@ -236,11 +237,11 @@ public class UpdateEntryTests {
         // Check account values
         ConnectorObject connObjAccount = results.get(0);
 
-        AssertJUnit.assertEquals(firstName, AttributeUtil.getStringValue(connObjAccount.getAttributeByName(ATTR_ACCOUNT_FIRST_NAME)));
-        AssertJUnit.assertEquals(lastName, AttributeUtil.getStringValue(connObjAccount.getAttributeByName(ATTR_ACCOUNT_LAST_NAME)));
+        AssertJUnit.assertEquals(firstName, AttributeUtil.getStringValue(connObjAccount.getAttributeByName(XmlConnectorTestUtil.ATTR_ACCOUNT_FIRST_NAME)));
+        AssertJUnit.assertEquals(lastName, AttributeUtil.getStringValue(connObjAccount.getAttributeByName(XmlConnectorTestUtil.ATTR_ACCOUNT_LAST_NAME)));
     }
 
     private Uid createTestAccount() {
-        return handler.create(ObjectClass.ACCOUNT, getRequiredAccountAttributes());
+        return handler.create(ObjectClass.ACCOUNT, XmlConnectorTestUtil.getRequiredAccountAttributes());
     }
 }

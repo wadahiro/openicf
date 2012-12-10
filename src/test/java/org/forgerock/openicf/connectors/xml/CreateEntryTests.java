@@ -23,7 +23,7 @@
  *
  * $Id$
  */
-package org.forgerock.openicf.connectors.xml.tests;
+package org.forgerock.openicf.connectors.xml;
 
 import org.forgerock.openicf.connectors.xml.ConcurrentXMLHandler;
 import java.net.URISyntaxException;
@@ -36,7 +36,7 @@ import org.forgerock.openicf.connectors.xml.XMLConfiguration;
 import org.forgerock.openicf.connectors.xml.XMLConnector;
 import org.forgerock.openicf.connectors.xml.XMLHandler;
 import org.forgerock.openicf.connectors.xml.xsdparser.SchemaParser;
-import static org.forgerock.openicf.connectors.xml.tests.XmlConnectorTestUtil.*;
+import static org.forgerock.openicf.connectors.xml.XmlConnectorTestUtil.*;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -60,6 +60,7 @@ public class CreateEntryTests {
         XMLConfiguration config = new XMLConfiguration();
         config.setXmlFilePath(getRandomXMLFile());
         config.setXsdFilePath(XSD_SCHEMA_FILEPATH);
+        config.setCreateFileIfNotExists(true);
         config.validate();
         SchemaParser parser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
         handler = new ConcurrentXMLHandler(config, parser.parseSchema(), parser.getXsdSchema());
@@ -91,10 +92,10 @@ public class CreateEntryTests {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void containingAttributesFlaggedAsNonCreateableShouldThrowException() {
-        final String expectedErrorMessage = ATTR_ACCOUNT_IS_DELETED + " is not a creatable field.";
+        final String expectedErrorMessage = XmlConnectorTestUtil.ATTR_ACCOUNT_IS_DELETED + " is not a creatable field.";
 
-        Set<Attribute> attrSet = getRequiredAccountAttributes();
-        attrSet.add(AttributeBuilder.build(ATTR_ACCOUNT_IS_DELETED, true));
+        Set<Attribute> attrSet = XmlConnectorTestUtil.getRequiredAccountAttributes();
+        attrSet.add(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_ACCOUNT_IS_DELETED, true));
 
         //thrown.expectMessage(expectedErrorMessage);
 
@@ -103,37 +104,37 @@ public class CreateEntryTests {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void withMissingRequiredFieldShouldThrowException() {
-        final String expectedErrorMessage = "Missing required field: " + ATTR_PASSWORD;
+        final String expectedErrorMessage = "Missing required field: " + XmlConnectorTestUtil.ATTR_PASSWORD;
 
-        Map<String, Attribute> requiredMap = convertToAttributeMap(getRequiredAccountAttributes());
-        requiredMap.remove(ATTR_PASSWORD);
+        Map<String, Attribute> requiredMap = XmlConnectorTestUtil.convertToAttributeMap(XmlConnectorTestUtil.getRequiredAccountAttributes());
+        requiredMap.remove(XmlConnectorTestUtil.ATTR_PASSWORD);
 
         //thrown.expectMessage(expectedErrorMessage);
 
-        handler.create(ObjectClass.ACCOUNT, convertToAttributeSet(requiredMap));
+        handler.create(ObjectClass.ACCOUNT, XmlConnectorTestUtil.convertToAttributeSet(requiredMap));
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void withBlankRequiredFieldShouldThrowException() {
-        final String expectedErrorMessage = "Parameter '" + ATTR_PASSWORD + "' must not be blank.";
+        final String expectedErrorMessage = "Parameter '" + XmlConnectorTestUtil.ATTR_PASSWORD + "' must not be blank.";
 
-        Map<String, Attribute> requiredMap = convertToAttributeMap(getRequiredAccountAttributes());
-        requiredMap.remove(ATTR_PASSWORD);
-        requiredMap.put(ATTR_PASSWORD, AttributeBuilder.build(ATTR_PASSWORD, new GuardedString(new String("").toCharArray())));
+        Map<String, Attribute> requiredMap = XmlConnectorTestUtil.convertToAttributeMap(XmlConnectorTestUtil.getRequiredAccountAttributes());
+        requiredMap.remove(XmlConnectorTestUtil.ATTR_PASSWORD);
+        requiredMap.put(XmlConnectorTestUtil.ATTR_PASSWORD, AttributeBuilder.build(XmlConnectorTestUtil.ATTR_PASSWORD, new GuardedString(new String("").toCharArray())));
 
         //thrown.expectMessage(expectedErrorMessage);
 
-        handler.create(ObjectClass.ACCOUNT, convertToAttributeSet(requiredMap));
+        handler.create(ObjectClass.ACCOUNT, XmlConnectorTestUtil.convertToAttributeSet(requiredMap));
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void withIllegalAttributeTypeShouldThrowException() {
-        final String expectedErrorMessage = ATTR_ACCOUNT_FIRST_NAME + " contains invalid type. Value(s) should be of type java.lang.String";
+        final String expectedErrorMessage = XmlConnectorTestUtil.ATTR_ACCOUNT_FIRST_NAME + " contains invalid type. Value(s) should be of type java.lang.String";
 
-        Set<Attribute> attrSet = getRequiredAccountAttributes();
+        Set<Attribute> attrSet = XmlConnectorTestUtil.getRequiredAccountAttributes();
 
         // Expected type is String
-        attrSet.add(AttributeBuilder.build(ATTR_ACCOUNT_FIRST_NAME, 20.0));
+        attrSet.add(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_ACCOUNT_FIRST_NAME, 20.0));
 
         //thrown.expectMessage(expectedErrorMessage);
 
@@ -142,7 +143,7 @@ public class CreateEntryTests {
 
     @Test
     public void shouldReturnUid() {
-        Uid insertedUid = handler.create(ObjectClass.ACCOUNT, getRequiredAccountAttributes());
+        Uid insertedUid = handler.create(ObjectClass.ACCOUNT, XmlConnectorTestUtil.getRequiredAccountAttributes());
         Assert.assertNotNull(insertedUid.getUidValue());
     }
 
@@ -150,9 +151,9 @@ public class CreateEntryTests {
     public void shouldReturnNameAsUidWhenUidIsNotImplementedInSchema() {
         Set<Attribute> attrSet = new HashSet<Attribute>();
 
-        attrSet.add(AttributeBuilder.build(ATTR_NAME, ATTR_GROUP_VALUE_NAME));
-        attrSet.add(AttributeBuilder.build(ATTR_DESCRIPTION, ATTR_GROUP_VALUE_DESCRIPTION));
-        attrSet.add(AttributeBuilder.build(ATTR_SHORT_NAME, ATTR_GROUP_VALUE_SHORT_NAME));
+        attrSet.add(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_NAME, XmlConnectorTestUtil.ATTR_GROUP_VALUE_NAME));
+        attrSet.add(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_DESCRIPTION, XmlConnectorTestUtil.ATTR_GROUP_VALUE_DESCRIPTION));
+        attrSet.add(AttributeBuilder.build(XmlConnectorTestUtil.ATTR_SHORT_NAME, XmlConnectorTestUtil.ATTR_GROUP_VALUE_SHORT_NAME));
 
         Uid insertedUid = handler.create(ObjectClass.GROUP, attrSet);
         AssertJUnit.assertEquals(insertedUid.getUidValue(), AttributeUtil.getNameFromAttributes(attrSet).getNameValue());
@@ -160,8 +161,8 @@ public class CreateEntryTests {
 
     @Test
     public void shouldReturnRandomGeneratedUidWhenUidIsImplementedInSchema() {
-        Name name = AttributeUtil.getNameFromAttributes(getRequiredAccountAttributes());
-        Set<Attribute> attrSet = getRequiredAccountAttributes();
+        Name name = AttributeUtil.getNameFromAttributes(XmlConnectorTestUtil.getRequiredAccountAttributes());
+        Set<Attribute> attrSet = XmlConnectorTestUtil.getRequiredAccountAttributes();
 
         Uid uid = handler.create(ObjectClass.ACCOUNT, attrSet);
         AssertJUnit.assertNotSame(uid, name.getNameValue());
@@ -169,13 +170,13 @@ public class CreateEntryTests {
 
     @Test(expectedExceptions = AlreadyExistsException.class)
     public void withExistingIdShouldThrowException() {
-        final String uid = AttributeUtil.getNameFromAttributes(getRequiredAccountAttributes()).getNameValue();
+        final String uid = AttributeUtil.getNameFromAttributes(XmlConnectorTestUtil.getRequiredAccountAttributes()).getNameValue();
         final String expectedErrorMessage = "Could not create entry. An entry with the " + Uid.NAME + " of " + uid + " already exists.";
 
-        handler.create(ObjectClass.ACCOUNT, getRequiredAccountAttributes());
+        handler.create(ObjectClass.ACCOUNT, XmlConnectorTestUtil.getRequiredAccountAttributes());
 
         //thrown.expectMessage(expectedErrorMessage);
 
-        handler.create(ObjectClass.ACCOUNT, getRequiredAccountAttributes());
+        handler.create(ObjectClass.ACCOUNT, XmlConnectorTestUtil.getRequiredAccountAttributes());
     }
 }

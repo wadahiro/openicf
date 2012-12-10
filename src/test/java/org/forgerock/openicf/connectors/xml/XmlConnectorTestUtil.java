@@ -23,7 +23,7 @@
  *
  * $Id$
  */
-package org.forgerock.openicf.connectors.xml.tests;
+package org.forgerock.openicf.connectors.xml;
 
 import java.io.File;
 import java.net.URISyntaxException;

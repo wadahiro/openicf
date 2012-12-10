@@ -23,7 +23,7 @@
  *
  * $Id$
  */
-package org.forgerock.openicf.connectors.xml.tests;
+package org.forgerock.openicf.connectors.xml;
 
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
@@ -36,7 +36,7 @@ import org.forgerock.openicf.connectors.xml.XMLHandler;
 import org.forgerock.openicf.connectors.xml.query.QueryBuilder;
 import org.forgerock.openicf.connectors.xml.query.abstracts.Query;
 import org.forgerock.openicf.connectors.xml.xsdparser.SchemaParser;
-import static org.forgerock.openicf.connectors.xml.tests.XmlConnectorTestUtil.*;
+import static org.forgerock.openicf.connectors.xml.XmlConnectorTestUtil.*;
 import java.util.Collection;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
@@ -56,6 +56,7 @@ public class DeleteEntryTests {
         XMLConfiguration config = new XMLConfiguration();
         config.setXmlFilePath(getRandomXMLFile());
         config.setXsdFilePath(XSD_SCHEMA_FILEPATH);
+        config.setCreateFileIfNotExists(true);
 
         SchemaParser parser = new SchemaParser(XMLConnector.class, config.getXsdFilePath());
         handler = new ConcurrentXMLHandler(config, parser.parseSchema(), parser.getXsdSchema());

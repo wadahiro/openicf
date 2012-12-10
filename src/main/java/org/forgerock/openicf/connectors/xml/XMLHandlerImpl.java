@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2010 ForgeRock Inc. All Rights Reserved
+ * Copyright (c) 2010-2012 ForgeRock Inc. All Rights Reserved
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -35,6 +35,7 @@ import org.forgerock.openicf.connectors.xml.query.QueryBuilder;
 import org.forgerock.openicf.connectors.xml.query.XQueryHandler;
 import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -56,11 +57,17 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import javax.xml.xquery.XQException;
 import javax.xml.xquery.XQResultSequence;
+
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
+import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
@@ -76,11 +83,7 @@ import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoUtil;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
-import org.w3c.dom.DOMImplementation;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
 public class XMLHandlerImpl implements XMLHandler {
@@ -118,7 +121,6 @@ public class XMLHandlerImpl implements XMLHandler {
         return this;
     }
 
-    @Override
     public Uid create(final ObjectClass objClass, final Set<Attribute> attributes) {
         final String method = "create";
         log.info("Entry {0}", method);
@@ -159,7 +161,7 @@ public class XMLHandlerImpl implements XMLHandler {
         }
 
         // Create object type element
-        Element objElement = document.createElementNS(riSchema.getTargetNamespace(), objClass.getObjectClassValue());
+        Element objElement = getDocument().createElementNS(riSchema.getTargetNamespace(), objClass.getObjectClassValue());
         objElement.setPrefix(RI_NAMESPACE_PREFIX);
 
         // Add child elements
@@ -217,14 +219,13 @@ public class XMLHandlerImpl implements XMLHandler {
             log.info("Creating new entry: {0}", attributes.toString());
         }
 
-        document.getDocumentElement().appendChild(objElement);
+        getDocument().getDocumentElement().appendChild(objElement);
 
         log.info("Exit {0}", method);
 
         return new Uid(uidValue);
     }
 
-    @Override
     public Uid update(ObjectClass objClass, Uid uid, Set<Attribute> replaceAttributes) {
         final String method = "update";
         log.info("Entry {0}", method);
@@ -301,7 +302,6 @@ public class XMLHandlerImpl implements XMLHandler {
         return uid;
     }
 
-    @Override
     public void delete(final ObjectClass objClass, final Uid uid) {
         final String method = "delete";
         log.info("Entry {0}", method);
@@ -310,7 +310,7 @@ public class XMLHandlerImpl implements XMLHandler {
 
         if (entryExists(objClass, uid, ElementIdentifierFieldType.AUTO)) {
             Element elementToRemove = getEntry(objClass, uid, ElementIdentifierFieldType.AUTO);
-            document.getDocumentElement().removeChild(elementToRemove);
+            getDocument().getDocumentElement().removeChild(elementToRemove);
             log.info("Deleting entry: " + elementToRemove.toString());
         } else {
             throw new UnknownUidException("Deleting entry failed. Could not find an entry of type " + objClass.getObjectClassValue() + " with the uid " + uid.getUidValue());
@@ -319,7 +319,6 @@ public class XMLHandlerImpl implements XMLHandler {
         log.info("Exit {0}", method);
     }
 
-    @Override
     public Collection<ConnectorObject> search(String query, ObjectClass objClass) {
         final String method = "search";
         log.info("Entry {0}", method);
@@ -343,7 +342,7 @@ public class XMLHandlerImpl implements XMLHandler {
 
             XQueryHandler xqHandler = null;
             try {
-                xqHandler = new XQueryHandler(query, document);
+                xqHandler = new XQueryHandler(query, getDocument());
                 XQResultSequence queryResult = xqHandler.getResultSequence();
 
 
@@ -359,12 +358,10 @@ public class XMLHandlerImpl implements XMLHandler {
                     ConnectorObject conObj = conObjCreator.createConnectorObject(nodes);
                     results.add(conObj);
                 }
-            }
-            catch (XQException ex) {
+            } catch (XQException ex) {
                 log.error("Error while searching: {0}", ex);
                 throw new ConnectorException(ex);
-            }
-            finally {
+            } finally {
                 if (null != xqHandler) {
                     xqHandler.close();
                 }
@@ -383,7 +380,6 @@ public class XMLHandlerImpl implements XMLHandler {
         return modified;
     }
 
-    @Override
     public void dispose() {
         final String method = "serialize";
         log.info("Entry {0}", method);
@@ -392,11 +388,28 @@ public class XMLHandlerImpl implements XMLHandler {
         }
 
         try {
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            try {
+                XPathFactory xpathFactory = new net.sf.saxon.xpath.XPathFactoryImpl();
+                // XPath to find empty text nodes.
+                XPathExpression xpathExp = xpathFactory.newXPath().compile("//text()[normalize-space(.) = '']");
+                NodeList emptyTextNodes = null;
+                emptyTextNodes = (NodeList) xpathExp.evaluate(document, XPathConstants.NODESET);
+
+                // Remove each empty text node from document.
+                for (int i = 0; i < emptyTextNodes.getLength(); i++) {
+                    Node emptyTextNode = emptyTextNodes.item(i);
+                    emptyTextNode.getParentNode().removeChild(emptyTextNode);
+                }
+            } catch (XPathExpressionException e) {
+                //We don't care. It's just formatting.
+            }
+
+            TransformerFactory transformerFactory = new net.sf.saxon.TransformerFactoryImpl();
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty(OutputKeys.METHOD, "xml");
             transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 
             DOMSource source = new DOMSource(document);
             /* Running this code in java 5 we had to change
@@ -418,12 +431,10 @@ public class XMLHandlerImpl implements XMLHandler {
             transformer.transform(source, result);
 
             log.info("Saving changes to xml file");
-        }
-        catch (TransformerException ex) {
+        } catch (TransformerException ex) {
             log.error("Failed saving changes to xml file: {0}", ex);
             throw ConnectorException.wrap(ex);
-        }
-        catch (FileNotFoundException ex) {
+        } catch (FileNotFoundException ex) {
             log.error("Failed saving changes to xml file: {0}", ex);
             throw ConnectorException.wrap(ex);
         }
@@ -431,7 +442,6 @@ public class XMLHandlerImpl implements XMLHandler {
         log.info("Entry {0}", method);
     }
 
-    @Override
     public Uid authenticate(String username, GuardedString password) {
         final String method = "authenticate";
         log.info("Entry {0}", method);
@@ -474,15 +484,14 @@ public class XMLHandlerImpl implements XMLHandler {
     public boolean isSupportUid(ObjectClass objectClass) {
         ObjectClassInfo objInfo = connSchema.findObjectClassInfo(objectClass.getObjectClassValue());
         if (null != objInfo) {
-            for (AttributeInfo info: objInfo.getAttributeInfo()) {
-                if (info.is(Uid.NAME)){
+            for (AttributeInfo info : objInfo.getAttributeInfo()) {
+                if (info.is(Uid.NAME)) {
                     return true;
                 }
             }
         }
         return false;
     }
-
 
 
     private void createDocument() {
@@ -496,8 +505,7 @@ public class XMLHandlerImpl implements XMLHandler {
         try {
             builder = builderFactory.newDocumentBuilder();
             log.info("Creating new xml storage file: {0}", config.getXmlFilePath());
-        }
-        catch (ParserConfigurationException ex) {
+        } catch (ParserConfigurationException ex) {
             log.error("Filed creating XML document: {0}", ex);
             throw ConnectorException.wrap(ex);
         }
@@ -516,7 +524,7 @@ public class XMLHandlerImpl implements XMLHandler {
         } else {
             root.setAttribute(XSI_NAMESPACE_PREFIX + ":schemaLocation",
                     riSchema.getTargetNamespace() + " " + config.getXsdFilePath() + " "
-                    + icfSchema.getTargetNamespace() + " " + config.getXsdIcfFilePath());
+                            + icfSchema.getTargetNamespace() + " " + config.getXsdIcfFilePath());
         }
 
         log.info("Exit {0}", method);
@@ -536,14 +544,11 @@ public class XMLHandlerImpl implements XMLHandler {
             lastModified = xmlFile.lastModified();
             version = lastModified;
             log.info("Loading XML document from: {0}", xmlFile.getPath());
-        }
-        catch (ParserConfigurationException ex) {
+        } catch (ParserConfigurationException ex) {
             throw ConnectorException.wrap(ex);
-        }
-        catch (SAXException ex) {
+        } catch (SAXException ex) {
             throw ConnectorException.wrap(ex);
-        }
-        catch (IOException ex) {
+        } catch (IOException ex) {
             throw ConnectorException.wrap(ex);
         }
 
@@ -556,7 +561,11 @@ public class XMLHandlerImpl implements XMLHandler {
 
         File xmlFile = config.getXmlFilePath();
         if (!xmlFile.exists()) {
-            createDocument();
+            if (config.isCreateFileIfNotExists()) {
+                createDocument();
+            } else {
+                throw new ConfigurationException("Data file does not exists: " + config.getXmlFilePath().toString());
+            }
         } else {
             loadDocument(xmlFile);
         }
@@ -569,10 +578,10 @@ public class XMLHandlerImpl implements XMLHandler {
         Element element = null;
 
         if (icfSchema.getElementDecls().containsKey(elementName)) {
-            element = document.createElementNS(icfSchema.getTargetNamespace(), elementName);
+            element = getDocument().createElementNS(icfSchema.getTargetNamespace(), elementName);
             element.setPrefix(ICF_NAMESPACE_PREFIX);
         } else {
-            element = document.createElementNS(riSchema.getTargetNamespace(), elementName);
+            element = getDocument().createElementNS(riSchema.getTargetNamespace(), elementName);
             element.setPrefix(RI_NAMESPACE_PREFIX);
         }
 
@@ -608,11 +617,9 @@ public class XMLHandlerImpl implements XMLHandler {
                 result = (Element) results.getItem().getNode();
                 log.info("Entry found: ", result.toString());
             }
-        }
-        catch (XQException ex) {
+        } catch (XQException ex) {
             throw ConnectorException.wrap(ex);
-        }
-        finally {
+        } finally {
             if (null != xqHandler) {
                 xqHandler.close();
             }
@@ -691,5 +698,12 @@ public class XMLHandlerImpl implements XMLHandler {
         }
 
         return prefix;
+    }
+
+    private Document getDocument() {
+        if (null == document) {
+            throw new ConnectorException("Data file does not exists: " + config.getXmlFilePath().toString());
+        }
+        return document;
     }
 }
