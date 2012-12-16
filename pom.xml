@@ -28,20 +28,20 @@
     <parent>
         <groupId>org.forgerock.openicf.connectors</groupId>
         <artifactId>connectors-parent</artifactId>
-        <version>1.1.0.1-SNAPSHOT</version>
+        <version>1.1.1.0</version>
     </parent>
     <groupId>org.forgerock.openicf.connectors</groupId>
     <artifactId>xml-connector</artifactId>
-    <version>1.1.0.1-SNAPSHOT</version>
+    <version>1.1.0.1</version>
     <packaging>bundle</packaging>
     <name>Simulated XML Connector</name>
     <description>Connector can simulate almost any kind of resource.</description>
-    <url>http://openicf.forgerock.org/connectors/xml-connector</url>
+    <url>http://openicf.forgerock.org/connectors/xml-connector-1.1.0.1</url>
     <scm>
-        <connection>scm:svn:https://svn.forgerock.org/openicf/branches/openicf-xml-connector-1.1.0.x</connection>
-        <developerConnection>scm:svn:https://svn.forgerock.org/openicf/branches/openicf-xml-connector-1.1.0.x
+        <connection>scm:svn:https://svn.forgerock.org/openicf/tags/openicf-xml-connector-1.1.0.1</connection>
+        <developerConnection>scm:svn:https://svn.forgerock.org/openicf/tags/openicf-xml-connector-1.1.0.1
         </developerConnection>
-        <url>http://sources.forgerock.org/browse/openicf/branches/openicf-xml-connector-1.1.0.x</url>
+        <url>http://sources.forgerock.org/browse/openicf/tags/openicf-xml-connector-1.1.0.1</url>
     </scm>
     <issueManagement>
         <system>jira</system>
@@ -49,7 +49,7 @@
     </issueManagement>
     <ciManagement>
         <system>jenkins</system>
-        <url>http://builds.forgerock.org/job/OpenICF - XML Connector</url>
+        <url>http://builds.forgerock.org/job/OpenICF - XML Connector 1.1.0.x branch</url>
     </ciManagement>
     <properties>
         <openicf.osgi.embed>jaxen,saxon9he,xsom,relaxngDatatype,xml-apis,xercesImpl,stax-api</openicf.osgi.embed>
