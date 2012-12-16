@@ -57,6 +57,18 @@ public class CSVFileConfiguration extends AbstractConfiguration {
     private String uniqueAttribute = null;
     private String nameAttribute = null;
     private String passwordAttribute = null;
+    private boolean alwaysQualify = true;
+    private int preserveLastTokens = 10;
+
+    @ConfigurationProperty(displayMessageKey = "UI_PRESERVE_LAST_TOKENS",
+            helpMessageKey = "UI_PRESERVE_LAST_TOKENS_HELP")
+    public int getPreserveLastTokens() {
+        return preserveLastTokens;
+    }
+
+    public void setPreserveLastTokens(int preserveLastTokens) {
+        this.preserveLastTokens = preserveLastTokens;
+    }
 
     @ConfigurationProperty(displayMessageKey = "UI_FLAT_ENCODING",
     helpMessageKey = "UI_FLAT_ENCODING_HELP")
@@ -149,6 +161,16 @@ public class CSVFileConfiguration extends AbstractConfiguration {
 
     public void setNameAttribute(String nameAttribute) {
         this.nameAttribute = nameAttribute;
+    }
+
+     @ConfigurationProperty(displayMessageKey = "UI_FLAT_FILE_ALWAYS_QUALIFY",
+    helpMessageKey = "UI_FLAT_FILE_ALWAYS_QUALIFY_HELP", required = true)
+    public boolean getAlwaysQualify() {
+        return alwaysQualify;
+    }
+
+    public void setAlwaysQualify(boolean alwaysQualify) {
+        this.alwaysQualify = alwaysQualify;
     }
 
     /**

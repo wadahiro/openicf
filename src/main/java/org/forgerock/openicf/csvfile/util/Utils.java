@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2010 ForgeRock Inc. All Rights Reserved
+ * Copyright (c) 2010-2012 ForgeRock Inc. All Rights Reserved
  *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
@@ -27,22 +27,17 @@
  */
 package org.forgerock.openicf.csvfile.util;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import org.forgerock.openicf.csvfile.CSVFileConfiguration;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
+import org.identityconnectors.framework.common.objects.ObjectClass;
+
+import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.forgerock.openicf.csvfile.CSVFileConfiguration;
-import org.identityconnectors.framework.common.exceptions.ConnectorException;
-import org.identityconnectors.framework.common.objects.ObjectClass;
 
 /**
  *
@@ -85,10 +80,6 @@ public class Utils {
         if (value.isEmpty()) {
             throw new IllegalArgumentException(message);
         }
-    }
-
-    public static void notEmptyArgument(String value, String arg) {
-        notEmpty(value, "Argument '" + arg + "' can't be empty.");
     }
 
     public static void copyAndReplace(File from, File to) throws IOException {
@@ -145,6 +136,17 @@ public class Utils {
         }
     }
 
+    public static CsvItem createCsvItem(List<String> header, String line, int lineNumber, Pattern linePattern,
+                                 CSVFileConfiguration configuration) {
+        List<String> attributes = parseValues(line, linePattern, configuration);
+        if (header.size() != attributes.size()) {
+            throw new CSVSchemaException("Attributes count (" + attributes.size() + ") in line " + lineNumber
+                    + " is not equal to header size (" + header.size() + ").");
+        }
+
+        return new CsvItem(attributes);
+    }
+
     public static List<String> parseValues(String line, Pattern linePattern, CSVFileConfiguration configuration) {
         List<String> values = new ArrayList<String>();
         if (line == null || line.isEmpty()) {
@@ -168,6 +170,10 @@ public class Utils {
     }
 
     public static List<String> readHeader(BufferedReader reader, Pattern linePattern, CSVFileConfiguration configuration) throws IOException {
+        return readHeader(reader,null,linePattern,configuration);
+    }
+
+    public static List<String> readHeader(BufferedReader reader, BufferedWriter writer, Pattern linePattern, CSVFileConfiguration configuration) throws IOException {
         String line = null;
         do {
             line = reader.readLine();
@@ -175,6 +181,11 @@ public class Utils {
 
         if (line == null) {
             throw new ConnectorException("Csv file '" + configuration.getFilePath() + "' doesn't contain header.");
+        }
+
+        if (null != writer){
+            writer.write(line);
+            writer.write('\n');
         }
 
         return parseValues(line, linePattern, configuration);
