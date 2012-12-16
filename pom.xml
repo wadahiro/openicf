@@ -31,15 +31,15 @@
     </parent>
     <groupId>org.forgerock.openicf.connectors</groupId>
     <artifactId>databasetable-connector</artifactId>
-    <version>1.1.0.1-SNAPSHOT</version>
+    <version>1.1.0.0</version>
     <packaging>bundle</packaging>
     <name>Database Table Connector</name>
     <description>Database table connector use a single database table to store the Account attributes.</description>
-    <url>https://openicf.forgerock.org/connectors/databasetable-connector</url>
+    <url>https://openicf.forgerock.org/connectors/databasetable-connector-1.1.0.0</url>
     <scm>
-        <connection>scm:svn:https://svn.forgerock.org/openicf/branches/openicf-databasetable-connector-1.1.0.x</connection>
-        <developerConnection>scm:svn:https://svn.forgerock.org/openicf/branches/openicf-databasetable-connector-1.1.0.x</developerConnection>
-        <url>http://sources.forgerock.org/browse/openicf/branches/openicf-databasetable-connector-1.1.0.x</url>
+        <connection>scm:svn:https://svn.forgerock.org/openicf/tags/openicf-databasetable-connector-1.1.0.0</connection>
+        <developerConnection>scm:svn:https://svn.forgerock.org/openicf/tags/openicf-databasetable-connector-1.1.0.0</developerConnection>
+        <url>http://sources.forgerock.org/browse/openicf/tags/openicf-databasetable-connector-1.1.0.0</url>
     </scm>
     <issueManagement>
         <system>jira</system>

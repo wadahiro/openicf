@@ -49,7 +49,7 @@
         <menu name="DatabaseTable Core Docs">
             <!--item name="All Formats" href="docs.html" /-->
             <!--item name="Release Notes" href="./doc/release-notes/index.html" /-->
-            <item name="Developer Guide" href="./doc/databasetable-connector-1.1.0.1-SNAPSHOT/index.html" />
+            <item name="Developer Guide" href="./doc/databasetable-connector-1.1.0.0/index.html" />
         </menu>
 
         <menu ref="reports"/>
