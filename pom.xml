@@ -31,15 +31,15 @@
     </parent>
     <groupId>org.forgerock.openicf.connectors</groupId>
     <artifactId>scriptedsql-connector</artifactId>
-    <version>1.1.0.2-SNAPSHOT</version>
+    <version>1.1.0.1</version>
     <packaging>bundle</packaging>
     <name>Scripted SQL Connector</name>
     <description>A Database connector that uses Groovy scripts to perform actions</description>
-    <url>http://openicf.forgerock.org/connectors/criptedsql-connector</url>
+    <url>http://openicf.forgerock.org/connectors/scriptedsql-connector-1.1.0.1</url>
     <scm>
-        <connection>scm:svn:https://svn.forgerock.org/openicf/branches/openicf-scriptedsql-connector-1.1.0.x</connection>
-        <developerConnection>scm:svn:https://svn.forgerock.org/openicf/branches/openicf-scriptedsql-connector-1.1.0.x</developerConnection>
-        <url>http://sources.forgerock.org/browse/openicf/branches/openicf-scriptedsql-connector-1.1.0.x</url>
+        <connection>scm:svn:https://svn.forgerock.org/openicf/tags/openicf-scriptedsql-connector-1.1.0.1</connection>
+        <developerConnection>scm:svn:https://svn.forgerock.org/openicf/tags/openicf-scriptedsql-connector-1.1.0.1</developerConnection>
+        <url>http://sources.forgerock.org/browse/openicf/tags/openicf-scriptedsql-connector-1.1.0.1</url>
     </scm>
     <issueManagement>
         <system>jira</system>
