@@ -28,11 +28,11 @@
     <parent>
         <groupId>org.forgerock</groupId>
         <artifactId>forgerock-parent</artifactId>
-        <version>1.1.0-SNAPSHOT</version>
+        <version>1.1.0</version>
     </parent>
     <groupId>org.forgerock.maven.plugins</groupId>
     <artifactId>openicf-maven-plugin</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>maven-plugin</packaging>
     <name>OpenICF Build Helper Plugin</name>
     <description>
@@ -41,11 +41,11 @@
     <inceptionYear>2012</inceptionYear>
     <url>http://openicf.forgerock.org</url>
     <scm>
-        <connection>scm:svn:https://svn.forgerock.org/openicf/trunk/openicf-maven-plugin</connection>
+        <connection>scm:svn:https://svn.forgerock.org/openicf/tags/openicf-maven-plugin-1.0.0</connection>
         <developerConnection>
-            scm:svn:https://svn.forgerock.org/openicf/trunk/openicf-maven-plugin
+            scm:svn:https://svn.forgerock.org/openicf/tags/openicf-maven-plugin-1.0.0
         </developerConnection>
-        <url>http://sources.forgerock.org/browse/openicf/trunk/openicf-maven-plugin</url>
+        <url>http://sources.forgerock.org/browse/openicf/tags/openicf-maven-plugin-1.0.0</url>
     </scm>
     <distributionManagement>
         <site>
@@ -81,7 +81,7 @@
         <mavenPluginVersion>3.2</mavenPluginVersion>
         <mavenPluginPluginVersion>3.1</mavenPluginPluginVersion>
         <doxiaVersion>1.3</doxiaVersion>
-        <frameworkVersion>1.1.0.1-SNAPSHOT</frameworkVersion>
+        <frameworkVersion>1.1.1.0</frameworkVersion>
         <siteDistributionURL>scp://openicf.forgerock.org/var/www/vhosts/openicf.forgerock.org/httpdocs</siteDistributionURL>
     </properties>
     <dependencies>
