@@ -19,6 +19,8 @@
  * enclosed by brackets [] replaced by your own identifying information: 
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
+ * 
+ * Portions Copyrighted 2012 Evolveum, Radovan Semancik
  */
 
 package org.identityconnectors.solaris.operation.search;
@@ -38,15 +40,9 @@ import org.identityconnectors.solaris.attr.NativeAttribute;
 /**
  * Iterators through Solaris accounts (both native and NIS)
  * @author David Adam
+ * @author Radovan Semancik
  */
 public class AccountIterator implements Iterator<SolarisEntry> {
-
-    /** bunch of boolean flags says if the command is needed to be launched (based on attributes to get) */
-    private boolean isLogins;
-    private boolean isProfiles;
-    private boolean isAuths;
-    private boolean isLast;
-    private boolean isRoles;
 
     /**
      * Implementational note: in case of NIS this is iterator through entry
@@ -59,6 +55,7 @@ public class AccountIterator implements Iterator<SolarisEntry> {
     private SolarisConnection conn;
     
     private SolarisEntry nextEntry;
+	private Set<NativeAttribute> attrsToGet;
 
     AccountIterator(Set<NativeAttribute> attrsToGet, SolarisConnection conn) {
         this(Collections.<String>emptyList(), attrsToGet, conn);
@@ -72,11 +69,7 @@ public class AccountIterator implements Iterator<SolarisEntry> {
         }
         it = usernames.iterator();
         
-        isLogins = LoginsCommand.isLoginsRequired(attrsToGet);
-        isProfiles = attrsToGet.contains(NativeAttribute.PROFILES);
-        isAuths = attrsToGet.contains(NativeAttribute.AUTHS);
-        isLast = attrsToGet.contains(NativeAttribute.LAST_LOGIN);
-        isRoles = attrsToGet.contains(NativeAttribute.ROLES);
+        this.attrsToGet = attrsToGet;
     }
     
     private List<String> fillUsernames() {
@@ -94,7 +87,7 @@ public class AccountIterator implements Iterator<SolarisEntry> {
 
     public boolean hasNext() {
         while ((nextEntry == null) && it.hasNext()) {
-            nextEntry = buildUser(it.next());
+            nextEntry = conn.getModeDriver().buildAccountEntry(it.next(), attrsToGet);
         }
         return nextEntry != null;
     }
@@ -110,47 +103,6 @@ public class AccountIterator implements Iterator<SolarisEntry> {
         SolarisEntry result = nextEntry;
         nextEntry = null;
         return result;
-    }
-
-    /**
-     * get the user entry for given username
-     * @param username
-     * @return the initialized entry, or Null in case the user was not found on the resource.
-     */
-    private SolarisEntry buildUser(String username) {
-//        if (conn.isNis()) {
-//            return buildNISUser(username);
-//        }
-        SolarisEntry.Builder entryBuilder = new SolarisEntry.Builder(username).addAttr(NativeAttribute.NAME, username);
-        
-        // we need to execute Logins command always, to figure out if the user exists at all.
-        SolarisEntry loginsEntry = LoginsCommand.getAttributesFor(username, conn);
-
-        // Null indicates that the user was not found.
-        if (loginsEntry == null) {
-            return null;
-        }
-        
-        if (isLogins) {
-            entryBuilder.addAllAttributesFrom(loginsEntry);
-        }
-        if (isProfiles) {
-            final Attribute profiles = ProfilesCommand.getProfilesAttributeFor(username, conn);
-            entryBuilder.addAttr(NativeAttribute.PROFILES, profiles.getValue());
-        }
-        if (isAuths) {
-            final Attribute auths = AuthsCommand.getAuthsAttributeFor(username, conn);
-            entryBuilder.addAttr(NativeAttribute.AUTHS, auths.getValue());
-        }
-        if (isLast) {
-            final Attribute last = LastCommand.getLastAttributeFor(username, conn);
-            entryBuilder.addAttr(NativeAttribute.LAST_LOGIN, last.getValue());
-        }
-        if (isRoles) {
-            final Attribute roles = RolesCommand.getRolesAttributeFor(username, conn);
-            entryBuilder.addAttr(NativeAttribute.ROLES, roles.getValue());
-        }
-        return entryBuilder.build();
     }
 
 //    /**

@@ -1,0 +1,246 @@
+/**
+ * Copyright (c) 2012 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2012 [name of copyright owner]
+ * 
+ * Portions Copyrighted 2008-2009 Sun Microsystems
+ */
+package org.identityconnectors.solaris.mode;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.solaris.SolarisConnection;
+import org.identityconnectors.solaris.attr.NativeAttribute;
+import org.identityconnectors.solaris.operation.search.GetentPasswordCommand;
+import org.identityconnectors.solaris.operation.search.IdCommand;
+import org.identityconnectors.solaris.operation.search.LastCommand;
+import org.identityconnectors.solaris.operation.search.LoginsCommand;
+import org.identityconnectors.solaris.operation.search.PasswdCommand;
+import org.identityconnectors.solaris.operation.search.SolarisEntry;
+
+/**
+ * Driver for linux-specific user management commands.
+ * 
+ * Partially copied from the original (hard-coded) Solaris connector code and modified for the linux-specific commands.
+ * It is using combination of 'getent', 'id' and 'passwd' commands instead the solaris-specific 'logins' command.
+ * 
+ * The code is not ideal. But the goal was to do minimal modifications to original Solaris connector.
+ * 
+ * @see UnixModeDriver
+ * 
+ * @author Radovan Semancik
+ *
+ */
+public class LinuxModeDriver extends UnixModeDriver {
+
+	public static final String MODE_NAME = "linux";
+	
+	private static final String TMPFILE  = "/tmp/connloginsError.$$";
+	private static final String SHELL_CONT_CHARS = "> ";
+    private static final int CHARS_PER_LINE = 160;
+    
+    private static final Log log = Log.getLog(LinuxModeDriver.class);
+	
+	public LinuxModeDriver(SolarisConnection conn) {
+		super(conn);
+	}
+
+	@Override
+	public List<SolarisEntry> buildAccountEntries(List<String> blockUserNames, boolean isLast) {
+		conn.doSudoStart();
+		
+        String out = null;
+        try {
+            conn.executeCommand(conn.buildCommand("rm -f", TMPFILE));
+
+            String getUsersScript = buildGetUserScript(blockUserNames, isLast);
+            log.info("Script: {0}", getUsersScript);
+            out = conn.executeCommand(getUsersScript, conn.getConfiguration().getBlockFetchTimeout());
+            log.info("OUT: {0}", out);
+
+            conn.executeCommand(conn.buildCommand("rm -f", TMPFILE));
+        } finally {
+            conn.doSudoReset();
+        }
+        
+        List<SolarisEntry> fetchedEntries = processOutput(out, blockUserNames, isLast);
+        if (fetchedEntries.size() != blockUserNames.size()) {
+            throw new RuntimeException("ERROR: expecting to return " + blockUserNames.size() + " instead of " + fetchedEntries.size());
+            // TODO possibly compare by content.
+        }
+        
+        return fetchedEntries;
+	}
+	
+	private String buildGetUserScript(List<String> blockUserNames, boolean isLast) {
+        // make a list of users, separated by space.
+        StringBuilder connUserList = new StringBuilder();
+        int charsThisLine = 0;
+        for (String user : blockUserNames) {
+            final int length = user.length();
+            // take care that line meets the limit on 160 chars per line
+            if ((charsThisLine + length + 3) > CHARS_PER_LINE) {
+                connUserList.append("\n");
+                charsThisLine = 0;
+            }
+            
+            connUserList.append(user);
+            connUserList.append(" ");
+            charsThisLine += length + 1;
+        }
+        
+        StringBuilder scriptBuilder = new StringBuilder();
+        scriptBuilder.append("WSUSERLIST=\"");
+        scriptBuilder.append(connUserList.toString() + "\n\";");
+        scriptBuilder.append("for user in $WSUSERLIST; do ");
+        
+        scriptBuilder.append(buildGetUserScriptLine("getent", "passwd $user"));
+    	scriptBuilder.append(buildGetUserScriptLine("id", "-Grn $user"));
+    	scriptBuilder.append(buildGetUserScriptLine("passwd", "-S $user"));
+        if (isLast) {
+        	// TODO
+        }
+        scriptBuilder.append("done");
+        
+        return scriptBuilder.toString();
+    }
+	
+	private String buildGetUserScriptLine(String command, String args) {
+		return conn.buildCommand(command) + (args == null ? "" : " "+args) + " 2>>" + TMPFILE + "; ";
+	}
+	
+	/** retrieve account info from the output */
+    private List<SolarisEntry> processOutput(String out, List<String> blockUserNames, boolean isLast) {
+        
+        List<String> lines = Arrays.asList(out.split("\n"));
+        Iterator<String> it = lines.iterator();
+        int captureIndex = 0;
+        List<SolarisEntry> result = new ArrayList<SolarisEntry>(blockUserNames.size());
+        
+        while (it.hasNext()) {
+            final String accountUsername = blockUserNames.get(captureIndex);
+            String linePwent = readLine(it, accountUsername, "pwent");
+            String lineId = readLine(it, accountUsername, "id");
+            String linePasswd = readLine(it, accountUsername, "passwd");
+            
+            String lineLastLogin = null;
+            if (isLast) {
+            	lineLastLogin = readLine(it, accountUsername, "last login");
+            }// if (isLast)
+            
+            
+            SolarisEntry.Builder entryBuilder = new SolarisEntry.Builder(accountUsername);
+            
+            SolarisEntry getentEntry = GetentPasswordCommand.getEntry(linePwent, accountUsername);
+            entryBuilder.addAllAttributesFrom(getentEntry);
+            
+            SolarisEntry idEntry = IdCommand.getEntry(lineId, accountUsername);
+            entryBuilder.addAllAttributesFrom(idEntry);
+            
+            SolarisEntry passwdEntry = PasswdCommand.getEntry(linePasswd, accountUsername);
+            entryBuilder.addAllAttributesFrom(passwdEntry);
+                        
+            SolarisEntry entry = entryBuilder.build();
+            if (entry != null) {
+                result.add(entry);
+            }
+            
+            captureIndex++;
+        }// while (it.hasNext())
+        
+        return result;
+    }
+
+	private String readLine(Iterator<String> lineIterator, String username, String lineType) {
+		if (!lineIterator.hasNext()) {
+            throw new ConnectorException(String.format("User '%s' is missing %s time.", username, lineType));
+        }
+		String line = lineIterator.next();
+		return weedOutShellContChars(line);
+	}
+
+	private String weedOutShellContChars(String line) {
+		// Weed out shell continuation chars
+        if (line.startsWith(SHELL_CONT_CHARS)) {
+            int index = line.lastIndexOf(SHELL_CONT_CHARS);
+            line = line.substring(index + SHELL_CONT_CHARS.length());
+        }
+        return line;
+	}
+
+	@Override
+	public SolarisEntry buildAccountEntry(String username, Set<NativeAttribute> attrsToGet) {
+		// TODO: this has a lot of common code with the buildAccountEntries. Refactor.
+		
+		boolean isLast = attrsToGet.contains(NativeAttribute.LAST_LOGIN);
+		
+		conn.doSudoStart();
+		
+        String out = null;
+        try {
+            conn.executeCommand(conn.buildCommand("rm -f", TMPFILE));
+
+            StringBuilder scriptBuilder = new StringBuilder();        
+            scriptBuilder.append(buildGetUserScriptLine("getent", "passwd " + username));
+        	scriptBuilder.append(buildGetUserScriptLine("id", "-Grn " + username));
+        	scriptBuilder.append(buildGetUserScriptLine("passwd", "-S " + username));
+            if (isLast) {
+            	// TODO
+            }
+            String script = scriptBuilder.toString();
+            log.info("Script: {0}", script);
+            
+            out = conn.executeCommand(script, conn.getConfiguration().getBlockFetchTimeout());
+            log.info("OUT: {0}", out);
+
+            conn.executeCommand(conn.buildCommand("rm -f", TMPFILE));
+        } finally {
+            conn.doSudoReset();
+        }
+		
+        List<String> lines = Arrays.asList(out.split("\n"));
+        Iterator<String> it = lines.iterator();
+        String linePwent = readLine(it, username, "pwent");
+        String lineId = readLine(it, username, "id");
+        String linePasswd = readLine(it, username, "passwd");
+        
+        SolarisEntry.Builder entryBuilder = new SolarisEntry.Builder(username);
+        
+        SolarisEntry getentEntry = GetentPasswordCommand.getEntry(linePwent, username);
+        entryBuilder.addAllAttributesFrom(getentEntry);
+        
+        SolarisEntry idEntry = IdCommand.getEntry(lineId, username);
+        entryBuilder.addAllAttributesFrom(idEntry);
+        
+        SolarisEntry passwdEntry = PasswdCommand.getEntry(linePasswd, username);
+        entryBuilder.addAllAttributesFrom(passwdEntry);
+                    
+        SolarisEntry entry = entryBuilder.build();
+		
+        return entry;
+        
+	}
+
+}

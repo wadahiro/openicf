@@ -32,7 +32,7 @@ import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.solaris.SolarisConnection;
 import org.identityconnectors.solaris.attr.NativeAttribute;
 
-class RolesCommand {
+public class RolesCommand {
     /**
      * @param name username
      * @param op operation that called the command

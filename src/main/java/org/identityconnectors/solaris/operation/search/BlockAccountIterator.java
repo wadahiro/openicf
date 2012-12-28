@@ -19,6 +19,8 @@
  * enclosed by brackets [] replaced by your own identifying information: 
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
+ * 
+ * Portions Copyrighted 2012 Evolveum, Radovan Semancik
  */
 
 package org.identityconnectors.solaris.operation.search;
@@ -33,6 +35,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.identityconnectors.common.CollectionUtil;
+import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.solaris.SolarisConnection;
@@ -44,12 +47,9 @@ import org.identityconnectors.solaris.attr.NativeAttribute;
  * use {@link AccountIterator} instead.
  * 
  * @author David Adam
+ * @author Radovan Semancik
  */
 public class BlockAccountIterator implements Iterator<SolarisEntry> {
-
-    private static final String SHELL_CONT_CHARS = "> ";
-    private static final int CHARS_PER_LINE = 160;
-    private static final String TMPFILE  = "/tmp/connloginsError.$$";
 
     /** list of *all* usernames on the resource. */
     private List<String> accounts;
@@ -66,6 +66,8 @@ public class BlockAccountIterator implements Iterator<SolarisEntry> {
     /** size of the blocks that the accounts are iterated. */
     private final int blockSize;
     private int blockCount = -1;
+    
+    private static final Log log = Log.getLog(BlockAccountIterator.class);
     
     BlockAccountIterator(Set<NativeAttribute> attrsToGet, SolarisConnection conn) {
         this(Collections.<String>emptyList(), attrsToGet, conn);
@@ -84,6 +86,7 @@ public class BlockAccountIterator implements Iterator<SolarisEntry> {
 
         if (CollectionUtil.isEmpty(usernames)) {
             // fetch usernames
+        	conn.doSudoStart();
             String command = conn.buildCommand("cut -d: -f1 /etc/passwd | grep -v \"^[+-]\"");
             String usernamesNewLineSeparated = conn.executeCommand(command);
             String[] usernamesList = usernamesNewLineSeparated.split("\n");
@@ -115,148 +118,17 @@ public class BlockAccountIterator implements Iterator<SolarisEntry> {
             blockUserNames.add(usernameIter.next());
         }
         
-        List<SolarisEntry> blockEntries = buildEntries(blockUserNames);
+        List<SolarisEntry> blockEntries = conn.getModeDriver().buildAccountEntries(blockUserNames, isLast);
+        
+        if (log.isInfo()) {
+        	for (SolarisEntry entry: blockEntries) {
+        		log.info("Entry: {0}", entry);
+        	}
+        }
         
         return blockEntries.iterator();
     }
     
-    /**
-     * get the attributes for given block of users
-     * @param blockUserNames
-     * @return the SolarisEntry list initialized with the required attributes.
-     */
-    private List<SolarisEntry> buildEntries(List<String> blockUserNames) {
-        conn.doSudoStart();
-        String out = null;
-        try {
-            conn.executeCommand(conn.buildCommand("rm -f", TMPFILE));
-
-            String getUsersScript = buildGetUserScript(blockUserNames);
-            out = conn.executeCommand(getUsersScript, conn.getConfiguration().getBlockFetchTimeout());
-
-            conn.executeCommand(conn.buildCommand("rm -f", TMPFILE));
-        } finally {
-            conn.doSudoReset();
-        }
-        
-        List<SolarisEntry> fetchedEntries = processOutput(out);
-        if (fetchedEntries.size() != blockUserNames.size()) {
-            throw new RuntimeException("ERROR: expecting to return " + blockUserNames.size() + " instead of " + fetchedEntries.size());
-            // TODO possibly compare by content.
-        }
-        
-        return fetchedEntries;
-    }
-
-    /** retrieve account info from the output */
-    private List<SolarisEntry> processOutput(String out) {
-//        SVIDRA# getUsersFromCaptureList(CaptureList captureList, ArrayList users)()
-        
-        List<String> lines = Arrays.asList(out.split("\n"));
-        Iterator<String> it = lines.iterator();
-        int captureIndex = 0;
-        List<SolarisEntry> result = new ArrayList<SolarisEntry>(blockSize);
-        
-        while (it.hasNext()) {
-            final int accountIndex = captureIndex + (blockCount * blockSize);
-            final String currentAccount = accounts.get(accountIndex);
-            String line = it.next();
-            String lastLoginLine = null;
-            
-            // Weed out shell continuation chars
-            if (line.startsWith(SHELL_CONT_CHARS)) {
-                int index = line.lastIndexOf(SHELL_CONT_CHARS);
-
-                line = line.substring(index + SHELL_CONT_CHARS.length());
-            }
-            
-            if (isLast) {
-                if (!it.hasNext()) {
-                    throw new ConnectorException(String.format("User '%s' is missing last login time.", currentAccount));
-                }
-
-                lastLoginLine = "";
-
-                while (lastLoginLine.length() < 3) {
-                    lastLoginLine = it.next();
-                }
-            }// if (isLast)
-            
-            SolarisEntry entry = buildUser(currentAccount, line, lastLoginLine);
-            if (entry != null) {
-                result.add(entry);
-            }
-            
-            captureIndex++;
-        }// while (it.hasNext())
-        
-        return result;
-    }
-
-    /**
-     * build user based on the content given.
-     * @param loginsLine
-     * @param lastLoginLine
-     * @return the build user.
-     */
-    private SolarisEntry buildUser(String username, String loginsLine, String lastLoginLine) {
-        if (lastLoginLine == null) {
-            return LoginsCommand.getEntry(loginsLine, username);
-        } else {
-            SolarisEntry.Builder entryBuilder = new SolarisEntry.Builder(username).addAttr(NativeAttribute.NAME, username);
-            // logins
-            SolarisEntry entry = LoginsCommand.getEntry(loginsLine, username);
-            entryBuilder.addAllAttributesFrom(entry);
-            
-            //last
-            Attribute attribute = LastCommand.parseOutput(username, lastLoginLine);
-            entryBuilder.addAttr(NativeAttribute.LAST_LOGIN, attribute.getValue());
-            
-            return entryBuilder.build();
-        }
-    }
-
-    private String buildGetUserScript(List<String> blockUserNames) {
-        // make a list of users, separated by space.
-        StringBuilder connUserList = new StringBuilder();
-        int charsThisLine = 0;
-        for (String user : blockUserNames) {
-            final int length = user.length();
-            // take care that line meets the limit on 160 chars per line
-            if ((charsThisLine + length + 3) > CHARS_PER_LINE) {
-                connUserList.append("\n");
-                charsThisLine = 0;
-            }
-            
-            connUserList.append(user);
-            connUserList.append(" ");
-            charsThisLine += length + 1;
-        }
-        
-        StringBuilder getUsersScript = new StringBuilder();
-        getUsersScript.append("WSUSERLIST=\"");
-        getUsersScript.append(connUserList.toString() + "\n\";");
-        getUsersScript.append("for user in $WSUSERLIST; do ");
-        
-        String getScript = null;
-        if (isLast) {
-            getScript = 
-                conn.buildCommand("logins") + " -oxma -l $user 2>>" + TMPFILE + "; " +
-                "LASTLOGIN=`" + conn.buildCommand("last") + " -1 $user`; " +
-                "if [ -z \"$LASTLOGIN\" ]; then " +
-                     "echo \"wtmp begins\" ; " +
-                "else " +
-                     "echo $LASTLOGIN; " +
-                "fi; ";
-        } else {
-            getScript = conn.buildCommand("logins") + " -oxma -l $user 2>>" + TMPFILE + "; ";
-        }
-        getUsersScript.append(getScript);
-        getUsersScript.append("done");
-        
-        return getUsersScript.toString();
-    }
-
     public boolean hasNext() {
         while ((entryIter == null || !entryIter.hasNext()) && usernameIter.hasNext()) {
             entryIter = initNextBlockOfAccounts();

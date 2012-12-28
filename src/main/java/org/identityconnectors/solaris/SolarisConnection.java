@@ -19,6 +19,7 @@
  * enclosed by brackets [] replaced by your own identifying information: 
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
+ * Portions Copyrighted 2012 Evolveum, Radovan Semancik
  */
 package org.identityconnectors.solaris;
 
@@ -39,6 +40,9 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.solaris.command.RegExpCaseInsensitiveMatch;
+import org.identityconnectors.solaris.mode.LinuxModeDriver;
+import org.identityconnectors.solaris.mode.SolarisModeDriver;
+import org.identityconnectors.solaris.mode.UnixModeDriver;
 import org.identityconnectors.solaris.operation.SolarisCreate;
 import org.identityconnectors.solaris.operation.SolarisUpdate;
 
@@ -122,6 +126,8 @@ public class SolarisConnection {
     
     private Boolean isVersionLT10;
     
+    private UnixModeDriver modeDriver;
+    
     public SolarisConnection(SolarisConfiguration config) {
         if (config == null) {
             throw new ConfigurationException(
@@ -146,6 +152,10 @@ public class SolarisConnection {
             createTelnetConn(loginUser, password);
             break;
         }
+        
+        modeDriver = createModeDriver(configuration.getUnixMode());
+        
+        // TODO: it is not ideal to do this in a constructor. Refactor later.
         
         try {
             if (!connType.selfAuthenticates()) {
@@ -189,7 +199,7 @@ public class SolarisConnection {
         }
     }
 
-    private void createTelnetConn(String username, GuardedString password) {
+	private void createTelnetConn(String username, GuardedString password) {
         Expect4j expect4j = null;
         try {
             expect4j = ExpectUtils.telnet(configuration.getHost(), configuration.getPort());
@@ -198,6 +208,17 @@ public class SolarisConnection {
         }
         this.expect4j = expect4j;
     }
+	
+	private UnixModeDriver createModeDriver(String unixMode) {
+		// TODO: Ugly and difficult to extend. Refactor later.
+		if (unixMode == null || unixMode.equals(SolarisModeDriver.MODE_NAME)) {
+			return new SolarisModeDriver(this);
+		} else if (unixMode.equals(LinuxModeDriver.MODE_NAME)) {
+			return new LinuxModeDriver(this);
+		} else {
+			throw new ConfigurationException("Unknown unix mode '"+unixMode+"'");
+		}
+	}
 
     /**
      * Connect to the resource using privateKey + passphrase pair.
@@ -309,7 +330,11 @@ public class SolarisConnection {
         }
     }
 
-    /* *************** METHODS ****************** */
+    public UnixModeDriver getModeDriver() {
+		return modeDriver;
+	}
+
+	/* *************** METHODS ****************** */
     /**
      * send a command to the resource, no end of line needed.
      * @param string
@@ -1075,7 +1100,8 @@ public class SolarisConnection {
                 executeCommand(SUDO_RESET_COMMAND, CollectionUtil.newSet("not found"));
 
                 // 2) send sudo start command
-                executeCommand(SUDO_START_COMMAND, Collections.<String>emptySet(), CollectionUtil.newSet("assword:")); 
+                // Solaris prompts just "password:", linux prompts "password for username:". following regexp should match both
+                executeCommand(SUDO_START_COMMAND, Collections.<String>emptySet(), CollectionUtil.newSet("assword[^:]*:")); 
 
                 GuardedString passwd = config.getCredentials();
                 sendPassword(passwd, CollectionUtil.newSet("may not run", "not allowed to execute"), Collections.<String>emptySet());

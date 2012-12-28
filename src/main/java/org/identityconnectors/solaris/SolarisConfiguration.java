@@ -27,6 +27,7 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
 import org.identityconnectors.framework.spi.ConfigurationProperty;
+import org.identityconnectors.solaris.mode.SolarisModeDriver;
 import org.identityconnectors.solaris.operation.search.SolarisEntries;
 
 public final class SolarisConfiguration extends AbstractConfiguration {
@@ -288,6 +289,13 @@ public final class SolarisConfiguration extends AbstractConfiguration {
      * Units: milliseconds.
      */
     private int commandTimeout = 24000;
+    
+    /**
+     * <b>UNIX Mode</b><br/>
+     * 
+     * Specifies the unix flavour assumed for execution of certain commands.
+     */
+    private String unixMode = SolarisModeDriver.MODE_NAME;
 
     /*            ********** CONSTRUCTOR ************ */
     public SolarisConfiguration() {
@@ -536,6 +544,15 @@ public final class SolarisConfiguration extends AbstractConfiguration {
 
     public void setCommandTimeout(int commandTimeout) {
         this.commandTimeout = commandTimeout;
+    }
+    
+    @ConfigurationProperty(order = 27)
+    public String getUnixMode() {
+        return unixMode;
+    }
+
+    public void setUnixMode(String unixMode) {
+        this.unixMode = unixMode;
     }
 
     /*            *********** AUXILIARY METHODS ***************** */

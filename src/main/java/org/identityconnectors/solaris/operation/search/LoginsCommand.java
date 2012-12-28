@@ -49,7 +49,7 @@ import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.solaris.SolarisConnection;
 import org.identityconnectors.solaris.attr.NativeAttribute;
 
-class LoginsCommand {
+public class LoginsCommand {
 
     private static final Log log = Log.getLog(LoginsCommand.class);
     
