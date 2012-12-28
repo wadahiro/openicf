@@ -75,17 +75,24 @@
                 <enabled>false</enabled>
             </releases>
         </repository>
+        <repository>
+            <id>evolveum</id>
+            <name>Evolveum Repository</name>
+            <url>http://repo.evolveum.com/repo</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
     </repositories>
     <dependencies>
         <!--
-        Download from http://expect4j.googlecode.com/files/expect4j-1.0.jar
+        If the following dependecy does not work then download from http://expect4j.googlecode.com/files/expect4j-1.0.jar
         mvn install:install-file -Dfile=expect4j-1.0.jar -DgroupId=com.google.p.expect4j -DartifactId=expect4j -Dversion=1.0 -Dpackaging=jar -DgeneratePom=true -DcreateChecksum=true
         -->
         <dependency>
-            <groupId>com.google.p.expect4j</groupId>
+            <groupId>com.google.com.p.expect4j</groupId>
             <artifactId>expect4j</artifactId>
             <version>1.0</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>commons-net</groupId>
@@ -136,11 +143,11 @@
                     </execution>
                 </executions>
                 <dependencies>
-                    <dependency>
-                        <groupId>com.google.p.expect4j</groupId>
+<!--                    <dependency>
+                        <groupId>com.google.com.p.expect4j</groupId>
                         <artifactId>expect4j</artifactId>
                         <version>1.0</version>
-                    </dependency>
+                    </dependency>-->
                     <dependency>
                         <groupId>commons-net</groupId>
                         <artifactId>commons-net</artifactId>
