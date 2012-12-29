@@ -24,6 +24,8 @@ package org.identityconnectors.solaris.mode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -31,7 +33,25 @@ import java.util.Set;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeInfo;
+import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
+import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.ObjectClassInfo;
+import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
+import org.identityconnectors.framework.common.objects.OperationalAttributeInfos;
+import org.identityconnectors.framework.common.objects.Schema;
+import org.identityconnectors.framework.common.objects.SchemaBuilder;
+import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
+import org.identityconnectors.framework.spi.operations.AuthenticateOp;
+import org.identityconnectors.framework.spi.operations.CreateOp;
+import org.identityconnectors.framework.spi.operations.DeleteOp;
+import org.identityconnectors.framework.spi.operations.ResolveUsernameOp;
+import org.identityconnectors.framework.spi.operations.SchemaOp;
+import org.identityconnectors.framework.spi.operations.UpdateOp;
 import org.identityconnectors.solaris.SolarisConnection;
+import org.identityconnectors.solaris.SolarisConnector;
+import org.identityconnectors.solaris.attr.AccountAttribute;
+import org.identityconnectors.solaris.attr.GroupAttribute;
 import org.identityconnectors.solaris.attr.NativeAttribute;
 import org.identityconnectors.solaris.operation.search.GetentPasswordCommand;
 import org.identityconnectors.solaris.operation.search.IdCommand;
@@ -39,6 +59,7 @@ import org.identityconnectors.solaris.operation.search.LastCommand;
 import org.identityconnectors.solaris.operation.search.LoginsCommand;
 import org.identityconnectors.solaris.operation.search.PasswdCommand;
 import org.identityconnectors.solaris.operation.search.SolarisEntry;
+import org.identityconnectors.solaris.operation.search.SolarisSearch;
 
 /**
  * Driver for linux-specific user management commands.
@@ -240,7 +261,97 @@ public class LinuxModeDriver extends UnixModeDriver {
         SolarisEntry entry = entryBuilder.build();
 		
         return entry;
-        
 	}
+	
+	@Override
+	public String buildPasswdCommand(String username) {
+		return conn.buildCommand("passwd", username);
+	}
+	
+	@Override
+	public Schema buildSchema() {
+        final SchemaBuilder schemaBuilder = new SchemaBuilder(SolarisConnector.class);
+        
+        /* 
+         * GROUP
+         */
+        Set<AttributeInfo> attributes = new HashSet<AttributeInfo>();
+        //attributes.add(Name.INFO);
+        for (GroupAttribute attr : GroupAttribute.values()) {
+            switch (attr) {
+            case USERS:
+                attributes.add(AttributeInfoBuilder.build(attr.getName(), String.class, EnumSet.of(Flags.MULTIVALUED)));
+                break;
+            case GROUPNAME:
+                attributes.add(AttributeInfoBuilder.build(attr.getName(), String.class, EnumSet.of(Flags.REQUIRED)));
+                break;
+
+            default:
+                attributes.add(AttributeInfoBuilder.build(attr.getName()));
+                break;
+            }//switch
+        }//for
+        
+        //GROUP supports no authentication:
+        final ObjectClassInfo ociInfoGroup = new ObjectClassInfoBuilder().setType(ObjectClass.GROUP_NAME).addAllAttributeInfo(attributes).build();
+        schemaBuilder.defineObjectClass(ociInfoGroup);
+        schemaBuilder.removeSupportedObjectClass(AuthenticateOp.class, ociInfoGroup);
+        schemaBuilder.removeSupportedObjectClass(ResolveUsernameOp.class, ociInfoGroup);
+        
+        /*
+         * ACCOUNT
+         */
+        attributes = new HashSet<AttributeInfo>();
+        attributes.add(OperationalAttributeInfos.PASSWORD);
+        for (AccountAttribute attr : AccountAttribute.values()) {
+            AttributeInfo newAttr = null;
+            switch (attr) {
+            case NAME:
+                newAttr = AttributeInfoBuilder.build(attr.getName(), String.class, EnumSet.of(Flags.REQUIRED));
+                break;
+            case PASSWD_FORCE_CHANGE:
+                newAttr = AttributeInfoBuilder.build(attr.getName(), boolean.class, EnumSet.of(Flags.NOT_RETURNED_BY_DEFAULT));
+                break;
+            case SECONDARY_GROUP:
+            	newAttr = AttributeInfoBuilder.build(attr.getName(), String.class, EnumSet.of(Flags.MULTIVALUED));
+                break;
+            case ROLES:
+            case AUTHORIZATION:
+            case PROFILE:
+                newAttr = null;
+                break;
+            case TIME_LAST_LOGIN:
+                newAttr = AttributeInfoBuilder.build(attr.getName(), String.class, EnumSet.of(Flags.NOT_UPDATEABLE, Flags.NOT_RETURNED_BY_DEFAULT));
+                break;
+            default:
+                newAttr = AttributeInfoBuilder.build(attr.getName());
+                break;
+            }
+            
+            if (newAttr != null) {
+            	attributes.add(newAttr);
+            }
+        }
+        final ObjectClassInfo ociInfoAccount = new ObjectClassInfoBuilder().setType(ObjectClass.ACCOUNT_NAME).addAllAttributeInfo(attributes).build();
+        schemaBuilder.defineObjectClass(ociInfoAccount);
+        
+        /*
+         * SHELL
+         */
+        attributes = new HashSet<AttributeInfo>();
+        attributes.add(
+                AttributeInfoBuilder.build(SolarisSearch.SHELL.getObjectClassValue(), String.class, EnumSet.of(Flags.MULTIVALUED, Flags.NOT_RETURNED_BY_DEFAULT, Flags.NOT_UPDATEABLE))
+                );
+        final ObjectClassInfo ociInfoShell = new ObjectClassInfoBuilder().addAllAttributeInfo(attributes).setType(SolarisSearch.SHELL.getObjectClassValue()).build();
+        schemaBuilder.defineObjectClass(ociInfoShell);
+        schemaBuilder.removeSupportedObjectClass(AuthenticateOp.class, ociInfoShell);
+        schemaBuilder.removeSupportedObjectClass(CreateOp.class, ociInfoShell);
+        schemaBuilder.removeSupportedObjectClass(UpdateOp.class, ociInfoShell);
+        schemaBuilder.removeSupportedObjectClass(DeleteOp.class, ociInfoShell);
+        schemaBuilder.removeSupportedObjectClass(SchemaOp.class, ociInfoShell);
+        schemaBuilder.removeSupportedObjectClass(ResolveUsernameOp.class, ociInfoShell);
+        
+        return  schemaBuilder.build();
+    }
 
 }

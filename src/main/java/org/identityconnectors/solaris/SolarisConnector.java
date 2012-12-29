@@ -19,6 +19,8 @@
  * enclosed by brackets [] replaced by your own identifying information: 
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
+ * 
+ * Portions Copyrighted 2012 Evolveum, Radovan Semancik
  */
 package org.identityconnectors.solaris;
 
@@ -97,7 +99,7 @@ public class SolarisConnector implements PoolableConnector, AuthenticateOp,
 
     private SolarisConfiguration configuration;
 
-    private static Schema _schema;
+    private Schema schema;
 
     /**
      * {@see
@@ -178,111 +180,13 @@ public class SolarisConnector implements PoolableConnector, AuthenticateOp,
         log.info("creating Filter translator.");
         return new SolarisFilterTranslator(oclass);
     }
-    
-    /**
-     * helper class for lazy initialization of a static field (Bloch: Effective Java)
-     */
-    private static class SchemaHolder {
-        static final Schema schema = buildSchema();
-    }
-    
-    // FIXME: control schema identity with adapter.
+        
     public Schema schema() {
         log.info("schema()");
-        return SchemaHolder.schema;
-    }
-
-    private static Schema buildSchema() {
-        final SchemaBuilder schemaBuilder = new SchemaBuilder(SolarisConnector.class);
-        
-        /* 
-         * GROUP
-         */
-        Set<AttributeInfo> attributes = new HashSet<AttributeInfo>();
-        //attributes.add(Name.INFO);
-        for (GroupAttribute attr : GroupAttribute.values()) {
-            switch (attr) {
-            case USERS:
-                attributes.add(AttributeInfoBuilder.build(attr.getName(), String.class, EnumSet.of(Flags.MULTIVALUED)));
-                break;
-            case GROUPNAME:
-                attributes.add(AttributeInfoBuilder.build(attr.getName(), String.class, EnumSet.of(Flags.REQUIRED)));
-                break;
-            case GID:
-                attributes.add(AttributeInfoBuilder.build(attr.getName(), int.class, EnumSet.of(Flags.NOT_RETURNED_BY_DEFAULT)));
-                break;
-
-            default:
-                attributes.add(AttributeInfoBuilder.build(attr.getName()));
-                break;
-            }//switch
-        }//for
-        
-        //GROUP supports no authentication:
-        final ObjectClassInfo ociInfoGroup = new ObjectClassInfoBuilder().setType(ObjectClass.GROUP_NAME).addAllAttributeInfo(attributes).build();
-        schemaBuilder.defineObjectClass(ociInfoGroup);
-        schemaBuilder.removeSupportedObjectClass(AuthenticateOp.class, ociInfoGroup);
-        schemaBuilder.removeSupportedObjectClass(ResolveUsernameOp.class, ociInfoGroup);
-        
-        /*
-         * ACCOUNT
-         */
-        attributes = new HashSet<AttributeInfo>();
-        attributes.add(OperationalAttributeInfos.PASSWORD);
-        for (AccountAttribute attr : AccountAttribute.values()) {
-            AttributeInfo newAttr = null;
-            switch (attr) {
-            case NAME:
-                newAttr = AttributeInfoBuilder.build(attr.getName(), String.class, EnumSet.of(Flags.REQUIRED));
-                break;
-            case MIN:
-            case MAX:
-            case WARN:
-            case INACTIVE:
-            case UID:
-                newAttr = AttributeInfoBuilder.build(attr.getName(), int.class, EnumSet.of(Flags.NOT_RETURNED_BY_DEFAULT));
-                break;
-            case PASSWD_FORCE_CHANGE:
-            case LOCK:
-                newAttr = AttributeInfoBuilder.build(attr.getName(), boolean.class, EnumSet.of(Flags.NOT_RETURNED_BY_DEFAULT));
-                break;
-            case SECONDARY_GROUP:
-            case ROLES:
-            case AUTHORIZATION:
-            case PROFILE:
-                newAttr = AttributeInfoBuilder.build(attr.getName(), String.class, EnumSet.of(Flags.MULTIVALUED, Flags.NOT_RETURNED_BY_DEFAULT));
-                break;
-            case TIME_LAST_LOGIN:
-                newAttr = AttributeInfoBuilder.build(attr.getName(), String.class, EnumSet.of(Flags.NOT_UPDATEABLE, Flags.NOT_RETURNED_BY_DEFAULT));
-                break;
-            default:
-                newAttr = AttributeInfoBuilder.build(attr.getName());
-                break;
-            }
-            
-            attributes.add(newAttr);
+        if (schema == null) {
+        	schema = connection.getModeDriver().buildSchema();
         }
-        final ObjectClassInfo ociInfoAccount = new ObjectClassInfoBuilder().setType(ObjectClass.ACCOUNT_NAME).addAllAttributeInfo(attributes).build();
-        schemaBuilder.defineObjectClass(ociInfoAccount);
-        
-        /*
-         * SHELL
-         */
-        attributes = new HashSet<AttributeInfo>();
-        attributes.add(
-                AttributeInfoBuilder.build(SolarisSearch.SHELL.getObjectClassValue(), String.class, EnumSet.of(Flags.MULTIVALUED, Flags.NOT_RETURNED_BY_DEFAULT, Flags.NOT_UPDATEABLE))
-                );
-        final ObjectClassInfo ociInfoShell = new ObjectClassInfoBuilder().addAllAttributeInfo(attributes).setType(SolarisSearch.SHELL.getObjectClassValue()).build();
-        schemaBuilder.defineObjectClass(ociInfoShell);
-        schemaBuilder.removeSupportedObjectClass(AuthenticateOp.class, ociInfoShell);
-        schemaBuilder.removeSupportedObjectClass(CreateOp.class, ociInfoShell);
-        schemaBuilder.removeSupportedObjectClass(UpdateOp.class, ociInfoShell);
-        schemaBuilder.removeSupportedObjectClass(DeleteOp.class, ociInfoShell);
-        schemaBuilder.removeSupportedObjectClass(SchemaOp.class, ociInfoShell);
-        schemaBuilder.removeSupportedObjectClass(ResolveUsernameOp.class, ociInfoShell);
-        
-        _schema = schemaBuilder.build();
-        return _schema;
+        return schema;
     }
 
     /* ********************** AUXILIARY METHODS ********************* */

@@ -25,6 +25,7 @@ package org.identityconnectors.solaris.mode;
 import java.util.List;
 import java.util.Set;
 
+import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.solaris.SolarisConnection;
 import org.identityconnectors.solaris.attr.NativeAttribute;
 import org.identityconnectors.solaris.operation.search.SolarisEntry;
@@ -66,5 +67,9 @@ public abstract class UnixModeDriver {
      * @return the SolarisEntry list initialized with the required attributes.
      */
 	public abstract List<SolarisEntry> buildAccountEntries(List<String> blockUserNames, boolean isLast);
+	
+	public abstract String buildPasswdCommand(String username);
+	
+	public abstract Schema buildSchema();
 
 }

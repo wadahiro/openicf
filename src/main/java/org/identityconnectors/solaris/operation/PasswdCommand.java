@@ -19,6 +19,8 @@
  * enclosed by brackets [] replaced by your own identifying information: 
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
+ * 
+ * Portions Copyrighted 2012 Evolveum, Radovan Semancik
  */
 package org.identityconnectors.solaris.operation;
 
@@ -53,7 +55,7 @@ class PasswdCommand extends CommandSwitches {
                 return;
             }
             
-            String command = conn.buildCommand("passwd -r files", entry.getName());
+            String command = conn.getModeDriver().buildPasswdCommand(entry.getName());
             conn.executeCommand(command, passwdRejects, CollectionUtil.newSet(NEW_PASSWORD_MATCH));
 
             conn.sendPassword(password, Collections.<String>emptySet(), CollectionUtil.newSet(NEW_PASSWORD_MATCH));
