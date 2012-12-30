@@ -296,6 +296,13 @@ public final class SolarisConfiguration extends AbstractConfiguration {
      * Specifies the unix flavour assumed for execution of certain commands.
      */
     private String unixMode = SolarisModeDriver.MODE_NAME;
+    
+    /**
+     * <b>Sun IDM Compatibility</b><br/>
+     * 
+     * Turns on behavior and schema that is almost identical to Sun IDM adapter.
+     */
+    private boolean sunCompat = false;
 
     /*            ********** CONSTRUCTOR ************ */
     public SolarisConfiguration() {
@@ -553,6 +560,15 @@ public final class SolarisConfiguration extends AbstractConfiguration {
 
     public void setUnixMode(String unixMode) {
         this.unixMode = unixMode;
+    }
+    
+    @ConfigurationProperty(order = 28)
+    public boolean getSunCompat() {
+        return sunCompat;
+    }
+
+    public void setSunCompat(boolean sunCompat) {
+        this.sunCompat = sunCompat;
     }
 
     /*            *********** AUXILIARY METHODS ***************** */

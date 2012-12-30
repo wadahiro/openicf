@@ -24,6 +24,7 @@ package org.identityconnectors.solaris.operation.search;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -33,6 +34,7 @@ import java.util.Set;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
+import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
@@ -40,13 +42,17 @@ import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.OperationOptions;
+import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
+import org.identityconnectors.solaris.SolarisConfiguration;
 import org.identityconnectors.solaris.SolarisConnection;
 import org.identityconnectors.solaris.SolarisConnector;
 import org.identityconnectors.solaris.SolarisUtil;
 import org.identityconnectors.solaris.attr.AccountAttribute;
+import org.identityconnectors.solaris.attr.AttrUtil;
 import org.identityconnectors.solaris.attr.ConnectorAttribute;
 import org.identityconnectors.solaris.attr.GroupAttribute;
 import org.identityconnectors.solaris.attr.NativeAttribute;
@@ -61,6 +67,7 @@ public class SolarisSearch extends AbstractOp {
     private static final Log log = Log.getLog(SolarisSearch.class);
     
     private SolarisConnection connection;
+    boolean sunCompat;
     
     /**
      * SHELL objectClass supports only Search operation. It encapsulates the
@@ -85,6 +92,8 @@ public class SolarisSearch extends AbstractOp {
         
         this.oclass = oclass;
         this.handler = handler;
+        
+        this.sunCompat = ((SolarisConfiguration)connector.getConfiguration()).getSunCompat();
         
         if (filter == null) {
             // NULL indicates that we should return all results.
@@ -112,7 +121,7 @@ public class SolarisSearch extends AbstractOp {
         Set<NativeAttribute> translatedAttrs = new HashSet<NativeAttribute>(attrsToGet.length);
         if (oclass.is(ObjectClass.ACCOUNT_NAME)) {
             for (String accountAttrName : attrsToGet) {
-                translatedAttrs.add(AccountAttribute.forAttributeName(accountAttrName).getNative());
+                translatedAttrs.add(AttrUtil.convertAccountIcfAttrToNative(sunCompat, accountAttrName));
             }
         } else if (oclass.is(ObjectClass.GROUP_NAME)) {
             for (String groupAttrName : attrsToGet) {
@@ -251,14 +260,34 @@ public class SolarisSearch extends AbstractOp {
         builder.addAttribute(new Name(entryName));
         
         // and rest of the attributes
-        for (String attribute : attrsToGet) {
-            ConnectorAttribute connAttr = (oclass.is(ObjectClass.ACCOUNT_NAME)) ? AccountAttribute.forAttributeName(attribute) : GroupAttribute.forAttributeName(attribute);
+        for (String icfAttrName : attrsToGet) {
+            ConnectorAttribute connAttr = null;
+            if (oclass.is(ObjectClass.ACCOUNT_NAME)) {
+            	String sunAttrName = AttrUtil.convertAccountIcfAttrToSun(sunCompat, icfAttrName);
+            	connAttr = AccountAttribute.forAttributeName(sunAttrName);
+            } else {
+            	connAttr = GroupAttribute.forAttributeName(icfAttrName);
+            }
             
             final Attribute attrToConvert = indexedEntry.get(connAttr.getNative().getName());
-            List<Object> value = (attrToConvert != null) ? attrToConvert.getValue() : null;
-            if (value == null) 
-                value = Collections.emptyList();
-            builder.addAttribute(connAttr.getName(), value);
+            List<?> values = (attrToConvert != null) ? attrToConvert.getValue() : null;
+            if (values == null) 
+                values = Collections.emptyList();
+            
+            // This is ugly. We convert from "native" names to sun-compat names and then to ICF names.
+            // TODO: Refactor
+            if (!sunCompat) {
+            	if (icfAttrName.equals(OperationalAttributes.ENABLE_NAME)) {
+            		List<Boolean> booleanValues = new ArrayList<Boolean>(values.size());
+            		for (Object val: values) {
+            			Boolean boolVal = AttrUtil.parseBoolean(val);
+            			booleanValues.add(!boolVal);
+            		}
+            		values = booleanValues;
+            	}
+        	}
+            
+            builder.addAttribute(icfAttrName, values);
         }
         
         return builder.build();

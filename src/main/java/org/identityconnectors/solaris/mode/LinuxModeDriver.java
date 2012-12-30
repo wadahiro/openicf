@@ -51,6 +51,7 @@ import org.identityconnectors.framework.spi.operations.UpdateOp;
 import org.identityconnectors.solaris.SolarisConnection;
 import org.identityconnectors.solaris.SolarisConnector;
 import org.identityconnectors.solaris.attr.AccountAttribute;
+import org.identityconnectors.solaris.attr.AttrUtil;
 import org.identityconnectors.solaris.attr.GroupAttribute;
 import org.identityconnectors.solaris.attr.NativeAttribute;
 import org.identityconnectors.solaris.operation.search.GetentPasswordCommand;
@@ -269,7 +270,7 @@ public class LinuxModeDriver extends UnixModeDriver {
 	}
 	
 	@Override
-	public Schema buildSchema() {
+	public Schema buildSchema(boolean sunCompat) {
         final SchemaBuilder schemaBuilder = new SchemaBuilder(SolarisConnector.class);
         
         /* 
@@ -303,30 +304,34 @@ public class LinuxModeDriver extends UnixModeDriver {
          */
         attributes = new HashSet<AttributeInfo>();
         attributes.add(OperationalAttributeInfos.PASSWORD);
+        
         for (AccountAttribute attr : AccountAttribute.values()) {
-            AttributeInfo newAttr = null;
-            switch (attr) {
-            case NAME:
-                newAttr = AttributeInfoBuilder.build(attr.getName(), String.class, EnumSet.of(Flags.REQUIRED));
-                break;
-            case PASSWD_FORCE_CHANGE:
-                newAttr = AttributeInfoBuilder.build(attr.getName(), boolean.class, EnumSet.of(Flags.NOT_RETURNED_BY_DEFAULT));
-                break;
-            case SECONDARY_GROUP:
-            	newAttr = AttributeInfoBuilder.build(attr.getName(), String.class, EnumSet.of(Flags.MULTIVALUED));
-                break;
-            case ROLES:
-            case AUTHORIZATION:
-            case PROFILE:
-                newAttr = null;
-                break;
-            case TIME_LAST_LOGIN:
-                newAttr = AttributeInfoBuilder.build(attr.getName(), String.class, EnumSet.of(Flags.NOT_UPDATEABLE, Flags.NOT_RETURNED_BY_DEFAULT));
-                break;
-            default:
-                newAttr = AttributeInfoBuilder.build(attr.getName());
-                break;
-            }
+        	String attrName = attr.getName();
+        	AttributeInfo newAttr = AttrUtil.convertAccountSunAttrToAttrInfo(sunCompat, attr);
+        	if (newAttr == null) {
+	            switch (attr) {
+	            case NAME:
+	                newAttr = AttributeInfoBuilder.build(attrName, String.class, EnumSet.of(Flags.REQUIRED));
+	                break;
+	            case PASSWD_FORCE_CHANGE:
+	                newAttr = AttributeInfoBuilder.build(attrName, boolean.class, EnumSet.of(Flags.NOT_RETURNED_BY_DEFAULT));
+	                break;
+	            case SECONDARY_GROUP:
+	            	newAttr = AttributeInfoBuilder.build(attrName, String.class, EnumSet.of(Flags.MULTIVALUED));
+	                break;
+	            case ROLES:
+	            case AUTHORIZATION:
+	            case PROFILE:
+	                newAttr = null;
+	                break;
+	            case TIME_LAST_LOGIN:
+	                newAttr = AttributeInfoBuilder.build(attrName, String.class, EnumSet.of(Flags.NOT_UPDATEABLE, Flags.NOT_RETURNED_BY_DEFAULT));
+	                break;
+	            default:
+	                newAttr = AttributeInfoBuilder.build(attrName);
+	                break;
+	            }
+        	}
             
             if (newAttr != null) {
             	attributes.add(newAttr);

@@ -50,6 +50,7 @@ import org.identityconnectors.framework.spi.operations.UpdateOp;
 import org.identityconnectors.solaris.SolarisConnection;
 import org.identityconnectors.solaris.SolarisConnector;
 import org.identityconnectors.solaris.attr.AccountAttribute;
+import org.identityconnectors.solaris.attr.AttrUtil;
 import org.identityconnectors.solaris.attr.GroupAttribute;
 import org.identityconnectors.solaris.attr.NativeAttribute;
 import org.identityconnectors.solaris.operation.search.AuthsCommand;
@@ -267,7 +268,7 @@ public class SolarisModeDriver extends UnixModeDriver {
 	}
 
 	@Override
-	public Schema buildSchema() {
+	public Schema buildSchema(boolean sunCompat) {
         final SchemaBuilder schemaBuilder = new SchemaBuilder(SolarisConnector.class);
         
         /* 
@@ -305,37 +306,42 @@ public class SolarisModeDriver extends UnixModeDriver {
         attributes = new HashSet<AttributeInfo>();
         attributes.add(OperationalAttributeInfos.PASSWORD);
         for (AccountAttribute attr : AccountAttribute.values()) {
-            AttributeInfo newAttr = null;
-            switch (attr) {
-            case NAME:
-                newAttr = AttributeInfoBuilder.build(attr.getName(), String.class, EnumSet.of(Flags.REQUIRED));
-                break;
-            case MIN:
-            case MAX:
-            case WARN:
-            case INACTIVE:
-            case UID:
-                newAttr = AttributeInfoBuilder.build(attr.getName(), int.class, EnumSet.of(Flags.NOT_RETURNED_BY_DEFAULT));
-                break;
-            case PASSWD_FORCE_CHANGE:
-            case LOCK:
-                newAttr = AttributeInfoBuilder.build(attr.getName(), boolean.class, EnumSet.of(Flags.NOT_RETURNED_BY_DEFAULT));
-                break;
-            case SECONDARY_GROUP:
-            case ROLES:
-            case AUTHORIZATION:
-            case PROFILE:
-                newAttr = AttributeInfoBuilder.build(attr.getName(), String.class, EnumSet.of(Flags.MULTIVALUED, Flags.NOT_RETURNED_BY_DEFAULT));
-                break;
-            case TIME_LAST_LOGIN:
-                newAttr = AttributeInfoBuilder.build(attr.getName(), String.class, EnumSet.of(Flags.NOT_UPDATEABLE, Flags.NOT_RETURNED_BY_DEFAULT));
-                break;
-            default:
-                newAttr = AttributeInfoBuilder.build(attr.getName());
-                break;
-            }
+        	String attrName = attr.getName();
+        	AttributeInfo newAttr = AttrUtil.convertAccountSunAttrToAttrInfo(sunCompat, attr);
+        	if (newAttr == null) {
+	            switch (attr) {
+	            case NAME:
+	                newAttr = AttributeInfoBuilder.build(attrName, String.class, EnumSet.of(Flags.REQUIRED));
+	                break;
+	            case MIN:
+	            case MAX:
+	            case WARN:
+	            case INACTIVE:
+	            case UID:
+	                newAttr = AttributeInfoBuilder.build(attrName, int.class, EnumSet.of(Flags.NOT_RETURNED_BY_DEFAULT));
+	                break;
+	            case PASSWD_FORCE_CHANGE:
+	            case LOCK:
+	                newAttr = AttributeInfoBuilder.build(attrName, boolean.class, EnumSet.of(Flags.NOT_RETURNED_BY_DEFAULT));
+	                break;
+	            case SECONDARY_GROUP:
+	            case ROLES:
+	            case AUTHORIZATION:
+	            case PROFILE:
+	                newAttr = AttributeInfoBuilder.build(attrName, String.class, EnumSet.of(Flags.MULTIVALUED, Flags.NOT_RETURNED_BY_DEFAULT));
+	                break;
+	            case TIME_LAST_LOGIN:
+	                newAttr = AttributeInfoBuilder.build(attrName, String.class, EnumSet.of(Flags.NOT_UPDATEABLE, Flags.NOT_RETURNED_BY_DEFAULT));
+	                break;
+	            default:
+	                newAttr = AttributeInfoBuilder.build(attrName);
+	                break;
+	            }
+        	}
             
-            attributes.add(newAttr);
+        	if (newAttr != null) {
+            	attributes.add(newAttr);
+            }
         }
         final ObjectClassInfo ociInfoAccount = new ObjectClassInfoBuilder().setType(ObjectClass.ACCOUNT_NAME).addAllAttributeInfo(attributes).build();
         schemaBuilder.defineObjectClass(ociInfoAccount);
