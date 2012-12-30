@@ -19,6 +19,8 @@
  * enclosed by brackets [] replaced by your own identifying information: 
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
+ * 
+ * Portions Copyrighted 2012 Evolveum, Radovan Semancik
  */
 package org.identityconnectors.solaris.operation;
 
@@ -37,6 +39,7 @@ import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.solaris.SolarisConfiguration;
 import org.identityconnectors.solaris.SolarisConnection;
 import org.identityconnectors.solaris.SolarisConnector;
 import org.identityconnectors.solaris.SolarisUtil;
@@ -50,12 +53,14 @@ public class SolarisCreate extends AbstractOp {
     private static final Log log = Log.getLog(SolarisCreate.class);
     
     private SolarisConnection connection;
+    private boolean sunCompat;
     
     final ObjectClass[] acceptOC = {ObjectClass.ACCOUNT, ObjectClass.GROUP};
     
     public SolarisCreate(SolarisConnector connector) {
         super(connector);
         connection = connector.getConnection();
+        this.sunCompat = ((SolarisConfiguration)connector.getConfiguration()).getSunCompat();
     }
 
     /**
@@ -76,7 +81,8 @@ public class SolarisCreate extends AbstractOp {
 
         log.info("~~~~~~~ create {0}(''{1}'') ~~~~~~~", oclass.getObjectClassValue(), entryName);
         
-        final SolarisEntry entry = SolarisUtil.forConnectorAttributeSet(name.getNameValue(), oclass, attrs);
+        final SolarisEntry entry = SolarisUtil.forConnectorAttributeSet(name.getNameValue(), oclass, attrs,
+        		sunCompat);
         if (oclass.is(ObjectClass.ACCOUNT_NAME)) {
             GuardedString password = null;
             Attribute attrPasswd = attrMap.get(OperationalAttributes.PASSWORD_NAME);

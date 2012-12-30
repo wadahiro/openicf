@@ -24,10 +24,12 @@ package org.identityconnectors.solaris.mode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.identityconnectors.common.logging.Log;
@@ -35,6 +37,7 @@ import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
+import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
@@ -54,6 +57,7 @@ import org.identityconnectors.solaris.attr.AccountAttribute;
 import org.identityconnectors.solaris.attr.AttrUtil;
 import org.identityconnectors.solaris.attr.GroupAttribute;
 import org.identityconnectors.solaris.attr.NativeAttribute;
+import org.identityconnectors.solaris.operation.CommandSwitches;
 import org.identityconnectors.solaris.operation.search.GetentPasswordCommand;
 import org.identityconnectors.solaris.operation.search.IdCommand;
 import org.identityconnectors.solaris.operation.search.LastCommand;
@@ -267,6 +271,74 @@ public class LinuxModeDriver extends UnixModeDriver {
 	@Override
 	public String buildPasswdCommand(String username) {
 		return conn.buildCommand("passwd", username);
+	}
+	
+	@Override
+	public void configurePasswordProperties(SolarisEntry entry, SolarisConnection conn) {
+		// Linux has to handle lock/unlock in a separate command
+		Map<NativeAttribute, String> passwdSwitches = buildPasswdSwitchesLock(entry, conn);
+        String cmdSwitches = CommandSwitches.formatCommandSwitches(entry, conn, passwdSwitches);
+        if (!cmdSwitches.isEmpty()) {
+	        try {
+	            final String command = conn.buildCommand("passwd", cmdSwitches, entry.getName());
+	            final String out = conn.executeCommand(command);
+	            final String loweredOut = out.toLowerCase();
+	            if (loweredOut.contains("usage:") || loweredOut.contains("password aging is disabled") || loweredOut.contains("command not found")) {
+	                throw new ConnectorException("Error during configuration of password related attributes. Buffer content: <" + out + ">");
+	            }
+	        } catch (Exception ex) {
+	            throw ConnectorException.wrap(ex);
+	        }
+        }
+        
+		passwdSwitches = buildPasswdSwitches(entry, conn);
+        cmdSwitches = CommandSwitches.formatCommandSwitches(entry, conn, passwdSwitches);
+        if (!cmdSwitches.isEmpty()) {
+	        try {
+	            final String command = conn.buildCommand("passwd", cmdSwitches, entry.getName());
+	            final String out = conn.executeCommand(command);
+	            final String loweredOut = out.toLowerCase();
+	            if (loweredOut.contains("usage:") || loweredOut.contains("password aging is disabled") || loweredOut.contains("command not found")) {
+	                throw new ConnectorException("Error during configuration of password related attributes. Buffer content: <" + out + ">");
+	            }
+	        } catch (Exception ex) {
+	            throw ConnectorException.wrap(ex);
+	        }
+        }
+
+	}
+
+	private Map<NativeAttribute, String> buildPasswdSwitches(SolarisEntry entry, SolarisConnection conn) {
+		Map<NativeAttribute, String> passwdSwitches = new EnumMap<NativeAttribute, String>(NativeAttribute.class);
+		// Immediately expire password. This forces password change.
+        passwdSwitches.put(NativeAttribute.PWSTAT, "-e");
+        
+        passwdSwitches.put(NativeAttribute.MIN_DAYS_BETWEEN_CHNG, "-n");
+        passwdSwitches.put(NativeAttribute.MAX_DAYS_BETWEEN_CHNG, "-x");
+        passwdSwitches.put(NativeAttribute.DAYS_BEFORE_TO_WARN, "-w");
+        return passwdSwitches;
+	}
+	
+	private Map<NativeAttribute, String> buildPasswdSwitchesLock(SolarisEntry entry, SolarisConnection conn) {
+		Map<NativeAttribute, String> passwdSwitches = new EnumMap<NativeAttribute, String>(NativeAttribute.class);
+        String lockFlag = null;
+        Attribute lock = entry.searchForAttribute(NativeAttribute.LOCK);
+        if (lock != null) {
+            Object lockValue = AttributeUtil.getSingleValue(lock);
+            if (lockValue == null) {
+                throw new IllegalArgumentException("missing value for attribute LOCK");
+            }
+            boolean isLock = (Boolean) lockValue;
+            if (isLock) {
+                lockFlag = "-l";
+            } else {
+                lockFlag = "-u";
+            }
+        }
+        if (lockFlag != null) {
+            passwdSwitches.put(NativeAttribute.LOCK, lockFlag);
+        }
+        return passwdSwitches;
 	}
 	
 	@Override

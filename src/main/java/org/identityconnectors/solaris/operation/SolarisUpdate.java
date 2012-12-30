@@ -19,6 +19,8 @@
  * enclosed by brackets [] replaced by your own identifying information: 
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
+ * 
+ * Portions Copyrighted 2012 Evolveum, Radovan Semancik
  */
 package org.identityconnectors.solaris.operation;
 
@@ -37,6 +39,7 @@ import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.solaris.SolarisConfiguration;
 import org.identityconnectors.solaris.SolarisConnection;
 import org.identityconnectors.solaris.SolarisConnector;
 import org.identityconnectors.solaris.SolarisUtil;
@@ -56,6 +59,7 @@ public class SolarisUpdate extends AbstractOp {
     private static final Log log = Log.getLog(SolarisUpdate.class);
     
     private SolarisConnection connection;
+    private boolean sunCompat;
 
     /** These objectclasses are valid for update operation. */
     final ObjectClass[] acceptOC = { ObjectClass.ACCOUNT, ObjectClass.GROUP };
@@ -63,6 +67,7 @@ public class SolarisUpdate extends AbstractOp {
     public SolarisUpdate(SolarisConnector connector) {
         super(connector);
         connection = connector.getConnection();
+        this.sunCompat = ((SolarisConfiguration)connector.getConfiguration()).getSunCompat();
     }
 
     /** main update method */
@@ -74,7 +79,8 @@ public class SolarisUpdate extends AbstractOp {
 
         // Read only list of attributes
         final Map<String, Attribute> attrMap = new HashMap<String, Attribute>(AttributeUtil.toMap(replaceAttributes));
-        final SolarisEntry entry = SolarisUtil.forConnectorAttributeSet(uid.getUidValue(), objclass, replaceAttributes);
+        final SolarisEntry entry = SolarisUtil.forConnectorAttributeSet(uid.getUidValue(), objclass, replaceAttributes,
+        		sunCompat);
         
         final String newName = fetchName(entry);
         if (objclass.is(ObjectClass.ACCOUNT_NAME)) {

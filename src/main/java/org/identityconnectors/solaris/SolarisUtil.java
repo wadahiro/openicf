@@ -19,13 +19,17 @@
  * enclosed by brackets [] replaced by your own identifying information: 
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
+ * 
+ * Portions Copyrighted 2012 Evolveum, Radovan Semancik
  */
 package org.identityconnectors.solaris;
 
 import static org.identityconnectors.solaris.SolarisMessages.MSG_NOT_SUPPORTED_OBJECTCLASS;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
@@ -34,6 +38,7 @@ import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.solaris.attr.AccountAttribute;
+import org.identityconnectors.solaris.attr.AttrUtil;
 import org.identityconnectors.solaris.attr.ConnectorAttribute;
 import org.identityconnectors.solaris.attr.GroupAttribute;
 import org.identityconnectors.solaris.attr.NativeAttribute;
@@ -99,20 +104,43 @@ public class SolarisUtil {
      * 
      * @param entryName the entry's name (can be either GROUP or ACCOUNT)
      * @param oclass object class type
-     * @param attrs connector attributes
+     * @param icfAttrs connector attributes
      * @return the translated attributes encapsulated
      */
-    public static SolarisEntry forConnectorAttributeSet(String entryName, ObjectClass oclass, Set<Attribute> attrs) {
+    public static SolarisEntry forConnectorAttributeSet(String entryName, ObjectClass oclass, Set<Attribute> icfAttrs,
+    		boolean sunCompat) {
         // translate connector attributes to native counterparts
         final SolarisEntry.Builder builder = new SolarisEntry.Builder(entryName);
-        for (Attribute attribute : attrs) {
-            final ConnectorAttribute accAttrName = (oclass.is(ObjectClass.ACCOUNT_NAME)) ? AccountAttribute.forAttributeName(attribute.getName()) : GroupAttribute.forAttributeName(attribute.getName());
-            if (accAttrName != null) {
-                builder.addAttr(accAttrName.getNative(), attribute.getValue());
-            } else if (!attribute.getName().equals(OperationalAttributes.PASSWORD_NAME) && !attribute.getName().equals(Uid.NAME)) {
+        for (Attribute icfAttr : icfAttrs) {
+        	String icfAttrName = icfAttr.getName();
+            ConnectorAttribute sunAttr = null;
+            if (oclass.is(ObjectClass.ACCOUNT_NAME)) {
+            	String sunAttrName = AttrUtil.convertAccountIcfAttrToSun(sunCompat, icfAttrName);
+				sunAttr = AccountAttribute.forAttributeName(sunAttrName);
+            } else { 
+            	sunAttr = GroupAttribute.forAttributeName(icfAttr.getName());
+            }
+            
+            List<?> values = icfAttr.getValue();
+            
+            if (!sunCompat) {
+	            if (icfAttrName.equals(OperationalAttributes.ENABLE_NAME)) {
+	            	if (values != null && !values.isEmpty()) {
+	            		List<Boolean> stringValues = new ArrayList<Boolean>(values.size());
+		            	// Values has to be List<Boolean> in this case
+		            	for (Boolean boolVal: (List<Boolean>)values) {
+		            		stringValues.add(!boolVal);
+		            	}
+		            	values = stringValues;
+	            	}
+	            }
+            }
+            if (sunAttr != null) {
+                builder.addAttr(sunAttr.getNative(), values);
+            } else if (!icfAttr.getName().equals(OperationalAttributes.PASSWORD_NAME) && !icfAttr.getName().equals(Uid.NAME)) {
                 // FIXME: do we really need this exception here? It'd be way more beautiful without if-s.
                 //TODO it might be a more beautiful sort out this error (filter the attributes in layers above this class).
-                throw new ConnectorException("ERROR: Unsupported attribute: " + attribute.getName());
+                throw new ConnectorException("ERROR: Unsupported attribute: " + icfAttr.getName());
             }
         }
         return builder.build();

@@ -24,16 +24,19 @@ package org.identityconnectors.solaris.mode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
+import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.ObjectClassInfoBuilder;
@@ -53,6 +56,7 @@ import org.identityconnectors.solaris.attr.AccountAttribute;
 import org.identityconnectors.solaris.attr.AttrUtil;
 import org.identityconnectors.solaris.attr.GroupAttribute;
 import org.identityconnectors.solaris.attr.NativeAttribute;
+import org.identityconnectors.solaris.operation.CommandSwitches;
 import org.identityconnectors.solaris.operation.search.AuthsCommand;
 import org.identityconnectors.solaris.operation.search.LastCommand;
 import org.identityconnectors.solaris.operation.search.LoginsCommand;
@@ -265,6 +269,56 @@ public class SolarisModeDriver extends UnixModeDriver {
 	@Override
 	public String buildPasswdCommand(String username) {
 		return conn.buildCommand("passwd -r files", username);
+	}
+
+	@Override
+	public void configurePasswordProperties(SolarisEntry entry, SolarisConnection conn) {
+		Map<NativeAttribute, String> passwdSwitches = buildPasswdSwitches(entry, conn);
+        final String cmdSwitches = CommandSwitches.formatCommandSwitches(entry, conn, passwdSwitches);
+        if (cmdSwitches.length() == 0) {
+            return; // no password related attribute present in the entry.
+        }
+        
+        try {
+            final String command = conn.buildCommand("passwd", cmdSwitches, entry.getName());
+            final String out = conn.executeCommand(command);
+            final String loweredOut = out.toLowerCase();
+            if (loweredOut.contains("usage:") || loweredOut.contains("password aging is disabled") || loweredOut.contains("command not found")) {
+                throw new ConnectorException("Error during configuration of password related attributes. Buffer content: <" + out + ">");
+            }
+        } catch (Exception ex) {
+            throw ConnectorException.wrap(ex);
+        }
+	}
+
+	private Map<NativeAttribute, String> buildPasswdSwitches(SolarisEntry entry, SolarisConnection conn) {
+		Map<NativeAttribute, String> passwdSwitches = new EnumMap<NativeAttribute, String>(NativeAttribute.class);
+        passwdSwitches.put(NativeAttribute.PWSTAT, "-f");
+        //passwdSwitches.put(NativeAttribute.PW_LAST_CHANGE, null); // this is not used attribute (see LoginsCommand and its SVIDRA counterpart). TODO erase this comment.
+        passwdSwitches.put(NativeAttribute.MIN_DAYS_BETWEEN_CHNG, "-n");
+        passwdSwitches.put(NativeAttribute.MAX_DAYS_BETWEEN_CHNG, "-x");
+        passwdSwitches.put(NativeAttribute.DAYS_BEFORE_TO_WARN, "-w");
+        
+        String lockFlag = null;
+        Attribute lock = entry.searchForAttribute(NativeAttribute.LOCK);
+        if (lock != null) {
+            Object lockValue = AttributeUtil.getSingleValue(lock);
+            if (lockValue == null) {
+                throw new IllegalArgumentException("missing value for attribute LOCK");
+            }
+            boolean isLock = (Boolean) lockValue;
+            if (isLock) {
+                lockFlag = "-l";
+            } else {
+                // *unlocking* differs in Solaris 8,9 and in Solaris 10+:
+                lockFlag = (conn.isVersionLT10()) ? "-df" : "-u";
+                passwdSwitches.put(NativeAttribute.LOCK, lockFlag);
+            }
+        }
+        if (lockFlag != null) {
+            passwdSwitches.put(NativeAttribute.LOCK, lockFlag);
+        }
+        return passwdSwitches;
 	}
 
 	@Override

@@ -23,6 +23,7 @@
 package org.identityconnectors.solaris.mode;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.identityconnectors.framework.common.objects.AttributeInfo;
@@ -73,6 +74,8 @@ public abstract class UnixModeDriver {
 	public abstract List<SolarisEntry> buildAccountEntries(List<String> blockUserNames, boolean isLast);
 	
 	public abstract String buildPasswdCommand(String username);
+	
+	public abstract void configurePasswordProperties(SolarisEntry entry, SolarisConnection conn);
 	
 	public abstract Schema buildSchema(boolean sunCompat);
 

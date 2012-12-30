@@ -42,7 +42,7 @@ import org.identityconnectors.solaris.operation.search.SolarisEntry;
  * @author David Adam
  *
  */
-class CommandSwitches {
+public class CommandSwitches {
     //create and update operation switches (identical for both operations)
     static final Map<NativeAttribute, String> commonSwitches;
     
@@ -96,7 +96,7 @@ class CommandSwitches {
      *         a zero-length string, in case no switch matched the attributes in
      *         the given entry.
      */
-    static String formatCommandSwitches(SolarisEntry entry, SolarisConnection conn, Map<NativeAttribute, String> switches) {
+    public static String formatCommandSwitches(SolarisEntry entry, SolarisConnection conn, Map<NativeAttribute, String> switches) {
         StringBuilder buffer = new StringBuilder();
         
         for (Attribute attr : entry.getAttributeSet()) {
