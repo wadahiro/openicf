@@ -103,15 +103,16 @@ public class CommandSwitches {
             NativeAttribute nAttrName = NativeAttribute.forAttributeName(attr.getName());
             // assuming Single values only
             List<Object> values = attr.getValue();
-            if (values == null) {
-                // workaround for contract tests
-                // (UpdateApitOpTests#testUpdateToNull()):
-                // because Unix cannot accept null arguments in update, we need
-                // to throw an exception to satisfy the contract.
-                throw new ConnectorException(String.format("Attribute '%s' has a null value, expecting singleValue", attr.getName()));
-            }
-
+            
             if (nAttrName.isSingleValue()) {
+            	if (values == null) {
+            		// TODO: does this make sense? the attributes may be optional ...
+                    // workaround for contract tests
+                    // (UpdateApitOpTests#testUpdateToNull()):
+                    // because Unix cannot accept null arguments in update, we need
+                    // to throw an exception to satisfy the contract.
+                    throw new ConnectorException(String.format("Attribute '%s' has a null value, expecting singleValue", attr.getName()));
+                }
                 // this provides validation for single value attributes.
                 Object value = AttributeUtil.getSingleValue(attr);
 
@@ -126,6 +127,10 @@ public class CommandSwitches {
                         values = CollectionUtil.newList((Object) "");
                     }
                 }
+            } else {
+            	if (values == null) {
+            		values = CollectionUtil.newList();
+            	}
             }
 
             // append command line switch
