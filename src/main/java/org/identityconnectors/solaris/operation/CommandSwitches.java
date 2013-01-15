@@ -119,8 +119,10 @@ public class CommandSwitches {
                 // clear or remove the attribute on the resource.
                 // Some command line switches allow to pass empty argument,
                 // these are in Set CommandSwitches#passNullParams.
-                if (value == null || StringUtil.isBlank(value.toString())) {
-                    if (passNullParams.contains(nAttrName)) {
+                if (value == null || StringUtil.isBlank(value.toString()) || values.isEmpty()) {
+                	if (nAttrName == NativeAttribute.USER_INACTIVE) {
+                		values = CollectionUtil.newList((Object) "-1");
+                	} else if (passNullParams.contains(nAttrName)) {
                         values = CollectionUtil.newList((Object) "");
                     }
                 }
