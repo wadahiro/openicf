@@ -395,6 +395,13 @@ public class LinuxModeDriver extends UnixModeDriver {
 	            case NAME:
 	                newAttr = AttributeInfoBuilder.build(attrName, String.class, EnumSet.of(Flags.REQUIRED));
 	                break;
+	            case MIN:
+	            case MAX:
+	            case WARN:
+	            case INACTIVE:
+	            case UID:
+	                newAttr = AttributeInfoBuilder.build(attrName, int.class);
+	                break;
 	            case PASSWD_FORCE_CHANGE:
 	                newAttr = AttributeInfoBuilder.build(attrName, boolean.class, EnumSet.of(Flags.NOT_RETURNED_BY_DEFAULT));
 	                break;
