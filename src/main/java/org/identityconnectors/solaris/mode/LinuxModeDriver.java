@@ -204,7 +204,8 @@ public class LinuxModeDriver extends UnixModeDriver {
             throw new ConnectorException(String.format("User '%s' is missing %s time.", username, lineType));
         }
 		String line = lineIterator.next();
-		return weedOutShellContChars(line);
+		String noContLine = weedOutShellContChars(line);
+		return weedOutControlChars(noContLine);
 	}
 
 	private String weedOutShellContChars(String line) {
@@ -215,6 +216,15 @@ public class LinuxModeDriver extends UnixModeDriver {
         }
         return line;
 	}
+	
+	private String weedOutControlChars(String line) {
+		if (line.endsWith("\r")) {
+			return line.substring(0, line.length() - 1);
+		} else {
+			return line;
+		}
+	}
+
 
 	@Override
 	public SolarisEntry buildAccountEntry(String username, Set<NativeAttribute> attrsToGet) {
