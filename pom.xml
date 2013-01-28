@@ -78,7 +78,7 @@
         <repository>
             <id>evolveum</id>
             <name>Evolveum Repository</name>
-            <url>http://repo.evolveum.com/repo</url>
+            <url>http://nexus.evolveum.com/nexus/content/groups/public</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
